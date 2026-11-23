@@ -14,12 +14,12 @@ export const FooterColophon: React.FC<FooterColophonProps> = ({
   const linkTargets: Record<string, string> = {
     'Explore skills': '#act-marketplace',
     'Community': '#act-architecture',
-    'Create an account': '#act-pass',
+    'Create an account': '/login',
     'Why Echo Time': '#act-thesis',
     'How it works': '#act-marketplace',
     'FAQs': '#act-faq',
-    'Log in': '#act-pass',
-    'Sign up': '#act-pass',
+    'Log in': '/login',
+    'Sign up': '/login',
     'Privacy & Terms': '#act-hero',
   };
 

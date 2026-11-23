@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, IBM_Plex_Mono, Anton } from 'next/font/google';
+import { Inter, IBM_Plex_Mono, Anton, Cairo } from 'next/font/google';
 import './globals.css';
 
 const inter = Inter({
@@ -11,7 +11,7 @@ const inter = Inter({
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-ibm-plex-mono',
   display: 'swap',
 });
@@ -20,6 +20,13 @@ const anton = Anton({
   subsets: ['latin'],
   weight: ['400'],
   variable: '--font-anton',
+  display: 'swap',
+});
+
+const cairo = Cairo({
+  subsets: ['latin', 'arabic'],
+  weight: ['600', '700', '800'],
+  variable: '--font-cairo',
   display: 'swap',
 });
 
@@ -68,7 +75,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-[#1A1B17]">
       <body
-        className={`${inter.variable} ${ibmPlexMono.variable} ${anton.variable} font-swiss-sans bg-[#1A1B17] text-[#F1EFE8] antialiased selection:bg-[#C9E54B] selection:text-[#1A1B17]`}
+        className={`${inter.variable} ${ibmPlexMono.variable} ${anton.variable} ${cairo.variable} font-swiss-sans bg-[#1A1B17] text-[#F1EFE8] antialiased selection:bg-[#C9E54B] selection:text-[#1A1B17]`}
       >
         {children}
       </body>

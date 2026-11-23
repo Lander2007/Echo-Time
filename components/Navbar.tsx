@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { CANONICAL_CONTENT } from '@/data/content';
 
 interface NavbarProps {
@@ -118,25 +119,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
-          <a
-            href="#act-pass"
+          <Link
+            href="/login"
             data-cursor="LOGIN"
-            onClick={(e) => {
-              e.preventDefault();
-              onGetPassClick();
-            }}
             className="hidden sm:inline-block px-3 py-1.5 rounded text-ink font-swiss-mono text-[10.5px] font-semibold hover:text-accent transition-colors"
           >
             {CANONICAL_CONTENT.nav.buttons.login}
-          </a>
+          </Link>
 
-          <a
-            href="#act-pass"
+          <Link
+            href="/login"
             data-cursor="SIGNUP"
-            onClick={(e) => {
-              e.preventDefault();
-              onGetPassClick();
-            }}
             className="magnetic btn-roll px-4 sm:px-5 py-2 rounded bg-accent text-accent-ink border border-[#1A1B17] font-swiss-mono text-[10.5px] font-semibold uppercase tracking-[0.12em]"
           >
             <span className="btn-roll-inner">
@@ -145,7 +138,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {CANONICAL_CONTENT.nav.buttons.signup}
               </span>
             </span>
-          </a>
+          </Link>
         </div>
       </div>
     </header>

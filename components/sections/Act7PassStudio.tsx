@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { PASS_PRESETS } from '@/data/echoData';
 import { TactileAudioEngine } from '@/lib/audio';
 import { CANONICAL_CONTENT } from '@/data/content';
@@ -308,6 +309,13 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
                       {CANONICAL_CONTENT.cta.welcomeState.actions[1]}
                     </a>
                   </div>
+
+                  <Link
+                    href="/dashboard"
+                    className="w-full py-3 text-center rounded bg-accent text-accent-ink font-swiss-mono text-[11px] font-bold uppercase tracking-[0.12em] block hover:brightness-95 transition-all mt-2"
+                  >
+                    Enter Student Workspace →
+                  </Link>
                 </div>
               )}
             </div>

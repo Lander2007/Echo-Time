@@ -1101,4 +1101,122 @@
   ::-webkit-scrollbar-track { background: #1A1B17; }
   ::-webkit-scrollbar-thumb { background: #C9E54B; border-radius: 2px; }
 
+  /* ============================================================================
+     POST-LOGIN STUDENT WORKSPACE DNA & THEME SYSTEM (.et-app-*)
+     ============================================================================ */
+
+  .et-app-dark {
+    --bg: #1A1B17;
+    --bg-elevated: #22241E;
+    --bg-panel: #1F211B;
+    --bg-subtle: #2A2D25;
+    --ink: #F1EFE8;
+    --muted: #989A8E;
+    --lime: #C9E54B;
+    --lime-ink: #1A1B17;
+    --cobalt: #6B84FF;
+    --cobalt-solid: #1E3AE0;
+    --border: rgba(241, 239, 232, 0.13);
+    --border-strong: rgba(241, 239, 232, 0.28);
+    --grid-line: rgba(241, 239, 232, 0.04);
+  }
+
+  .et-app-light {
+    --bg: #EAE8DF;
+    --bg-elevated: #F5F4EE;
+    --bg-panel: #EFECE3;
+    --bg-subtle: #DFDDD2;
+    --ink: #1A1B17;
+    --muted: #55584B;
+    --lime: #C9E54B;
+    --lime-ink: #1A1B17;
+    --cobalt: #1E3AE0;
+    --cobalt-solid: #1E3AE0;
+    --border: rgba(26, 27, 23, 0.15);
+    --border-strong: rgba(26, 27, 23, 0.34);
+    --grid-line: rgba(26, 27, 23, 0.055);
+  }
+
+  .et-shell {
+    font-family: var(--font-inter), var(--font-cairo), 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--bg);
+    color: var(--ink);
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    min-height: 100vh;
+    transition: background-color 0.28s ease, color 0.28s ease;
+  }
+
+  .font-et-mono { font-family: var(--font-ibm-plex-mono), monospace; }
+  .font-et-sans { font-family: var(--font-inter), var(--font-cairo), sans-serif; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  .et-card {
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border);
+    transition: border-color 0.22s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease;
+  }
+
+  .et-card-hover:hover {
+    border-color: var(--lime);
+    transform: translateY(-2px);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+  }
+
+  .et-app-light .et-card-hover:hover {
+    border-color: #1A1B17;
+    box-shadow: 0 14px 32px rgba(26, 27, 23, 0.12);
+  }
+
+  .et-swiss-cross {
+    position: relative;
+    display: block;
+    width: 10px;
+    height: 10px;
+  }
+  .et-swiss-cross::before,
+  .et-swiss-cross::after {
+    content: "";
+    position: absolute;
+    background-color: currentColor;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .et-swiss-cross::before { width: 10px; height: 2.5px; }
+  .et-swiss-cross::after { width: 2.5px; height: 10px; }
+
+  .et-tick-tl, .et-tick-tr, .et-tick-bl, .et-tick-br {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    pointer-events: none;
+  }
+  .et-tick-tl { top: -1px; left: -1px; border-top: 2px solid var(--lime); border-left: 2px solid var(--lime); }
+  .et-tick-tr { top: -1px; right: -1px; border-top: 2px solid var(--cobalt); border-right: 2px solid var(--cobalt); }
+  .et-tick-bl { bottom: -1px; left: -1px; border-bottom: 2px solid var(--cobalt); border-left: 2px solid var(--cobalt); }
+  .et-tick-br { bottom: -1px; right: -1px; border-bottom: 2px solid var(--lime); border-right: 2px solid var(--lime); }
+
+  .et-perforated {
+    border-top: 1.5px dashed var(--border-strong);
+  }
+
+  @keyframes etSlideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .et-animate-in {
+    animation: etSlideIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  @keyframes etToastIn {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .et-toast {
+    animation: etToastIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
 
