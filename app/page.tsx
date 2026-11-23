@@ -63,7 +63,6 @@ export default function EchoTimeLandingPage() {
   const cursorDotRef = useRef<HTMLDivElement | null>(null);
   const navContainerRef = useRef<HTMLElement | null>(null);
   const navIndicatorRef = useRef<HTMLDivElement | null>(null);
-  const navProgressRef = useRef<HTMLDivElement | null>(null);
 
   // Act I Hero & Mechanical Shake refs
   const heroCameraRigRef = useRef<HTMLDivElement | null>(null);
@@ -525,16 +524,7 @@ export default function EchoTimeLandingPage() {
     let cursorRafId = 0;
     let resizeTimer: number | null = null;
 
-    // 1. Scroll Progress Bar (immediate, independent of CDN load)
-    const updateProgressBar = () => {
-      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      const pct = Math.min(1, Math.max(0, window.scrollY / max)) * 100;
-      if (navProgressRef.current) {
-        navProgressRef.current.style.width = `${pct.toFixed(2)}%`;
-      }
-    };
-    window.addEventListener('scroll', updateProgressBar, { passive: true });
-    updateProgressBar();
+    // 1. Scroll Progress Bar removed per user request
 
     // 2. Global Pointer Listeners for Act II Blade Dragging
     const onGlobalPointerMove = (e: PointerEvent) => {
@@ -715,14 +705,19 @@ export default function EchoTimeLandingPage() {
         }
 
         // ACT I — Hero Entrance + 3D Swiss Opening Door + Mechanical Screen Shake
-        gsap.from('.hero-stagger', {
-          y: 24,
-          opacity: 0,
-          duration: 0.85,
-          stagger: 0.12,
-          ease: 'power3.out',
-          delay: 0.82,
-        });
+        gsap.fromTo(
+          '.hero-stagger',
+          { y: 24, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.85,
+            stagger: 0.12,
+            ease: 'power3.out',
+            delay: 0.45,
+            clearProps: 'transform,opacity',
+          }
+        );
 
         const cameraRig = heroCameraRigRef.current;
         const reducedMotion =
@@ -818,8 +813,22 @@ export default function EchoTimeLandingPage() {
             pin: true,
             scrub: 0.7,
             anticipatePin: 1,
+            onLeaveBack: () => {
+              gsap.set(['#hero-headline-left', '#hero-meta-left', '#hero-headline-right', '#hero-meta-right'], {
+                opacity: 1,
+                x: 0,
+                overwrite: 'auto',
+              });
+            },
             onUpdate: (self: ScrollTrigger) => {
               const p = self.progress;
+              if (p <= 0.04) {
+                gsap.set(['#hero-headline-left', '#hero-meta-left', '#hero-headline-right', '#hero-meta-right'], {
+                  opacity: 1,
+                  x: 0,
+                  overwrite: 'auto',
+                });
+              }
               const delta = Math.abs(p - prevProgress);
 
               if (p > 0.13 && !latchFired) {
@@ -863,13 +872,15 @@ export default function EchoTimeLandingPage() {
             { opacity: 0, scale: 0.55, duration: 0.12, ease: 'power1.in' },
             0.12
           )
-          .to(
+          .fromTo(
             ['#hero-headline-left', '#hero-meta-left'],
+            { x: 0, opacity: 1 },
             { x: -110, opacity: 0, duration: 0.36, ease: 'power2.in' },
             0.06
           )
-          .to(
+          .fromTo(
             ['#hero-headline-right', '#hero-meta-right'],
+            { x: 0, opacity: 1 },
             { x: 110, opacity: 0, duration: 0.36, ease: 'power2.in' },
             0.06
           )
@@ -1112,7 +1123,6 @@ export default function EchoTimeLandingPage() {
         finaleState.rafId = 0;
       }
       if (resizeTimer) window.clearTimeout(resizeTimer);
-      window.removeEventListener('scroll', updateProgressBar);
       window.removeEventListener('pointermove', onGlobalPointerMove);
       window.removeEventListener('pointerup', onGlobalPointerUp);
       window.removeEventListener('resize', onResize);
@@ -1497,7 +1507,6 @@ export default function EchoTimeLandingPage() {
         }}
         navContainerRef={navContainerRef}
         navIndicatorRef={navIndicatorRef}
-        navProgressRef={navProgressRef}
         onMoveIndicator={moveNavIndicator}
       />
 

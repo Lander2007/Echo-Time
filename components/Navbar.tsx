@@ -11,7 +11,6 @@ interface NavbarProps {
   onHomeClick: () => void;
   navContainerRef: React.RefObject<HTMLElement | null>;
   navIndicatorRef: React.RefObject<HTMLDivElement | null>;
-  navProgressRef: React.RefObject<HTMLDivElement | null>;
   onMoveIndicator: (id: string) => void;
 }
 
@@ -25,7 +24,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onHomeClick,
   navContainerRef,
   navIndicatorRef,
-  navProgressRef,
   onMoveIndicator,
 }) => {
   return (
@@ -128,11 +126,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </a>
           </div>
-        </div>
-
-        {/* 2px Acid Lime Scroll Progress Bar */}
-        <div className="nav-progress-rail" aria-hidden="true">
-          <div ref={navProgressRef} className="nav-progress-fill" />
         </div>
       </header>
 

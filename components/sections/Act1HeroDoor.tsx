@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { SLAT_INDICES } from '@/data/echoData';
 
 interface Act1HeroDoorProps {
@@ -14,8 +14,96 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
   doorImpactFrameRef,
   latchPulseRef,
 }) => {
+  const heroSectionRef = useRef<HTMLElement | null>(null);
+  const glowSpotRef = useRef<HTMLDivElement | null>(null);
+  const crosshairHRef = useRef<HTMLDivElement | null>(null);
+  const crosshairVRef = useRef<HTMLDivElement | null>(null);
+  const coordBadgeRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const section = heroSectionRef.current;
+    if (!section) return;
+
+    let rafId = 0;
+    let targetX = -1000;
+    let targetY = -1000;
+    let currentX = -1000;
+    let currentY = -1000;
+    let isInside = false;
+
+    const onPointerMove = (e: PointerEvent) => {
+      const rect = section.getBoundingClientRect();
+      if (
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      ) {
+        targetX = e.clientX - rect.left;
+        targetY = e.clientY - rect.top;
+        if (!isInside) {
+          isInside = true;
+          currentX = targetX;
+          currentY = targetY;
+          if (glowSpotRef.current) glowSpotRef.current.style.opacity = '1';
+          if (crosshairHRef.current) crosshairHRef.current.style.opacity = '1';
+          if (crosshairVRef.current) crosshairVRef.current.style.opacity = '1';
+          if (coordBadgeRef.current) coordBadgeRef.current.style.opacity = '1';
+        }
+      } else if (isInside) {
+        isInside = false;
+        if (glowSpotRef.current) glowSpotRef.current.style.opacity = '0';
+        if (crosshairHRef.current) crosshairHRef.current.style.opacity = '0';
+        if (crosshairVRef.current) crosshairVRef.current.style.opacity = '0';
+        if (coordBadgeRef.current) coordBadgeRef.current.style.opacity = '0';
+      }
+    };
+
+    const onPointerLeave = () => {
+      isInside = false;
+      if (glowSpotRef.current) glowSpotRef.current.style.opacity = '0';
+      if (crosshairHRef.current) crosshairHRef.current.style.opacity = '0';
+      if (crosshairVRef.current) crosshairVRef.current.style.opacity = '0';
+      if (coordBadgeRef.current) coordBadgeRef.current.style.opacity = '0';
+    };
+
+    const tick = () => {
+      if (isInside) {
+        currentX += (targetX - currentX) * 0.18;
+        currentY += (targetY - currentY) * 0.18;
+
+        if (glowSpotRef.current) {
+          glowSpotRef.current.style.transform = `translate3d(${currentX - 340}px, ${currentY - 340}px, 0)`;
+        }
+        if (crosshairHRef.current) {
+          crosshairHRef.current.style.transform = `translate3d(0, ${currentY}px, 0)`;
+        }
+        if (crosshairVRef.current) {
+          crosshairVRef.current.style.transform = `translate3d(${currentX}px, 0, 0)`;
+        }
+        if (coordBadgeRef.current) {
+          const badgeX = Math.min(Math.max(currentX + 16, 12), (section.offsetWidth || 1200) - 200);
+          const badgeY = Math.min(Math.max(currentY + 16, 12), (section.offsetHeight || 800) - 36);
+          coordBadgeRef.current.style.transform = `translate3d(${badgeX}px, ${badgeY}px, 0)`;
+          coordBadgeRef.current.textContent = `SYS.GRID [${Math.round(currentX).toString().padStart(4, '0')}:${Math.round(currentY).toString().padStart(4, '0')}] · 01 PORTAL`;
+        }
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+
+    section.addEventListener('pointermove', onPointerMove, { passive: true });
+    section.addEventListener('pointerleave', onPointerLeave);
+    rafId = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      section.removeEventListener('pointermove', onPointerMove);
+      section.removeEventListener('pointerleave', onPointerLeave);
+    };
+  }, []);
   return (
         <section
+          ref={heroSectionRef}
           id="act-hero"
           className="theme-dark relative w-full min-h-screen overflow-hidden"
           style={{ backgroundColor: '#1A1B17', color: '#F1EFE8' }}
@@ -28,6 +116,51 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
           >
             {/* Kinetic Impact Vignette Flash */}
             <div ref={heroImpactVignetteRef} className="hero-impact-vignette" aria-hidden="true" />
+
+            {/* Interactive Swiss Grid Hover Spotlight & Drafting Crosshair HUD */}
+            <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+              {/* Radial Grid Illumination Halo */}
+              <div
+                ref={glowSpotRef}
+                className="absolute w-[680px] h-[680px] top-0 left-0 rounded-full opacity-0 pointer-events-none transition-opacity duration-500"
+                style={{
+                  background:
+                    'radial-gradient(circle, rgba(201, 229, 75, 0.14) 0%, rgba(107, 132, 255, 0.08) 32%, rgba(26, 27, 23, 0) 70%)',
+                  willChange: 'transform',
+                }}
+              />
+
+              {/* Horizontal Drafting Hairline Axis */}
+              <div
+                ref={crosshairHRef}
+                className="absolute left-0 right-0 h-[1px] opacity-0 pointer-events-none transition-opacity duration-300"
+                style={{
+                  background:
+                    'linear-gradient(90deg, transparent 0%, rgba(201, 229, 75, 0.04) 20%, rgba(201, 229, 75, 0.28) 50%, rgba(201, 229, 75, 0.04) 80%, transparent 100%)',
+                  willChange: 'transform',
+                }}
+              />
+
+              {/* Vertical Drafting Hairline Axis */}
+              <div
+                ref={crosshairVRef}
+                className="absolute top-0 bottom-0 w-[1px] opacity-0 pointer-events-none transition-opacity duration-300"
+                style={{
+                  background:
+                    'linear-gradient(180deg, transparent 0%, rgba(107, 132, 255, 0.04) 20%, rgba(107, 132, 255, 0.26) 50%, rgba(107, 132, 255, 0.04) 80%, transparent 100%)',
+                  willChange: 'transform',
+                }}
+              />
+
+              {/* Floating Swiss Telemetry Coordinates Chip */}
+              <div
+                ref={coordBadgeRef}
+                className="absolute opacity-0 pointer-events-none transition-opacity duration-300 font-swiss-mono text-[9px] uppercase tracking-[0.16em] px-2 py-0.5 rounded-sm bg-[#1A1B17]/90 border border-[#C9E54B]/35 text-[#C9E54B] shadow-2xl backdrop-blur-sm"
+                style={{ willChange: 'transform' }}
+              >
+                SYS.GRID [0000:0000] · 01 PORTAL
+              </div>
+            </div>
 
             {/* Elevated Swiss Poster Stage */}
             <div className="relative z-20 max-w-[1400px] w-full mx-auto px-5 sm:px-10 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-y-7 lg:gap-x-10 xl:gap-x-14">
