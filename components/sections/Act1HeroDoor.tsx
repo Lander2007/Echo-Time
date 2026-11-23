@@ -8,15 +8,6 @@ interface Act1HeroDoorProps {
   latchPulseRef: React.RefObject<HTMLDivElement | null>;
 }
 
-interface SonarRipple {
-  x: number;
-  y: number;
-  radius: number;
-  maxRadius: number;
-  alpha: number;
-  speed: number;
-}
-
 export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
   heroCameraRigRef,
   heroImpactVignetteRef,
@@ -24,210 +15,107 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
   latchPulseRef,
 }) => {
   const heroSectionRef = useRef<HTMLElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const coordBadgeRef = useRef<HTMLDivElement | null>(null);
+  const tiltStageRef = useRef<HTMLDivElement | null>(null);
+  const layerLightbeamRef = useRef<HTMLDivElement | null>(null);
+  const hudBadgeRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     const section = heroSectionRef.current;
-    const canvas = canvasRef.current;
-    if (!section || !canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!section) return;
 
     let rafId = 0;
-    let width = 0;
-    let height = 0;
-    let dpr = 1;
+    let targetRotX = 0;
+    let targetRotY = 0;
+    let targetPanX = 0;
+    let targetPanY = 0;
+    let targetLightX = -1000;
+    let targetLightY = -1000;
 
-    let targetX = -1000;
-    let targetY = -1000;
-    let smoothX = -1000;
-    let smoothY = -1000;
+    let currentRotX = 0;
+    let currentRotY = 0;
+    let currentPanX = 0;
+    let currentPanY = 0;
+    let currentLightX = -1000;
+    let currentLightY = -1000;
     let isHovering = false;
-    const ripples: SonarRipple[] = [];
-
-    const resize = () => {
-      const rect = section.getBoundingClientRect();
-      width = rect.width;
-      height = rect.height;
-      dpr = Math.min(2, window.devicePixelRatio || 1);
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    resize();
 
     const onPointerMove = (e: PointerEvent) => {
       const rect = section.getBoundingClientRect();
-      targetX = e.clientX - rect.left;
-      targetY = e.clientY - rect.top;
-      if (!isHovering) {
-        isHovering = true;
-        smoothX = targetX;
-        smoothY = targetY;
-        if (coordBadgeRef.current) coordBadgeRef.current.style.opacity = '1';
+      if (
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      ) {
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const nx = Math.max(-1, Math.min(1, (mouseX - centerX) / (rect.width / 2)));
+        const ny = Math.max(-1, Math.min(1, (mouseY - centerY) / (rect.height / 2)));
+
+        targetRotX = -ny * 7.5; // pitch
+        targetRotY = nx * 8.5;  // yaw
+        targetPanX = -nx * 24;  // parallax x
+        targetPanY = -ny * 18;  // parallax y
+        targetLightX = mouseX;
+        targetLightY = mouseY;
+
+        if (!isHovering) {
+          isHovering = true;
+          if (layerLightbeamRef.current) layerLightbeamRef.current.style.opacity = '1';
+        }
+      } else if (isHovering) {
+        isHovering = false;
+        targetRotX = 0;
+        targetRotY = 0;
+        targetPanX = 0;
+        targetPanY = 0;
+        if (layerLightbeamRef.current) layerLightbeamRef.current.style.opacity = '0';
       }
     };
 
     const onPointerLeave = () => {
       isHovering = false;
-      targetX = -1000;
-      targetY = -1000;
-      if (coordBadgeRef.current) coordBadgeRef.current.style.opacity = '0';
+      targetRotX = 0;
+      targetRotY = 0;
+      targetPanX = 0;
+      targetPanY = 0;
+      if (layerLightbeamRef.current) layerLightbeamRef.current.style.opacity = '0';
     };
 
-    const onPointerDown = (e: PointerEvent) => {
-      // Don't trigger ripple if clicking on door stage, buttons or links
-      const target = e.target as HTMLElement | null;
-      if (target?.closest('#atelier-window-outer, button, a, input')) return;
+    const tick = () => {
+      currentRotX += (targetRotX - currentRotX) * 0.085;
+      currentRotY += (targetRotY - currentRotY) * 0.085;
+      currentPanX += (targetPanX - currentPanX) * 0.085;
+      currentPanY += (targetPanY - currentPanY) * 0.085;
+      currentLightX += (targetLightX - currentLightX) * 0.12;
+      currentLightY += (targetLightY - currentLightY) * 0.12;
 
-      const rect = section.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const clickY = e.clientY - rect.top;
-
-      ripples.push({
-        x: clickX,
-        y: clickY,
-        radius: 4,
-        maxRadius: Math.max(width, height) * 0.9,
-        alpha: 0.85,
-        speed: 15,
-      });
-    };
-
-    const STEP = 72; // Exactly matches 72px Swiss drafting grid
-
-    const render = () => {
-      ctx.clearRect(0, 0, width, height);
-
-      // 1. Render Sonar Shockwaves
-      for (let i = ripples.length - 1; i >= 0; i--) {
-        const r = ripples[i];
-        r.radius += r.speed;
-        r.alpha *= 0.958;
-        if (r.alpha < 0.015 || r.radius > r.maxRadius) {
-          ripples.splice(i, 1);
-          continue;
-        }
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(201, 229, 75, ${r.alpha.toFixed(3)})`;
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
-
-        if (r.radius > 36) {
-          ctx.beginPath();
-          ctx.arc(r.x, r.y, r.radius * 0.72, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(107, 132, 255, ${(r.alpha * 0.45).toFixed(3)})`;
-          ctx.lineWidth = 1;
-          ctx.setLineDash([4, 6]);
-          ctx.stroke();
-        }
-        ctx.restore();
+      if (tiltStageRef.current) {
+        tiltStageRef.current.style.transform = `rotateX(${currentRotX.toFixed(2)}deg) rotateY(${currentRotY.toFixed(2)}deg) translate3d(${currentPanX.toFixed(1)}px, ${currentPanY.toFixed(1)}px, 0)`;
       }
 
-      // 2. Smooth Cursor Tracking
-      smoothX += (targetX - smoothX) * 0.16;
-      smoothY += (targetY - smoothY) * 0.16;
-
-      // Update Floating Swiss Coordinates HUD
-      if (coordBadgeRef.current && isHovering) {
-        const badgeX = Math.min(Math.max(smoothX + 16, 12), width - 210);
-        const badgeY = Math.min(Math.max(smoothY + 16, 12), height - 36);
-        coordBadgeRef.current.style.transform = `translate3d(${badgeX.toFixed(1)}px, ${badgeY.toFixed(1)}px, 0)`;
-        coordBadgeRef.current.textContent = `SWISS.GRID [${Math.round(smoothX).toString().padStart(4, '0')}:${Math.round(smoothY).toString().padStart(4, '0')}] · 72PX`;
+      if (layerLightbeamRef.current) {
+        layerLightbeamRef.current.style.transform = `translate3d(${currentLightX - 320}px, ${currentLightY - 320}px, 0)`;
       }
 
-      // 3. Render Magnetic Swiss Registration Marks
-      const cols = Math.ceil(width / STEP) + 1;
-      const rows = Math.ceil(height / STEP) + 1;
-      const maxDist = 240;
-
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          const gx = col * STEP;
-          const gy = row * STEP;
-
-          const dx = smoothX - gx;
-          const dy = smoothY - gy;
-          const dist = Math.hypot(dx, dy);
-
-          let t = 0;
-          if (isHovering && dist < maxDist) {
-            t = 1 - dist / maxDist;
-            t = t * t; // smooth non-linear acceleration
-          }
-
-          // Sonar ripple interaction on grid points
-          let rippleBoost = 0;
-          for (let k = 0; k < ripples.length; k++) {
-            const rip = ripples[k];
-            const distToRip = Math.hypot(rip.x - gx, rip.y - gy);
-            const wavefrontDelta = Math.abs(distToRip - rip.radius);
-            if (wavefrontDelta < 48) {
-              const rw = 1 - wavefrontDelta / 48;
-              rippleBoost = Math.max(rippleBoost, rw * rip.alpha * 1.6);
-            }
-          }
-
-          const combined = Math.min(1, t + rippleBoost);
-
-          // Transformation: arm length (3.5px -> 6.5px), rotation (0 -> 45deg diamond)
-          const arm = 3.5 + combined * 3.2;
-          const angle = combined * (Math.PI / 4);
-          const pull = combined * 4.0;
-          const pullAngle = Math.atan2(dy, dx);
-          const posX = gx + (combined > 0 ? Math.cos(pullAngle) * pull : 0);
-          const posY = gy + (combined > 0 ? Math.sin(pullAngle) * pull : 0);
-
-          ctx.save();
-          ctx.translate(posX, posY);
-          ctx.rotate(angle);
-
-          ctx.beginPath();
-          ctx.moveTo(-arm, 0);
-          ctx.lineTo(arm, 0);
-          ctx.moveTo(0, -arm);
-          ctx.lineTo(0, arm);
-
-          if (combined > 0.04) {
-            const alpha = (0.14 + combined * 0.82).toFixed(3);
-            ctx.strokeStyle = combined > 0.4 ? `rgba(201, 229, 75, ${alpha})` : `rgba(107, 132, 255, ${alpha})`;
-            ctx.lineWidth = 1 + combined * 0.7;
-          } else {
-            ctx.strokeStyle = 'rgba(241, 239, 232, 0.12)';
-            ctx.lineWidth = 1;
-          }
-          ctx.stroke();
-
-          // Core micro-diamond at high proximity
-          if (combined > 0.5) {
-            ctx.fillStyle = '#C9E54B';
-            ctx.fillRect(-1, -1, 2, 2);
-          }
-
-          ctx.restore();
-        }
+      if (hudBadgeRef.current) {
+        hudBadgeRef.current.textContent = `ATELIER 3D · PITCH ${currentRotX.toFixed(1)}° · YAW ${currentRotY.toFixed(1)}° · LIGHTBOX 1:1`;
       }
 
-      rafId = requestAnimationFrame(render);
+      rafId = requestAnimationFrame(tick);
     };
 
     section.addEventListener('pointermove', onPointerMove, { passive: true });
     section.addEventListener('pointerleave', onPointerLeave);
-    section.addEventListener('pointerdown', onPointerDown, { passive: true });
-    window.addEventListener('resize', resize);
-    rafId = requestAnimationFrame(render);
+    rafId = requestAnimationFrame(tick);
 
     return () => {
       cancelAnimationFrame(rafId);
       section.removeEventListener('pointermove', onPointerMove);
       section.removeEventListener('pointerleave', onPointerLeave);
-      section.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('resize', resize);
     };
   }, []);
 
@@ -247,17 +135,126 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
         {/* Kinetic Impact Vignette Flash */}
         <div ref={heroImpactVignetteRef} className="hero-impact-vignette" aria-hidden="true" />
 
-        {/* Concept 1: Interactive Swiss Magnetic Registration Canvas & Sonar Pulse Matrix */}
-        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
-          <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
-
-          {/* Floating Swiss Telemetry Coordinates Chip */}
+        {/* ===================================================================
+            CONCEPT 4: 3D MULTI-LAYER ARCHITECTURAL LIGHTBOX PARALLAX
+            =================================================================== */}
+        <div
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden select-none"
+          style={{ perspective: '1200px', perspectiveOrigin: 'center center' }}
+          aria-hidden="true"
+        >
+          {/* 3D Tilting Stage Frame */}
           <div
-            ref={coordBadgeRef}
-            className="absolute top-0 left-0 opacity-0 pointer-events-none transition-opacity duration-300 font-swiss-mono text-[9px] uppercase tracking-[0.16em] px-2 py-0.5 rounded-sm bg-[#1A1B17]/90 border border-[#C9E54B]/35 text-[#C9E54B] shadow-2xl backdrop-blur-sm"
-            style={{ willChange: 'transform' }}
+            ref={tiltStageRef}
+            className="absolute inset-0 w-full h-full"
+            style={{ transformStyle: 'preserve-3d', willChange: 'transform' }}
           >
-            SWISS.GRID [0000:0000] · 72PX
+            {/* LAYER 1: Deep Parallax Watermark & Architectural Blueprint Arcs (Z: -90px) */}
+            <div
+              className="absolute inset-0 w-full h-full flex flex-col items-center justify-center pointer-events-none"
+              style={{ transform: 'translateZ(-90px) scale(1.15)', transformStyle: 'preserve-3d' }}
+            >
+              {/* Monumental Watermark Wordmark */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center opacity-[0.038] select-none">
+                <span className="font-swiss-sans font-black text-[clamp(6rem,15vw,16rem)] uppercase tracking-[-0.04em] text-[#F1EFE8] leading-none">
+                  ECHO TIME
+                </span>
+                <span className="font-swiss-mono text-[11px] sm:text-xs tracking-[0.34em] text-[#C9E54B] uppercase mt-4">
+                  ARCHITECTURAL TIME BANK &middot; FIG. 01 &middot; ATELIER STAGE
+                </span>
+              </div>
+
+              {/* Blueprint Construction Arcs SVG */}
+              <svg
+                className="absolute inset-0 w-full h-full opacity-[0.05] pointer-events-none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="50%" cy="50%" r="280" fill="none" stroke="#F1EFE8" strokeWidth="1" strokeDasharray="4 8" />
+                <circle cx="50%" cy="50%" r="480" fill="none" stroke="#C9E54B" strokeWidth="1" strokeDasharray="2 6" />
+                <circle cx="50%" cy="50%" r="680" fill="none" stroke="#6B84FF" strokeWidth="1" strokeDasharray="6 10" />
+                <line x1="10%" y1="10%" x2="90%" y2="90%" stroke="#F1EFE8" strokeWidth="0.8" strokeDasharray="3 6" />
+                <line x1="90%" y1="10%" x2="10%" y2="90%" stroke="#F1EFE8" strokeWidth="0.8" strokeDasharray="3 6" />
+              </svg>
+            </div>
+
+            {/* LAYER 2: Swiss 72mm Calibration Rulers & Precision Quadrants (Z: -20px) */}
+            <div
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{ transform: 'translateZ(-20px)', transformStyle: 'preserve-3d' }}
+            >
+              {/* Top Horizontal Calibration Ruler */}
+              <div className="absolute top-20 left-0 right-0 h-6 border-b border-[rgba(241,239,232,0.06)] flex items-end justify-between px-6 font-swiss-mono text-[8px] text-[#989A8E]/40 tracking-widest uppercase">
+                {['000', '144', '288', '432', '576', '720', '864', '1008', '1152', '1296', '1440'].map((tick) => (
+                  <div key={`tick-t-${tick}`} className="flex flex-col items-center">
+                    <span>{tick}MM</span>
+                    <span className="w-[1px] h-2 bg-[rgba(241,239,232,0.14)] mt-0.5" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Left Vertical Calibration Ruler */}
+              <div className="hidden lg:flex absolute top-20 bottom-12 left-6 w-8 border-r border-[rgba(241,239,232,0.06)] flex-col justify-between py-6 font-swiss-mono text-[8px] text-[#989A8E]/40 tracking-widest uppercase">
+                {['000', '144', '288', '432', '576', '720', '864'].map((tick) => (
+                  <div key={`tick-l-${tick}`} className="flex items-center justify-end gap-1.5">
+                    <span>{tick}</span>
+                    <span className="w-2 h-[1px] bg-[rgba(241,239,232,0.14)]" />
+                  </div>
+                ))}
+              </div>
+
+              {/* 4 Precision Swiss Corner L-Brackets */}
+              <div className="absolute top-24 left-8 w-4 h-4 border-t-2 border-l-2 border-[#C9E54B]/35" />
+              <div className="absolute top-24 right-8 w-4 h-4 border-t-2 border-r-2 border-[#6B84FF]/35" />
+              <div className="absolute bottom-12 left-8 w-4 h-4 border-b-2 border-l-2 border-[#6B84FF]/35" />
+              <div className="absolute bottom-12 right-8 w-4 h-4 border-b-2 border-r-2 border-[#C9E54B]/35" />
+            </div>
+
+            {/* LAYER 3: Dynamic Atelier Daylight Beam & Specular Highlight (Z: +45px) */}
+            <div
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{ transform: 'translateZ(45px)', transformStyle: 'preserve-3d' }}
+            >
+              {/* Studio Skylight Angled Wash */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    'linear-gradient(135deg, rgba(201, 229, 75, 0.05) 0%, rgba(107, 132, 255, 0.03) 30%, transparent 60%)',
+                }}
+              />
+
+              {/* Specular Spotlight Tracking Cursor */}
+              <div
+                ref={layerLightbeamRef}
+                className="absolute w-[640px] h-[640px] rounded-full pointer-events-none opacity-0 transition-opacity duration-500"
+                style={{
+                  background:
+                    'radial-gradient(circle, rgba(201, 229, 75, 0.14) 0%, rgba(107, 132, 255, 0.07) 38%, transparent 70%)',
+                  willChange: 'transform',
+                }}
+              />
+            </div>
+
+            {/* LAYER 4: Floating Architectural Telemetry HUD Readout (Z: +80px) */}
+            <div
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{ transform: 'translateZ(80px)', transformStyle: 'preserve-3d' }}
+            >
+              {/* Bottom-Left Live HUD Chip */}
+              <div className="absolute bottom-6 left-6 lg:left-12 flex items-center gap-2.5 px-3 py-1.5 rounded-sm bg-[#1A1B17]/90 border border-[#C9E54B]/30 font-swiss-mono text-[9px] uppercase tracking-[0.16em] text-[#989A8E] shadow-2xl backdrop-blur-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#C9E54B] animate-pulse" />
+                <span ref={hudBadgeRef} className="text-[#C9E54B]">
+                  ATELIER 3D &middot; PITCH 0.0&deg; &middot; YAW 0.0&deg; &middot; LIGHTBOX 1:1
+                </span>
+              </div>
+
+              {/* Bottom-Right Specification Tag */}
+              <div className="hidden sm:flex absolute bottom-6 right-6 lg:right-12 items-center gap-2 font-swiss-mono text-[9px] uppercase tracking-[0.16em] text-[#989A8E]/60">
+                <span>SWISS ATELIER 72MM STAGE</span>
+                <span className="text-[#6B84FF]">&middot;</span>
+                <span>FIG. 01 ELEVATION</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -311,39 +308,39 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
 
                   <div className="relative z-10 my-auto py-3">
                     <div
-                      className="font-swiss-mono text-[9px] uppercase tracking-[0.18em] mb-1 font-semibold"
+                      className="font-swiss-mono text-[10px] uppercase tracking-[0.14em] font-semibold mb-1"
                       style={{ color: '#1E3AE0' }}
                     >
-                      CAMPUS PARITY UNIT
+                      CAMPUS TIME BANK
                     </div>
                     <div
-                      className="font-swiss-sans font-black text-2xl sm:text-3xl leading-[0.95] tracking-[-0.04em] uppercase"
+                      className="font-swiss-sans font-black tracking-[-0.045em] leading-[0.92] text-2xl sm:text-3xl uppercase"
                       style={{ color: '#1A1B17' }}
                     >
-                      1.00 HR
+                      TRADE HOURS,
                       <br />
-                      = 1.00 ECHO
+                      NOT TUITION.
                     </div>
                     <div
-                      className="font-swiss-mono text-[8.5px] uppercase tracking-[0.14em] mt-2 font-medium"
+                      className="mt-2 font-swiss-mono text-[9px] uppercase tracking-wider"
                       style={{ color: '#46493D' }}
                     >
-                      ATOMIC ESCROW VAULT &middot; EST. 2026
+                      1.00 HR &middot; 1.00 ECHO &middot; ZERO FEES
                     </div>
                   </div>
 
                   <div
-                    className="relative z-10 pt-2.5 border-t flex items-center justify-between font-swiss-mono text-[9px]"
-                    style={{ borderColor: 'rgba(26, 27, 23, 0.25)', color: '#1A1B17' }}
+                    className="relative z-10 flex items-end justify-between pt-2.5 border-t font-swiss-mono text-[8.5px] uppercase tracking-wider"
+                    style={{ borderColor: 'rgba(26, 27, 23, 0.25)', color: '#46493D' }}
                   >
-                    <span className="font-semibold uppercase tracking-[0.14em]">.EDU VERIFIED</span>
-                    <span className="font-bold text-[#1E3AE0]">0% TUITION FEE</span>
+                    <span>ATOMIC ESCROW</span>
+                    <span className="font-semibold text-accent">VERIFIED</span>
                   </div>
                 </div>
               </div>
 
               {/* 3D Swinging Architectural Double Doors Overlay */}
-              <div className="swiss-door-shutter-pair">
+              <div className="swiss-shutter-container">
                 {/* Left Door Leaf */}
                 <div id="shutter-left" className="swiss-shutter-leaf shutter-leaf-l">
                   <div className="shutter-header-bar">
