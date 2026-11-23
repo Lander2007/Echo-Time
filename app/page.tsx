@@ -32,7 +32,7 @@ import { Navbar } from '@/components/Navbar';
 import { AgreementDrawer } from '@/components/AgreementDrawer';
 import { ToastStack } from '@/components/ToastStack';
 
-import { Act1HeroDoor } from '@/components/sections/Act1HeroDoor';
+import { HeroDoor } from '@/components/sections/HeroDoor';
 import { Act2Guillotine } from '@/components/sections/Act2Guillotine';
 import { Act3Patchboard } from '@/components/sections/Act3Patchboard';
 import { Act4Marketplace } from '@/components/sections/Act4Marketplace';
@@ -69,6 +69,7 @@ export default function EchoTimeLandingPage() {
   const latchPulseRef = useRef<HTMLDivElement | null>(null);
   const doorImpactFrameRef = useRef<HTMLDivElement | null>(null);
   const heroImpactVignetteRef = useRef<HTMLDivElement | null>(null);
+  const scrollProgressRef = useRef<number>(0);
 
   // Act II Guillotine refs (60fps zero-rerender blade scrubbing)
   const guillotineStageRef = useRef<HTMLDivElement | null>(null);
@@ -826,6 +827,7 @@ export default function EchoTimeLandingPage() {
             },
             onUpdate: (self: ScrollTrigger) => {
               const p = self.progress;
+              scrollProgressRef.current = p;
               if (p <= 0.04) {
                 gsap.set('#hero-monument-watermark', {
                   opacity: 1,
@@ -886,8 +888,6 @@ export default function EchoTimeLandingPage() {
             { opacity: 0, scale: 1.06, duration: 0.36, ease: 'power2.in' },
             0.14
           )
-          .to('#shutter-left', { rotateY: -112, duration: 0.44, ease: 'power2.inOut' }, 0.14)
-          .to('#shutter-right', { rotateY: 112, duration: 0.44, ease: 'power2.inOut' }, 0.14)
           .to('#door-sunbeam', { x: '85%', duration: 0.44, ease: 'power1.inOut' }, 0.18)
           .to('#atelier-window-outer', { scale: 3.4, y: 34, duration: 0.48, ease: 'power2.in' }, 0.48)
           .to('#hero-parchment-wash', { opacity: 1, duration: 0.32, ease: 'power1.inOut' }, 0.64);
@@ -1507,12 +1507,14 @@ export default function EchoTimeLandingPage() {
       />
 
       <main className="relative z-10">
-        <Act1HeroDoor
+        <HeroDoor
           heroCameraRigRef={heroCameraRigRef}
           heroImpactVignetteRef={heroImpactVignetteRef}
           doorImpactFrameRef={doorImpactFrameRef}
           latchPulseRef={latchPulseRef}
+          scrollProgressRef={scrollProgressRef}
           getAudio={getAudio}
+          onUnlocked={() => scrollToTarget('#act-thesis')}
         />
 
         <div id="light-world" className="theme-light swiss-grid-light bg-theme text-ink">
@@ -1591,11 +1593,6 @@ export default function EchoTimeLandingPage() {
             <Act6StressTest
               stressIdx={stressIdx}
               setStressIdx={setStressIdx}
-              activeStressScenario={activeStressScenario}
-              stressCurvePathRef={stressCurvePathRef}
-              stressPulseDotRef={stressPulseDotRef}
-              visibleLogCount={visibleLogCount}
-              setVisibleLogCount={setVisibleLogCount}
               getAudio={getAudio}
             />
 
@@ -1613,7 +1610,6 @@ export default function EchoTimeLandingPage() {
               handlePassCardLeave={handlePassCardLeave}
               handleMintPass={handleMintPass}
               sealStampKey={sealStampKey}
-              displayCraft={displayCraft}
               passSerial={passSerial}
               getAudio={getAudio}
             />

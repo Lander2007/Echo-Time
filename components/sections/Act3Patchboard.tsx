@@ -1,6 +1,7 @@
 import React from 'react';
 import { CIRCUITS } from '@/data/echoData';
 import { TactileAudioEngine } from '@/lib/audio';
+import { CANONICAL_CONTENT } from '@/data/content';
 
 interface Act3PatchboardProps {
   patchGridRef: React.RefObject<HTMLDivElement | null>;
@@ -34,15 +35,14 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                 <div className="lg:col-span-8">
                   <div className="flex items-center gap-3 font-swiss-mono text-[11px] uppercase tracking-[0.16em] text-accent font-semibold mb-2">
                     <span className="text-xl font-bold">03</span>
-                    <span>CAMPUS SKILL PATCHBOARD &mdash; MULTI-HOP CREDIT ROUTING</span>
+                    <span>{CANONICAL_CONTENT.solution.eyebrow}</span>
                   </div>
                   <h2 className="font-swiss-sans font-black uppercase tracking-[-0.045em] leading-[0.92] text-3xl sm:text-5xl text-ink">
-                    PLUG IN YOUR STRENGTH.{' '}
-                    <span className="text-accent">ROUTE ANY SKILL.</span>
+                    {CANONICAL_CONTENT.solution.title}
                   </h2>
                 </div>
                 <div className="lg:col-span-4 lg:text-right font-swiss-mono text-[10.5px] uppercase tracking-[0.13em] text-muted">
-                  CLICK ANY JACK SOCKET TO PATCH LIVE CAMPUS CIRCUITS
+                  {CANONICAL_CONTENT.solution.exampleCard.note}
                 </div>
               </div>
 
@@ -51,11 +51,11 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                   <div className="flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-sm bg-accent inline-block" />
                     <span className="font-semibold text-ink">
-                      MODEL ET-03 &middot; CROSS-FACULTY LIQUIDITY ROUTER
+                      {CANONICAL_CONTENT.solution.exampleCard.eyebrow} &middot; {CANONICAL_CONTENT.solution.exampleCard.title}
                     </span>
                   </div>
                   <span className="px-3 py-1 rounded-sm bg-[#1A1B17] text-[#C9E54B] tabular">
-                    {activeCircuit.routeLabel}
+                    {CANONICAL_CONTENT.solution.exampleCard.totalLabel}: {CANONICAL_CONTENT.solution.exampleCard.totalValue}
                   </span>
                 </div>
 
@@ -111,28 +111,36 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                     <div className="rounded border border-strong bg-[#E6E3D8] p-5 flex-1 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-muted pb-3 border-b border-theme">
-                          <span>ACTIVE CREDIT CIRCUIT</span>
-                          <span className="text-accent font-semibold tabular">0% FRICTION</span>
+                          <span>{CANONICAL_CONTENT.solution.exampleCard.title}</span>
+                          <span className="text-accent font-semibold tabular">{CANONICAL_CONTENT.solution.exampleCard.rateValue}</span>
                         </div>
                         <div className="mt-4 font-swiss-sans font-extrabold text-xl tracking-tight text-ink">
-                          {activeCircuit.title}
+                          {CANONICAL_CONTENT.solution.exampleCard.goalLabel}: {CANONICAL_CONTENT.solution.exampleCard.goalValue}
                         </div>
                         <p className="mt-2 text-xs sm:text-sm text-muted leading-relaxed">
-                          {activeCircuit.desc}
+                          {CANONICAL_CONTENT.solution.description}
                         </p>
+                        <div className="mt-3">
+                          <a
+                            href="#act-marketplace"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-accent text-accent-ink font-swiss-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+                          >
+                            {CANONICAL_CONTENT.solution.cta} &rarr;
+                          </a>
+                        </div>
                       </div>
 
                       <div className="mt-4 pt-3 border-t border-theme flex flex-wrap items-center gap-1.5 font-swiss-mono text-[10px] uppercase">
                         <span className="px-2 py-1 rounded-sm bg-[#1A1B17] text-[#F1EFE8]">
-                          {activeCircuit.hops[0]}
+                          {CANONICAL_CONTENT.solution.exampleCard.formatValue}
                         </span>
                         <span className="text-accent font-bold">&rarr;</span>
                         <span className="px-2 py-1 rounded-sm bg-accent text-accent-ink font-semibold">
-                          {activeCircuit.hops[1]}
+                          {CANONICAL_CONTENT.solution.exampleCard.durationValue}
                         </span>
                         <span className="text-accent font-bold">&rarr;</span>
                         <span className="px-2 py-1 rounded-sm bg-[#C9E54B] border border-[#1A1B17] text-[#1A1B17] font-semibold">
-                          {activeCircuit.hops[2]}
+                          {CANONICAL_CONTENT.solution.exampleCard.totalValue}
                         </span>
                       </div>
                     </div>

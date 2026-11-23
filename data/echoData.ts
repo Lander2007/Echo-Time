@@ -9,23 +9,24 @@ import {
 
 
 export const CHAPTERS: ChapterMeta[] = [
-  { id: 'act-hero', label: '01 Portal' },
-  { id: 'act-thesis', label: '02 Guillotine' },
-  { id: 'act-workflow', label: '03 Patchboard' },
-  { id: 'act-marketplace', label: '04 SBB Board' },
-  { id: 'act-escrow', label: '05 Audit Tape' },
-  { id: 'act-architecture', label: '06 Stress Test' },
-  { id: 'act-pass', label: '07 Pass' },
-  { id: 'act-finale', label: '08 Echo' },
+  { id: 'act-hero', label: '01 Home' },
+  { id: 'act-thesis', label: '02 Why Echo Time' },
+  { id: 'act-workflow', label: '03 The Solution' },
+  { id: 'act-marketplace', label: '04 How It Works' },
+  { id: 'act-escrow', label: '05 Discover' },
+  { id: 'act-architecture', label: '06 Community' },
+  { id: 'act-faq', label: '07 FAQs' },
+  { id: 'act-pass', label: '08 Get Pass' },
+  { id: 'act-finale', label: '09 Echo' },
 ];
 
 export const NAV_LINKS: NavLinkMeta[] = [
-  { id: 'act-thesis', label: '02 Guillotine', cursor: 'VIEW' },
-  { id: 'act-workflow', label: '03 Patchboard', cursor: 'PATCH' },
-  { id: 'act-marketplace', label: '04 SBB Board', cursor: 'BOARD' },
-  { id: 'act-escrow', label: '05 Audit Tape', cursor: 'TEAR' },
-  { id: 'act-architecture', label: '06 Stress Test', cursor: 'TEST' },
-  { id: 'act-pass', label: '07 Pass', cursor: 'MINT' },
+  { id: 'act-thesis', label: 'Why Echo Time', cursor: 'VIEW' },
+  { id: 'act-workflow', label: 'The solution', cursor: 'PATCH' },
+  { id: 'act-marketplace', label: 'How it works', cursor: 'BOARD' },
+  { id: 'act-escrow', label: 'Discover', cursor: 'ROOM' },
+  { id: 'act-architecture', label: 'Community', cursor: 'COMMUNITY' },
+  { id: 'act-faq', label: 'FAQs', cursor: 'FAQ' },
 ];
 
 export const CATEGORIES = ['All', 'Engineering', 'Design', 'Quantitative', 'Studio'] as const;

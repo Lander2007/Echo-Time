@@ -1,5 +1,6 @@
 import React from 'react';
 import { TactileAudioEngine } from '@/lib/audio';
+import { CANONICAL_CONTENT } from '@/data/content';
 
 interface Act2GuillotineProps {
   guillotineStageRef: React.RefObject<HTMLDivElement | null>;
@@ -124,94 +125,39 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                         className="font-swiss-mono text-[11px] uppercase tracking-[0.18em] mb-3"
                         style={{ color: '#989A8E' }}
                       >
-                        BROKEN CAMPUS STATUS QUO
+                        {CANONICAL_CONTENT.problem.eyebrow}
                       </div>
                       <h2
-                        className="font-swiss-sans font-black uppercase tracking-[-0.05em] leading-[0.88] text-[clamp(2.4rem,5.4vw,4.9rem)]"
+                        className="font-swiss-sans font-black uppercase tracking-[-0.05em] leading-[0.88] text-[clamp(2.2rem,4.8vw,4.4rem)]"
                         style={{ color: '#F1EFE8' }}
                       >
-                        $65 / HOUR.
-                        <br />
-                        <span style={{ color: '#989A8E' }}>20% TAX.</span>
-                        <br />
-                        ZERO ESCROW.
+                        {CANONICAL_CONTENT.problem.title}
                       </h2>
                       <p
                         className="mt-5 text-sm sm:text-base max-w-xl leading-relaxed"
                         style={{ color: '#989A8E' }}
                       >
-                        Skilled students sit two halls apart, yet freelance platforms charge steep
-                        cash paywalls while campus group chats collapse under ghosting and informal
-                        favors.
+                        {CANONICAL_CONTENT.problem.description}
                       </p>
                     </div>
 
-                    <div className="lg:col-span-5 grid grid-cols-2 gap-3 font-swiss-mono">
-                      <div
-                        className="p-4 rounded-sm border"
-                        style={{
-                          borderColor: 'rgba(241, 239, 232, 0.16)',
-                          backgroundColor: 'rgba(241, 239, 232, 0.03)',
-                        }}
-                      >
-                        <div className="text-[9.5px] uppercase" style={{ color: '#989A8E' }}>
-                          MEDIAN TUTOR RATE
-                        </div>
+                    <div className="lg:col-span-5 grid grid-cols-1 gap-3 font-swiss-mono">
+                      {CANONICAL_CONTENT.problem.points.map((pt) => (
                         <div
-                          className="mt-1.5 text-2xl sm:text-3xl font-semibold tabular"
-                          style={{ color: '#F1EFE8' }}
-                        >
-                          $45&ndash;65
-                        </div>
-                        <div className="text-[10px] mt-1" style={{ color: '#989A8E' }}>
-                          Per single hour
-                        </div>
-                      </div>
-                      <div
-                        className="p-4 rounded-sm border"
-                        style={{
-                          borderColor: 'rgba(241, 239, 232, 0.16)',
-                          backgroundColor: 'rgba(241, 239, 232, 0.03)',
-                        }}
-                      >
-                        <div className="text-[9.5px] uppercase" style={{ color: '#989A8E' }}>
-                          PLATFORM TAKE RATE
-                        </div>
-                        <div
-                          className="mt-1.5 text-2xl sm:text-3xl font-semibold tabular"
-                          style={{ color: '#F1EFE8' }}
-                        >
-                          20.0%
-                        </div>
-                        <div className="text-[10px] mt-1" style={{ color: '#989A8E' }}>
-                          Extracted in cash
-                        </div>
-                      </div>
-                      <div
-                        className="col-span-2 p-4 rounded-sm border flex items-center justify-between"
-                        style={{
-                          borderColor: 'rgba(241, 239, 232, 0.16)',
-                          backgroundColor: 'rgba(241, 239, 232, 0.03)',
-                        }}
-                      >
-                        <div>
-                          <div className="text-[9.5px] uppercase" style={{ color: '#989A8E' }}>
-                            DISPUTE PROTECTION
-                          </div>
-                          <div className="mt-1 text-xs" style={{ color: '#F1EFE8' }}>
-                            Informal DMs &mdash; no deliverable proof
-                          </div>
-                        </div>
-                        <span
-                          className="px-2 py-0.5 text-[9.5px] uppercase rounded-sm border"
+                          key={pt.num}
+                          className="p-3.5 rounded-sm border"
                           style={{
-                            borderColor: 'rgba(241, 239, 232, 0.22)',
-                            color: '#989A8E',
+                            borderColor: 'rgba(241, 239, 232, 0.16)',
+                            backgroundColor: 'rgba(241, 239, 232, 0.03)',
                           }}
                         >
-                          UNVERIFIED
-                        </span>
-                      </div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] font-bold text-[#C9E54B]">{pt.num}</span>
+                            <span className="text-xs font-semibold text-[#F1EFE8]">{pt.title}</span>
+                          </div>
+                          <p className="text-[11px] leading-relaxed text-[#989A8E]">{pt.description}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -222,8 +168,8 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                       color: '#989A8E',
                     }}
                   >
-                    <span>RESULT: TALENT STRANDED BEHIND TUITION DEBT</span>
-                    <span style={{ color: '#C9E54B' }}>SLICE RIGHT TO DEPLOY ECHO TIME &rarr;</span>
+                    <span>{CANONICAL_CONTENT.problem.title}</span>
+                    <span style={{ color: '#C9E54B' }}>DRAG BLADE TO REVEAL SOLUTION &rarr;</span>
                   </div>
                 </div>
 
@@ -234,7 +180,7 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                     style={{ borderColor: 'rgba(26, 27, 23, 0.25)', color: '#1A1B17' }}
                   >
                     <span className="font-semibold">
-                      STATE B &middot; ECHO TIME PROTOCOL DEPLOYED
+                      {CANONICAL_CONTENT.solution.eyebrow}
                     </span>
                     <span
                       className="px-2.5 py-0.5 rounded-sm font-semibold"
@@ -253,104 +199,46 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                         className="font-swiss-mono text-[11px] uppercase tracking-[0.18em] mb-3 font-bold"
                         style={{ color: '#1E3AE0' }}
                       >
-                        VERIFIED CAMPUS TIME PARITY
+                        {CANONICAL_CONTENT.solution.eyebrow}
                       </div>
                       <h2
-                        className="font-swiss-sans font-black uppercase tracking-[-0.05em] leading-[0.88] text-[clamp(2.4rem,5.4vw,4.9rem)]"
+                        className="font-swiss-sans font-black uppercase tracking-[-0.05em] leading-[0.88] text-[clamp(2.2rem,4.8vw,4.4rem)]"
                         style={{ color: '#1A1B17' }}
                       >
-                        1.00 HR = 1 ECHO.
-                        <br />
-                        <span style={{ color: '#1E3AE0' }}>0.00% FEE.</span>
-                        <br />
-                        ATOMIC ESCROW.
+                        {CANONICAL_CONTENT.solution.title}
                       </h2>
                       <p
                         className="mt-5 text-sm sm:text-base max-w-xl leading-relaxed"
                         style={{ color: '#383B30' }}
                       >
-                        Every authenticated <strong style={{ color: '#1A1B17' }}>.edu</strong>{' '}
-                        student hour holds identical purchasing power. Teach one hour of your
-                        strength, lock atomic escrow, and unlock any peer skill on campus.
+                        {CANONICAL_CONTENT.solution.description}
                       </p>
+                      <div className="mt-5">
+                        <a
+                          href="#act-marketplace"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded bg-[#1E3AE0] text-[#F1EFE8] font-swiss-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] hover:bg-[#152bb5] transition-colors"
+                        >
+                          {CANONICAL_CONTENT.solution.cta} &rarr;
+                        </a>
+                      </div>
                     </div>
 
-                    <div className="lg:col-span-5 grid grid-cols-2 gap-3 font-swiss-mono">
-                      <div
-                        className="p-4 rounded-sm border"
-                        style={{
-                          borderColor: '#1A1B17',
-                          backgroundColor: '#F1EFE8',
-                        }}
-                      >
-                        <div className="text-[9.5px] uppercase" style={{ color: '#46493D' }}>
-                          PLATFORM FEE
-                        </div>
+                    <div className="lg:col-span-5 grid grid-cols-1 gap-3 font-swiss-mono">
+                      {CANONICAL_CONTENT.solution.bullets.map((bullet, idx) => (
                         <div
-                          className="mt-1.5 text-2xl sm:text-3xl font-semibold tabular"
-                          style={{ color: '#1E3AE0' }}
+                          key={idx}
+                          className="p-3.5 rounded-sm border"
+                          style={{
+                            borderColor: '#1A1B17',
+                            backgroundColor: '#F1EFE8',
+                          }}
                         >
-                          <span className="stat-counter" data-target="0" data-suffix="%">
-                            0%
-                          </span>
-                        </div>
-                        <div className="text-[10px] mt-1" style={{ color: '#46493D' }}>
-                          Zero fiat custody
-                        </div>
-                      </div>
-                      <div
-                        className="p-4 rounded-sm border"
-                        style={{
-                          borderColor: '#1A1B17',
-                          backgroundColor: '#F1EFE8',
-                        }}
-                      >
-                        <div className="text-[9.5px] uppercase" style={{ color: '#46493D' }}>
-                          SHOW-UP RATE
-                        </div>
-                        <div
-                          className="mt-1.5 text-2xl sm:text-3xl font-semibold tabular"
-                          style={{ color: '#1A1B17' }}
-                        >
-                          <span
-                            className="stat-counter"
-                            data-target="99.2"
-                            data-decimals="1"
-                            data-suffix="%"
-                          >
-                            99.2%
-                          </span>
-                        </div>
-                        <div className="text-[10px] mt-1" style={{ color: '#46493D' }}>
-                          Median match: 12m
-                        </div>
-                      </div>
-                      <div
-                        className="col-span-2 p-4 rounded-sm border flex items-center justify-between"
-                        style={{
-                          borderColor: '#1A1B17',
-                          backgroundColor: '#1A1B17',
-                          color: '#F1EFE8',
-                        }}
-                      >
-                        <div>
-                          <div
-                            className="text-[9.5px] uppercase font-semibold"
-                            style={{ color: '#C9E54B' }}
-                          >
-                            ESCROW GUARANTEE
-                          </div>
-                          <div className="mt-1 text-xs font-semibold" style={{ color: '#F1EFE8' }}>
-                            Checklist locked + 48h Peer-Council SLA
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-[#1E3AE0]">0{idx + 1}</span>
+                            <span className="text-xs font-semibold text-[#1A1B17]">{bullet}</span>
                           </div>
                         </div>
-                        <span
-                          className="px-2 py-0.5 text-[9.5px] font-semibold uppercase rounded-sm"
-                          style={{ backgroundColor: '#1E3AE0', color: '#F1EFE8' }}
-                        >
-                          .EDU SSO
-                        </span>
-                      </div>
+                      ))}
                     </div>
                   </div>
 
@@ -359,10 +247,10 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                     style={{ borderColor: 'rgba(26, 27, 23, 0.25)', color: '#1A1B17' }}
                   >
                     <span className="font-semibold">
-                      RESULT: CROSS-FACULTY LIQUIDITY WITHOUT TUITION DEBT
+                      {CANONICAL_CONTENT.solution.title}
                     </span>
                     <span className="font-bold" style={{ color: '#1E3AE0' }}>
-                      EQUILIBRIUM VERIFIED
+                      {CANONICAL_CONTENT.solution.cta}
                     </span>
                   </div>
                 </div>

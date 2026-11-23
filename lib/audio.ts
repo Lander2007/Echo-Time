@@ -70,6 +70,16 @@ export class TactileAudioEngine {
     this.playTone({ freq: 640, endFreq: 440, duration: 0.04, type: 'triangle', gain: 0.032 });
   }
 
+  public knock() {
+    this.playTone({ freq: 110, endFreq: 40, duration: 0.08, type: 'triangle', gain: 0.09 });
+    this.playTone({ freq: 220, endFreq: 60, duration: 0.05, type: 'sine', gain: 0.06, delay: 0.01 });
+  }
+
+  public bolt() {
+    this.playTone({ freq: 480, endFreq: 180, duration: 0.16, type: 'sawtooth', gain: 0.035 });
+    this.playTone({ freq: 180, endFreq: 60, duration: 0.22, type: 'sine', gain: 0.06, delay: 0.04 });
+  }
+
   public shutter() {
     this.playTone({ freq: 190, endFreq: 110, duration: 0.22, type: 'sine', gain: 0.04 });
     this.playTone({ freq: 360, endFreq: 250, duration: 0.14, type: 'triangle', gain: 0.024, delay: 0.05 });

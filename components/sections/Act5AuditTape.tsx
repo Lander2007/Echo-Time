@@ -1,4 +1,5 @@
 import React from 'react';
+import { CANONICAL_CONTENT } from '@/data/content';
 
 interface Act5AuditTapeProps {
   walletAvailable: number;
@@ -42,12 +43,14 @@ export const Act5AuditTape: React.FC<Act5AuditTapeProps> = ({
                   <div>
                     <div className="flex items-center gap-3 font-swiss-mono text-[11px] uppercase tracking-[0.16em] text-pop font-semibold mb-2">
                       <span className="text-xl font-bold text-accent">05</span>
-                      <span>LIVE ESCROW AUDIT TAPE &mdash; ATOMIC THERMAL LEDGER</span>
+                      <span>{CANONICAL_CONTENT.discover.agreementRoom.title}</span>
                     </div>
                     <h2 className="font-swiss-sans font-black uppercase tracking-[-0.045em] leading-[0.92] text-3xl sm:text-5xl text-ink">
-                      PRINT THE PROOF.{' '}
-                      <span className="text-accent">TEAR TO SETTLE.</span>
+                      {CANONICAL_CONTENT.discover.agreementRoom.title}
                     </h2>
+                    <p className="mt-2 text-xs sm:text-sm text-muted">
+                      {CANONICAL_CONTENT.discover.agreementRoom.subtitle} &middot; {CANONICAL_CONTENT.discover.agreementRoom.activeExchangeTitle}
+                    </p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 font-swiss-mono text-[10px] uppercase tracking-[0.12em]">

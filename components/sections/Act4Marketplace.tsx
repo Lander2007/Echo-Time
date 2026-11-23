@@ -2,6 +2,7 @@ import React from 'react';
 import { CATEGORIES, SLAT_INDICES } from '@/data/echoData';
 import { CategoryFilter, MarketplaceListing } from '@/types/echo';
 import { TactileAudioEngine } from '@/lib/audio';
+import { CANONICAL_CONTENT } from '@/data/content';
 
 interface Act4MarketplaceProps {
   walletAvailable: number;
@@ -52,39 +53,77 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
             className="relative py-24 sm:py-28 pb-28 sm:pb-36 border-t border-strong"
           >
             <div className="max-w-[1380px] w-full mx-auto px-5 sm:px-10">
-              {/* Header & Live Wallet Telemetry */}
-              <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 border-b border-strong">
-                <div>
-                  <div className="flex items-center gap-3 font-swiss-mono text-[11px] uppercase tracking-[0.16em] text-accent font-semibold mb-2">
-                    <span className="text-xl font-bold">04</span>
-                    <span>SWISS SPLIT-FLAP CAMPUS EXCHANGE BOARD</span>
-                  </div>
-                  <h2 className="font-swiss-sans font-black uppercase tracking-[-0.045em] leading-[0.92] text-3xl sm:text-5xl text-ink">
-                    LIVE SKILL <span className="text-accent">DEPARTURES.</span>
-                  </h2>
+              {/* HOW IT WORKS: 4-Step Journey */}
+              <div className="pb-16 border-b border-strong">
+                <div className="flex items-center gap-3 font-swiss-mono text-[11px] uppercase tracking-[0.16em] text-accent font-semibold mb-2">
+                  <span className="text-xl font-bold">04</span>
+                  <span>{CANONICAL_CONTENT.howItWorks.eyebrow}</span>
                 </div>
+                <h2 className="font-swiss-sans font-black uppercase tracking-[-0.045em] leading-[0.92] text-3xl sm:text-5xl text-ink">
+                  {CANONICAL_CONTENT.howItWorks.title}
+                </h2>
+                <p className="mt-4 text-sm sm:text-base text-muted max-w-2xl leading-relaxed">
+                  {CANONICAL_CONTENT.howItWorks.description}
+                </p>
 
-                {/* Live Demo Wallet Telemetry (Warm Bone Card on Acid Lime) */}
-                <div className="inline-flex items-center gap-5 px-5 py-3 rounded border border-strong bg-surface">
-                  <div>
-                    <div className="font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-muted">
-                      AVAILABLE BALANCE
+                <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {CANONICAL_CONTENT.howItWorks.steps.map((st) => (
+                    <div
+                      key={st.step}
+                      className="p-5 rounded border border-strong bg-surface flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="font-swiss-mono text-sm font-bold text-accent mb-2">
+                          {st.step}
+                        </div>
+                        <h3 className="font-swiss-sans font-bold text-base text-ink mb-2">
+                          {st.title}
+                        </h3>
+                        <p className="font-swiss-sans text-xs text-muted leading-relaxed">
+                          {st.description}
+                        </p>
+                      </div>
                     </div>
-                    <div className="font-swiss-mono font-semibold text-xl tabular text-ink">
-                      {walletAvailable.toFixed(2)} ECHO
-                    </div>
-                  </div>
-                  <div className="h-8 w-px" style={{ backgroundColor: 'var(--border-strong)' }} />
-                  <div>
-                    <div className="font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-muted">
-                      LOCKED IN ESCROW
-                    </div>
-                    <div className="font-swiss-mono font-semibold text-xl tabular text-accent">
-                      {walletLocked.toFixed(2)} ECHO
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
+
+              {/* DISCOVER: SBB Split-Flap Exchange Board */}
+              <div className="pt-16">
+                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 border-b border-strong">
+                  <div>
+                    <div className="font-swiss-mono text-[11px] uppercase tracking-[0.16em] text-accent font-semibold mb-2">
+                      {CANONICAL_CONTENT.discover.eyebrow}
+                    </div>
+                    <h2 className="font-swiss-sans font-black uppercase tracking-[-0.045em] leading-[0.92] text-3xl sm:text-5xl text-ink">
+                      {CANONICAL_CONTENT.discover.title}
+                    </h2>
+                    <p className="mt-2 text-xs sm:text-sm text-muted">
+                      {CANONICAL_CONTENT.discover.description} &middot; {CANONICAL_CONTENT.discover.note}
+                    </p>
+                  </div>
+
+                  {/* Live Demo Wallet Telemetry (Warm Bone Card on Acid Lime) */}
+                  <div className="inline-flex items-center gap-5 px-5 py-3 rounded border border-strong bg-surface">
+                    <div>
+                      <div className="font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-muted">
+                        {CANONICAL_CONTENT.discover.wallet.labels[0]}
+                      </div>
+                      <div className="font-swiss-mono font-semibold text-xl tabular text-ink">
+                        {walletAvailable.toFixed(2)} ECHO
+                      </div>
+                    </div>
+                    <div className="h-8 w-px" style={{ backgroundColor: 'var(--border-strong)' }} />
+                    <div>
+                      <div className="font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-muted">
+                        {CANONICAL_CONTENT.discover.wallet.labels[1]}
+                      </div>
+                      <div className="font-swiss-mono font-semibold text-xl tabular text-accent">
+                        {walletLocked.toFixed(2)} ECHO
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
               {/* Controls: Sliding Category Tabs + Search + Sort + Flip Board */}
               <div className="mt-8 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
@@ -375,7 +414,8 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                 </div>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
   );
 };

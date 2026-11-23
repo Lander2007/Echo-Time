@@ -1,6 +1,7 @@
 import React from 'react';
 import { MarketplaceListing, EscrowReceipt } from '@/types/echo';
 import { TactileAudioEngine } from '@/lib/audio';
+import { CANONICAL_CONTENT } from '@/data/content';
 
 interface AgreementDrawerProps {
   drawerOpen: boolean;
@@ -74,7 +75,7 @@ export const AgreementDrawer: React.FC<AgreementDrawerProps> = ({
                   className="font-swiss-mono text-[10px] uppercase tracking-[0.16em] font-bold"
                   style={{ color: '#1E3AE0' }}
                 >
-                  AGREEMENT ROOM
+                  {CANONICAL_CONTENT.discover.agreementRoom.title}
                 </span>
                 <span
                   className="px-2.5 py-0.5 rounded-sm font-swiss-mono text-[10px] font-semibold tabular border"
@@ -84,7 +85,7 @@ export const AgreementDrawer: React.FC<AgreementDrawerProps> = ({
                     color: '#1A1B17',
                   }}
                 >
-                  BAL: {walletAvailable.toFixed(2)} ECHO
+                  {CANONICAL_CONTENT.discover.wallet.labels[0]}: {walletAvailable.toFixed(2)} ECHO
                 </span>
               </div>
               <button

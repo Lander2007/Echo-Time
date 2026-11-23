@@ -24,32 +24,34 @@ const anton = Anton({
 });
 
 export const metadata: Metadata = {
-  title: 'ECHO TIME — University Time Bank',
+  title: 'Echo Time – Your Time. Your Opportunities.',
   description:
-    'Swiss Editorial university time-banking platform. Trade hours, not tuition. 1.00 Hour = 1.00 Echo with atomic escrow and zero barter deadlock.',
+    'Discover student skills, exchange time credits, find your next collaborator, and build your portfolio with Echo Time.',
   keywords: [
     'Echo Time',
-    'University Time Bank',
-    'Time Banking',
-    'Student Skills Exchange',
-    'Atomic Escrow',
-    'Swiss Editorial Design',
+    'Student skill-exchange platform',
+    'Time credits',
+    'University skill sharing',
+    'Student collaboration',
+    'Student portfolio',
   ],
-  authors: [{ name: 'ECHO TIME Atelier' }],
+  authors: [{ name: 'Echo Time' }],
   icons: {
     icon: '/icon.svg',
   },
   openGraph: {
-    title: 'ECHO TIME — University Time Bank',
+    title: 'Echo Time – Your Time. Your Opportunities.',
     description:
-      'Swiss Editorial university time-banking platform. Trade hours, not tuition. 1.00 Hour = 1.00 Echo with atomic escrow and zero barter deadlock.',
-    siteName: 'ECHO TIME',
+      'Discover student skills, exchange time credits, find your next collaborator, and build your portfolio with Echo Time.',
+    siteName: 'Echo Time',
     type: 'website',
+    url: 'https://echotime-gdoud7zw.manus.space/',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ECHO TIME — University Time Bank',
-    description: 'Swiss Editorial university time-banking platform. Trade hours, not tuition.',
+    title: 'Echo Time – Your Time. Your Opportunities.',
+    description:
+      'Discover student skills, exchange time credits, find your next collaborator, and build your portfolio with Echo Time.',
   },
 };
 
