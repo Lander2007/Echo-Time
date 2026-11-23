@@ -1232,4 +1232,283 @@
     animation: etToastIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
+/* ============================================================================
+   ECHO TIME — IMPERIAL BLUE SWEEPING CURVED CURTAIN AUTH SYSTEM
+   ============================================================================ */
+.et-auth-imperial {
+  --page-bg: #F5F2F3;
+  --card-bg: #FFFFFF;
+  --input-bg: #F5F2F3;
+  --ink: #0B1026;
+  --muted: #565C73;
+  --curtain-bg: #021F94;
+  --curtain-ink: #F5F2F3;
+  --curtain-muted: rgba(245, 242, 243, 0.78);
+  --curtain-accent: #D93829;
+  --curtain-border: rgba(245, 242, 243, 0.34);
+  --cta-bg: #021F94;
+  --cta-ink: #F5F2F3;
+  --pop: #D93829;
+  --border: rgba(2, 31, 148, 0.16);
+  --border-strong: rgba(2, 31, 148, 0.34);
+  --grid-line: rgba(2, 31, 148, 0.055);
+  --curtain-grid: rgba(245, 242, 243, 0.075);
+}
+
+.et-auth-shell {
+  font-family: var(--font-inter, 'Inter', 'Helvetica Neue', Arial, sans-serif);
+  background-color: var(--page-bg);
+  color: var(--ink);
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  min-height: 100vh;
+}
+
+/* ============================================================================
+   CORE SWEEPING 300% CURVED CURTAIN ENGINE (DESKTOP HORIZONTAL SWEEP)
+   ============================================================================ */
+.et-auth-stage {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  min-height: 580px;
+  border-radius: 18px;
+  background-color: var(--card-bg);
+  border: 1.5px solid var(--border-strong);
+  box-shadow: 0 32px 72px rgba(2, 31, 148, 0.14);
+  overflow: hidden;
+}
+
+.et-curtain-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.et-curtain-blob {
+  position: absolute;
+  top: 0;
+  left: -250%; /* Resting on LEFT half (Login mode) */
+  width: 300%;
+  height: 100%;
+  border-radius: 140px;
+  background-color: var(--curtain-bg);
+  background-image:
+    linear-gradient(to right, var(--curtain-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--curtain-grid) 1px, transparent 1px);
+  background-size: 40px 40px;
+  box-shadow: 0 0 48px rgba(2, 31, 148, 0.34);
+  transition: left 1.35s cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: left;
+}
+
+/* Sign-Up mode: 300% curved curtain sweeps across to rest on the RIGHT half */
+.et-auth-stage.is-signup .et-curtain-blob {
+  left: 50%;
+}
+
+/* Form Panels (Underneath the sweeping curtain — swap while covered) */
+.et-form-panel {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  padding: 44px 42px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 10;
+  transition:
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.5s ease;
+  will-change: transform, opacity;
+}
+
+/* Login Form occupies RIGHT half */
+.et-form-login {
+  right: 0;
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  transition-delay: 0.6s, 0.6s;
+}
+.et-auth-stage.is-signup .et-form-login {
+  opacity: 0;
+  transform: translateX(28%);
+  pointer-events: none;
+  transition-delay: 0s, 0s;
+}
+
+/* Sign-Up Form occupies LEFT half */
+.et-form-signup {
+  left: 0;
+  opacity: 0;
+  transform: translateX(-28%);
+  pointer-events: none;
+  transition-delay: 0s, 0s;
+}
+.et-auth-stage.is-signup .et-form-signup {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  transition-delay: 0.6s, 0.6s;
+}
+
+/* Curtain Copy Overlays (Slide smoothly ON TOP of the sweeping blob) */
+.et-toggle-panel {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  padding: 44px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: var(--curtain-ink);
+  z-index: 30;
+  pointer-events: none;
+  transition:
+    left 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    right 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s ease;
+  will-change: left, right, opacity;
+}
+
+/* Left Panel (Visible in Login mode -> invites Sign Up) */
+.et-toggle-left {
+  left: 0;
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0.72s, 0.72s, 0.72s;
+}
+.et-auth-stage.is-signup .et-toggle-left {
+  left: -50%;
+  opacity: 0;
+  pointer-events: none;
+  transition-delay: 0.1s, 0.1s, 0.05s;
+}
+
+/* Right Panel (Visible in Sign-Up mode -> invites Log In) */
+.et-toggle-right {
+  right: -50%;
+  opacity: 0;
+  pointer-events: none;
+  transition-delay: 0.1s, 0.1s, 0.05s;
+}
+.et-auth-stage.is-signup .et-toggle-right {
+  right: 0;
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0.72s, 0.72s, 0.72s;
+}
+
+/* ============================================================================
+   RESPONSIVE VERTICAL CURTAIN SWEEP FOR MOBILE (< 768px)
+   ============================================================================ */
+@media (max-width: 767px) {
+  .et-auth-stage {
+    min-height: 760px;
+    border-radius: 14px;
+  }
+
+  .et-curtain-blob {
+    left: 0 !important;
+    top: -268%;
+    width: 100%;
+    height: 300%;
+    border-radius: 64px;
+    transition: top 1.25s cubic-bezier(0.65, 0, 0.35, 1);
+    will-change: top;
+  }
+
+  .et-auth-stage.is-signup .et-curtain-blob {
+    top: 68%;
+  }
+
+  .et-form-panel {
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 68%;
+    padding: 28px 24px;
+  }
+
+  .et-form-login {
+    top: 32%;
+    transform: translateY(0);
+  }
+  .et-auth-stage.is-signup .et-form-login {
+    transform: translateY(16%);
+  }
+
+  .et-form-signup {
+    top: 0;
+    transform: translateY(-16%);
+  }
+  .et-auth-stage.is-signup .et-form-signup {
+    transform: translateY(0);
+  }
+
+  .et-toggle-panel {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100%;
+    height: 32%;
+    padding: 22px 24px;
+    transition:
+      top 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      bottom 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.45s ease;
+  }
+
+  .et-toggle-left {
+    top: 0;
+  }
+  .et-auth-stage.is-signup .et-toggle-left {
+    top: -32%;
+  }
+
+  .et-toggle-right {
+    top: auto;
+    bottom: -32%;
+  }
+  .et-auth-stage.is-signup .et-toggle-right {
+    bottom: 0;
+  }
+}
+
+/* Reduced Motion Respect */
+@media (prefers-reduced-motion: reduce) {
+  .et-curtain-blob,
+  .et-form-panel,
+  .et-toggle-panel {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}
+
+/* Form Input Styling */
+.et-field-input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background-color: var(--input-bg);
+  color: var(--ink);
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.et-field-input::placeholder {
+  color: var(--muted);
+}
+.et-field-input:focus {
+  outline: none;
+  border-color: var(--cta-bg);
+  box-shadow: 0 0 0 3px rgba(2, 31, 148, 0.14);
+}
+
+
 
