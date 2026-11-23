@@ -1,0 +1,381 @@
+import React from 'react';
+import { CATEGORIES, SLAT_INDICES } from '@/data/echoData';
+import { CategoryFilter, MarketplaceListing } from '@/types/echo';
+import { TactileAudioEngine } from '@/lib/audio';
+
+interface Act4MarketplaceProps {
+  walletAvailable: number;
+  walletLocked: number;
+  activeCategory: CategoryFilter;
+  setActiveCategory: React.Dispatch<React.SetStateAction<CategoryFilter>>;
+  filterShellRef: React.RefObject<HTMLDivElement | null>;
+  filterPillRef: React.RefObject<HTMLDivElement | null>;
+  moveFilterPill: (cat: CategoryFilter) => void;
+  searchQuery: string;
+  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+  sortMode: 'rating' | 'hours-asc' | 'hours-desc';
+  setSortMode: React.Dispatch<React.SetStateAction<'rating' | 'hours-asc' | 'hours-desc'>>;
+  marketBoardRef: React.RefObject<HTMLDivElement | null>;
+  boardClock: string;
+  triggerFlapScramble: () => void;
+  filteredListings: MarketplaceListing[];
+  expandedRowId: string | null;
+  setExpandedRowId: React.Dispatch<React.SetStateAction<string | null>>;
+  handleOpenAgreementRoom: (listing: MarketplaceListing) => void;
+  getAudio: () => TactileAudioEngine;
+}
+
+export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
+  walletAvailable,
+  walletLocked,
+  activeCategory,
+  setActiveCategory,
+  filterShellRef,
+  filterPillRef,
+  moveFilterPill,
+  searchQuery,
+  setSearchQuery,
+  sortMode,
+  setSortMode,
+  marketBoardRef,
+  boardClock,
+  triggerFlapScramble,
+  filteredListings,
+  expandedRowId,
+  setExpandedRowId,
+  handleOpenAgreementRoom,
+  getAudio,
+}) => {
+  return (
+          <section
+            id="act-marketplace"
+            className="relative py-24 sm:py-28 pb-28 sm:pb-36 border-t border-strong"
+          >
+            <div className="max-w-[1380px] w-full mx-auto px-5 sm:px-10">
+              {/* Header & Live Wallet Telemetry */}
+              <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 border-b border-strong">
+                <div>
+                  <div className="flex items-center gap-3 font-swiss-mono text-[11px] uppercase tracking-[0.16em] text-accent font-semibold mb-2">
+                    <span className="text-xl font-bold">04</span>
+                    <span>SWISS SPLIT-FLAP CAMPUS EXCHANGE BOARD</span>
+                  </div>
+                  <h2 className="font-swiss-sans font-black uppercase tracking-[-0.045em] leading-[0.92] text-3xl sm:text-5xl text-ink">
+                    LIVE SKILL <span className="text-accent">DEPARTURES.</span>
+                  </h2>
+                </div>
+
+                {/* Live Demo Wallet Telemetry (Warm Bone Card on Acid Lime) */}
+                <div className="inline-flex items-center gap-5 px-5 py-3 rounded border border-strong bg-surface">
+                  <div>
+                    <div className="font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-muted">
+                      AVAILABLE BALANCE
+                    </div>
+                    <div className="font-swiss-mono font-semibold text-xl tabular text-ink">
+                      {walletAvailable.toFixed(2)} ECHO
+                    </div>
+                  </div>
+                  <div className="h-8 w-px" style={{ backgroundColor: 'var(--border-strong)' }} />
+                  <div>
+                    <div className="font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-muted">
+                      LOCKED IN ESCROW
+                    </div>
+                    <div className="font-swiss-mono font-semibold text-xl tabular text-accent">
+                      {walletLocked.toFixed(2)} ECHO
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Controls: Sliding Category Tabs + Search + Sort + Flip Board */}
+              <div className="mt-8 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                <div
+                  ref={filterShellRef}
+                  className="filter-tab-shell"
+                  role="tablist"
+                  aria-label="Filter skill listings by discipline"
+                >
+                  <div ref={filterPillRef} className="filter-sliding-pill" aria-hidden="true" />
+                  {CATEGORIES.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      data-category={cat}
+                      data-cursor="FILTER"
+                      onClick={() => {
+                        setActiveCategory(cat);
+                        window.requestAnimationFrame(() => triggerFlapScramble());
+                      }}
+                      className={`filter-tab-btn ${activeCategory === cat ? 'is-active' : ''}`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
+                  <div className="relative flex-1 sm:w-64">
+                    <input
+                      type="search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Filter board: Next.js, Rhino, SQL..."
+                      aria-label="Search student listings"
+                      className="w-full pl-9 pr-4 py-2 rounded border border-strong bg-surface text-sm text-ink placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+                    />
+                    <svg
+                      className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    >
+                      <circle cx="9" cy="9" r="6" />
+                      <path d="M13.5 13.5L17.5 17.5" strokeLinecap="round" />
+                    </svg>
+                  </div>
+
+                  <select
+                    value={sortMode}
+                    onChange={(e) => {
+                      setSortMode(e.target.value as 'rating' | 'hours-asc' | 'hours-desc');
+                      window.requestAnimationFrame(() => triggerFlapScramble());
+                    }}
+                    aria-label="Sort listings"
+                    className="px-4 py-2 rounded border border-strong bg-surface hover:border-accent font-swiss-mono text-[11px] uppercase tracking-[0.09em] text-ink focus:outline-none focus:border-accent transition-colors"
+                  >
+                    <option value="rating">Sort: Highest Rating</option>
+                    <option value="hours-asc">Sort: Shortest Session</option>
+                    <option value="hours-desc">Sort: Deepest Session</option>
+                  </select>
+
+                  <button
+                    type="button"
+                    data-cursor="FLIP"
+                    onClick={triggerFlapScramble}
+                    className="px-3.5 py-2 rounded border border-strong bg-[#1A1B17] text-[#F1EFE8] hover:bg-[#1E3AE0] hover:border-[#1E3AE0] font-swiss-mono text-[10.5px] font-semibold uppercase tracking-[0.11em] transition-colors"
+                  >
+                    Flip Board
+                  </button>
+                </div>
+              </div>
+
+              {/* Swiss SBB Mechanical Split-Flap Board */}
+              <div className="mt-7 sbb-board-shell">
+                <div
+                  className="px-4 sm:px-6 py-3.5 border-b flex flex-wrap items-center justify-between gap-3 font-swiss-mono text-[10px] uppercase tracking-[0.16em]"
+                  style={{
+                    borderColor: 'rgba(241, 239, 232, 0.14)',
+                    backgroundColor: '#131411',
+                    color: '#989A8E',
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="px-2 py-0.5 rounded-sm font-semibold"
+                      style={{ backgroundColor: '#1E3AE0', color: '#F1EFE8' }}
+                    >
+                      SBB &middot; CAMPUS LIVE
+                    </span>
+                    <span>CLICK ANY ROW TO INSPECT PERFORATED AGREEMENT STUB</span>
+                  </div>
+                  <span className="tabular" style={{ color: '#C9E54B' }}>
+                    {boardClock}
+                  </span>
+                </div>
+
+                {/* Desktop Column Headers */}
+                <div
+                  className="hidden lg:grid grid-cols-12 gap-3 px-6 py-2.5 border-b font-swiss-mono text-[9.5px] uppercase tracking-[0.16em]"
+                  style={{
+                    borderColor: 'rgba(241, 239, 232, 0.10)',
+                    backgroundColor: '#161713',
+                    color: '#989A8E',
+                  }}
+                >
+                  <span className="col-span-1">SLOT</span>
+                  <span className="col-span-4">SKILL EXCHANGE</span>
+                  <span className="col-span-3">PEER / CAMPUS</span>
+                  <span className="col-span-2">CAP &amp; RATING</span>
+                  <span className="col-span-2 text-right">BOARD STATUS</span>
+                </div>
+
+                {/* Split-Flap Rows */}
+                <div ref={marketBoardRef}>
+                  {filteredListings.length === 0 ? (
+                    <div
+                      className="p-10 text-center font-swiss-mono text-xs uppercase tracking-[0.14em]"
+                      style={{ color: '#989A8E' }}
+                    >
+                      NO DEPARTURES MATCHING QUERY &mdash; CLEAR FILTER TO RE-SYNC BOARD
+                    </div>
+                  ) : (
+                    filteredListings.map((item) => {
+                      const isOpen = expandedRowId === item.id;
+                      return (
+                        <div key={item.id} className="sbb-row-wrapper">
+                          <button
+                            type="button"
+                            data-cursor="STUB"
+                            onClick={() => {
+                              setExpandedRowId((prev) => (prev === item.id ? null : item.id));
+                              getAudio().flap();
+                            }}
+                            className={`sbb-row-btn ${
+                              isOpen ? 'is-expanded' : ''
+                            } px-4 sm:px-6 py-4 grid grid-cols-1 lg:grid-cols-12 gap-3 items-center`}
+                          >
+                            <div className="lg:col-span-1 flex items-center justify-between lg:block">
+                              <span
+                                className="flap-cell text-xs font-semibold tabular"
+                                data-flap-text={item.slot}
+                              >
+                                {item.slot}
+                              </span>
+                              <span
+                                className={`lg:hidden flap-cell ${
+                                  item.status !== 'OPEN' ? 'flap-cell-accent' : ''
+                                } text-[10px] font-semibold`}
+                                data-flap-text={item.status}
+                              >
+                                {item.status}
+                              </span>
+                            </div>
+
+                            <div className="lg:col-span-4">
+                              <div className="font-swiss-sans font-extrabold text-base sm:text-lg tracking-tight text-[#F1EFE8] leading-snug">
+                                {item.title}
+                              </div>
+                              <div
+                                className="mt-0.5 font-swiss-mono text-[10px] uppercase tracking-[0.12em]"
+                                style={{ color: '#989A8E' }}
+                              >
+                                {item.category} &middot; {item.sessions} SETTLED SESSIONS
+                              </div>
+                            </div>
+
+                            <div className="lg:col-span-3 flex flex-wrap items-center gap-2">
+                              <span
+                                className="flap-cell text-[10.5px]"
+                                data-flap-text={item.hall}
+                              >
+                                {item.hall}
+                              </span>
+                              <span
+                                className="font-swiss-mono text-xs"
+                                style={{ color: '#989A8E' }}
+                              >
+                                {item.peer}
+                              </span>
+                            </div>
+
+                            <div className="lg:col-span-2 flex items-center gap-2">
+                              <span
+                                className="flap-cell text-xs font-semibold tabular"
+                                style={{ color: '#C9E54B' }}
+                                data-flap-text={`${item.hours.toFixed(1)} HR`}
+                              >
+                                {item.hours.toFixed(1)} HR
+                              </span>
+                              <span
+                                className="font-swiss-mono text-[11px] tabular"
+                                style={{ color: '#6B84FF' }}
+                              >
+                                &#9733; {item.rating.toFixed(2)}
+                              </span>
+                            </div>
+
+                            <div className="hidden lg:flex lg:col-span-2 items-center justify-end gap-2.5">
+                              <span
+                                className={`flap-cell ${
+                                  item.status !== 'OPEN' ? 'flap-cell-accent' : ''
+                                } text-[10px] font-semibold`}
+                                style={item.status === 'OPEN' ? { color: '#C9E54B' } : undefined}
+                                data-flap-text={item.status}
+                              >
+                                {item.status}
+                              </span>
+                              <span
+                                className="font-swiss-mono text-xs"
+                                style={{ color: '#989A8E' }}
+                              >
+                                {isOpen ? '−' : '+'}
+                              </span>
+                            </div>
+                          </button>
+
+                          {/* Inline Perforated Warm Bone Ticket Stub */}
+                          <div className={`ticket-stub-drawer ${isOpen ? 'is-open' : ''}`}>
+                            <div>
+                              <div className="perforated-edge px-5 sm:px-7 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+                                <div className="lg:col-span-7">
+                                  <div
+                                    className="font-swiss-mono text-[9.5px] uppercase tracking-[0.16em] font-semibold"
+                                    style={{ color: '#1E3AE0' }}
+                                  >
+                                    PERFORATED AGREEMENT STUB &middot; {item.meta}
+                                  </div>
+                                  <p
+                                    className="mt-1.5 text-sm leading-relaxed"
+                                    style={{ color: '#1A1B17' }}
+                                  >
+                                    {item.summary}
+                                  </p>
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    {item.deliverables.map((d) => (
+                                      <span
+                                        key={d}
+                                        className="px-2.5 py-1 rounded-sm border font-swiss-mono text-[10px]"
+                                        style={{
+                                          borderColor: 'rgba(26, 27, 23, 0.22)',
+                                          backgroundColor: '#E6E3D8',
+                                          color: '#1A1B17',
+                                        }}
+                                      >
+                                        &#10003; {d}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div
+                                  className="lg:col-span-5 flex flex-wrap sm:flex-nowrap items-center justify-between lg:justify-end gap-4 pt-3 lg:pt-0 border-t lg:border-t-0"
+                                  style={{ borderColor: 'rgba(26, 27, 23, 0.16)' }}
+                                >
+                                  <div className="font-swiss-mono">
+                                    <div
+                                      className="text-[9px] uppercase"
+                                      style={{ color: '#46493D' }}
+                                    >
+                                      PARITY CAP
+                                    </div>
+                                    <div className="text-xl font-semibold tabular">
+                                      {item.hours.toFixed(2)} ECHO
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    data-cursor="OPEN"
+                                    onClick={() => handleOpenAgreementRoom(item)}
+                                    className="px-5 py-3 rounded-sm font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] transition-transform active:scale-95"
+                                    style={{
+                                      backgroundColor: '#1E3AE0',
+                                      color: '#F1EFE8',
+                                    }}
+                                  >
+                                    Open Agreement Room &rarr;
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+
+  );
+};

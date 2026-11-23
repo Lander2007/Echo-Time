@@ -1,0 +1,1093 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+  :root,
+  .theme-dark {
+    --bg: #1A1B17;
+    --surface: #23251F;
+    --ink: #F1EFE8;
+    --muted: #989A8E;
+    --accent: #C9E54B;
+    --accent-text: #C9E54B;
+    --accent-ink: #1A1B17;
+    --pop: #6B84FF;
+    --pop-ink: #F1EFE8;
+    --border: rgba(241, 239, 232, 0.14);
+    --border-strong: rgba(241, 239, 232, 0.28);
+  }
+
+  .theme-light {
+    --bg: #C9E54B;
+    --surface: #F1EFE8;
+    --ink: #1A1B17;
+    --muted: #46493D;
+    --accent: #1E3AE0;
+    --accent-text: #1E3AE0;
+    --accent-ink: #F1EFE8;
+    --pop: #1E3AE0;
+    --pop-ink: #F1EFE8;
+    --border: rgba(26, 27, 23, 0.18);
+    --border-strong: rgba(26, 27, 23, 0.42);
+  }
+
+  html {
+    scroll-behavior: auto;
+    background-color: #1A1B17;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-inter), 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #1A1B17;
+    color: #F1EFE8;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+  }
+
+  .font-swiss-sans { font-family: var(--font-inter), 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+  .font-swiss-mono { font-family: var(--font-ibm-plex-mono), 'IBM Plex Mono', monospace; }
+  .font-echo-monument { font-family: var(--font-anton), 'Anton', 'Inter', Impact, sans-serif; }
+
+  .bg-theme { background-color: var(--bg); }
+  .bg-surface { background-color: var(--surface); }
+  .bg-accent { background-color: var(--accent); }
+  .bg-pop { background-color: var(--pop); }
+  .text-ink { color: var(--ink); }
+  .text-muted { color: var(--muted); }
+  .text-accent { color: var(--accent-text); }
+  .text-accent-ink { color: var(--accent-ink); }
+  .text-pop { color: var(--pop); }
+  .border-theme { border-color: var(--border); }
+  .border-strong { border-color: var(--border-strong); }
+  .border-accent { border-color: var(--accent); }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  .hero-outline-lime {
+    color: #C9E54B;
+  }
+
+  .swiss-grid-dark {
+    background-image:
+      linear-gradient(to right, rgba(241, 239, 232, 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(241, 239, 232, 0.045) 1px, transparent 1px);
+    background-size: 72px 72px;
+  }
+
+  .swiss-grid-light {
+    background-image:
+      linear-gradient(to right, rgba(26, 27, 23, 0.075) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(26, 27, 23, 0.075) 1px, transparent 1px);
+    background-size: 72px 72px;
+  }
+
+  /* Preloader Curtain */
+  .et-preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 28px 24px;
+    background-color: #1A1B17;
+    color: #F1EFE8;
+    will-change: transform;
+  }
+  @media (min-width: 640px) {
+    .et-preloader { padding: 36px 48px; }
+  }
+
+  /* Custom Magnetic Swiss Cursor */
+  .et-cursor-ring,
+  .et-cursor-dot {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 95;
+    will-change: transform;
+  }
+  @media (pointer: fine) {
+    body.custom-cursor-ready .et-cursor-ring {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 9999px;
+      border: 1.25px solid rgba(241, 239, 232, 0.58);
+      background-color: transparent;
+      transition:
+        width 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+        height 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.24s ease,
+        background-color 0.24s ease,
+        opacity 0.2s ease;
+    }
+    body.custom-cursor-ready.cursor-is-light .et-cursor-ring {
+      border-color: rgba(26, 27, 23, 0.62);
+    }
+    body.custom-cursor-ready .et-cursor-ring.is-labeled {
+      width: 62px;
+      height: 26px;
+      border-radius: 3px;
+      border-color: #C9E54B;
+      background-color: #C9E54B;
+    }
+    body.custom-cursor-ready.cursor-is-light .et-cursor-ring.is-labeled {
+      border-color: #1E3AE0;
+      background-color: #1E3AE0;
+    }
+    .et-cursor-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #1A1B17;
+      opacity: 0;
+      transition: opacity 0.16s ease;
+    }
+    body.custom-cursor-ready.cursor-is-light .et-cursor-label {
+      color: #F1EFE8;
+    }
+    .et-cursor-ring.is-labeled .et-cursor-label { opacity: 1; }
+    body.custom-cursor-ready .et-cursor-dot {
+      display: block;
+      width: 5px;
+      height: 5px;
+      border-radius: 1px;
+      background-color: #6B84FF;
+      transition: opacity 0.18s ease, background-color 0.2s ease;
+    }
+    body.custom-cursor-ready.cursor-is-light .et-cursor-dot {
+      background-color: #1E3AE0;
+    }
+    body.custom-cursor-ready .et-cursor-dot.is-hidden { opacity: 0; }
+  }
+
+  /* Right-Edge Chapter Rail */
+  .chapter-rail {
+    position: fixed;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 60;
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+  }
+  @media (min-width: 1280px) {
+    .chapter-rail { display: flex; }
+  }
+  .chapter-rail-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  .chapter-rail-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #989A8E;
+    opacity: 0;
+    transform: translateX(6px);
+    transition: opacity 0.22s ease, transform 0.22s ease, color 0.22s ease;
+  }
+  .chapter-rail.nav-is-light .chapter-rail-label {
+    color: rgba(26, 27, 23, 0.72);
+  }
+  .chapter-rail-btn:hover .chapter-rail-label,
+  .chapter-rail-btn.is-active .chapter-rail-label {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .chapter-rail-btn.is-active .chapter-rail-label {
+    color: #C9E54B;
+    font-weight: 600;
+  }
+  .chapter-rail.nav-is-light .chapter-rail-btn.is-active .chapter-rail-label {
+    color: #1E3AE0;
+  }
+  .chapter-rail-tick {
+    width: 12px;
+    height: 2px;
+    background-color: rgba(241, 239, 232, 0.28);
+    transition: width 0.24s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.24s ease;
+  }
+  .chapter-rail.nav-is-light .chapter-rail-tick {
+    background-color: rgba(26, 27, 23, 0.28);
+  }
+  .chapter-rail-btn:hover .chapter-rail-tick { width: 20px; }
+  .chapter-rail-btn.is-active .chapter-rail-tick {
+    width: 26px;
+    background-color: #C9E54B;
+  }
+  .chapter-rail.nav-is-light .chapter-rail-btn.is-active .chapter-rail-tick {
+    background-color: #1E3AE0;
+  }
+
+  /* Fixed Swiss Navbar */
+  .navbar-shell {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 70;
+    background-color: rgba(26, 27, 23, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(241, 239, 232, 0.14);
+    transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+  }
+  .navbar-shell.nav-is-light {
+    --bg: #C9E54B;
+    --surface: #F1EFE8;
+    --ink: #1A1B17;
+    --muted: #46493D;
+    --accent: #1E3AE0;
+    --accent-text: #1E3AE0;
+    --accent-ink: #F1EFE8;
+    --border: rgba(26, 27, 23, 0.20);
+    --border-strong: rgba(26, 27, 23, 0.42);
+    background-color: rgba(201, 229, 75, 0.90);
+    border-bottom-color: rgba(26, 27, 23, 0.22);
+  }
+  .swiss-cross {
+    position: relative;
+    display: block;
+    width: 10px;
+    height: 10px;
+  }
+  .swiss-cross::before,
+  .swiss-cross::after {
+    content: "";
+    position: absolute;
+    background-color: currentColor;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .swiss-cross::before { width: 10px; height: 2.5px; }
+  .swiss-cross::after { width: 2.5px; height: 10px; }
+
+  .nav-pill-container {
+    position: relative;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 4px;
+    background-color: rgba(241, 239, 232, 0.04);
+    border: 1px solid var(--border);
+  }
+  .navbar-shell.nav-is-light .nav-pill-container {
+    background-color: rgba(26, 27, 23, 0.06);
+  }
+  .nav-sliding-indicator {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    height: calc(100% - 6px);
+    width: 0;
+    border-radius: 3px;
+    background-color: var(--accent);
+    pointer-events: none;
+    transition:
+      transform 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+      width 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .nav-link-item {
+    position: relative;
+    z-index: 2;
+    padding: 6px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.22s ease;
+  }
+  .nav-link-item:hover,
+  .nav-link-item.is-active {
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+  .nav-progress-rail {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background-color: transparent;
+    overflow: hidden;
+  }
+  .nav-progress-fill {
+    height: 100%;
+    width: 0%;
+    background-color: var(--accent);
+    transition: width 0.08s linear;
+  }
+
+  /* Magnetic & Vertical Roll CTA Buttons */
+  .magnetic {
+    transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+  .btn-roll {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .btn-roll-inner {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    line-height: 1.25;
+  }
+  .btn-roll-text,
+  .btn-roll-text-clone {
+    display: block;
+    transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .btn-roll-text-clone {
+    position: absolute;
+    inset: 0;
+    transform: translateY(115%);
+  }
+  .btn-roll:hover .btn-roll-text { transform: translateY(-115%); }
+  .btn-roll:hover .btn-roll-text-clone { transform: translateY(0%); }
+
+  /* Act I — 3D Swiss Architectural Door & Impact FX */
+  .hero-impact-vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(circle at center, transparent 42%, rgba(107, 132, 255, 0.26) 100%);
+  }
+  .swiss-portal-stage {
+    perspective: 1400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .swiss-door-outer {
+    position: relative;
+    width: clamp(276px, 27vw, 354px);
+    height: clamp(390px, 58vh, 500px);
+    padding: 12px;
+    background-color: #23251F;
+    border: 1.5px solid rgba(241, 239, 232, 0.30);
+    border-radius: 3px;
+    box-shadow: 0 32px 72px rgba(0, 0, 0, 0.68);
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .door-impact-frame {
+    position: absolute;
+    inset: -4px;
+    border: 2px solid #C9E54B;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 35;
+  }
+  .latch-pulse-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 64px;
+    height: 64px;
+    margin-left: -32px;
+    margin-top: -32px;
+    border: 2px solid #6B84FF;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 36;
+  }
+  .door-corner-tick {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+    z-index: 25;
+  }
+  .tick-tl { top: -6px; left: -6px; border-top: 2px solid #C9E54B; border-left: 2px solid #C9E54B; }
+  .tick-tr { top: -6px; right: -6px; border-top: 2px solid #6B84FF; border-right: 2px solid #6B84FF; }
+  .tick-bl { bottom: -6px; left: -6px; border-bottom: 2px solid #6B84FF; border-left: 2px solid #6B84FF; }
+  .tick-br { bottom: -6px; right: -6px; border-bottom: 2px solid #C9E54B; border-right: 2px solid #C9E54B; }
+
+  .swiss-door-aperture {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #C9E54B;
+    border: 1px solid rgba(26, 27, 23, 0.35);
+  }
+  .door-daylight-poster {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #C9E54B;
+    background-image:
+      linear-gradient(to right, rgba(26, 27, 23, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(26, 27, 23, 0.08) 1px, transparent 1px);
+    background-size: 32px 32px;
+    overflow: hidden;
+  }
+  .door-sunbeam {
+    position: absolute;
+    top: -20%;
+    bottom: -20%;
+    left: -65%;
+    width: 60%;
+    background: linear-gradient(90deg, transparent, rgba(241, 239, 232, 0.55), transparent);
+    transform: skewX(-18deg);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .shutter-plane {
+    position: absolute;
+    inset: 12px;
+    z-index: 15;
+    display: flex;
+    perspective: 1400px;
+    transform-style: preserve-3d;
+    pointer-events: none;
+  }
+  .shutter-door {
+    position: relative;
+    width: 50%;
+    height: 100%;
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #1F201B;
+    border: 1px solid rgba(241, 239, 232, 0.22);
+    backface-visibility: visible;
+    transform-style: preserve-3d;
+    will-change: transform;
+    box-shadow: inset 0 0 0 1px rgba(241, 239, 232, 0.03);
+  }
+  .shutter-door-left {
+    transform-origin: left center;
+    border-right: 1px solid rgba(241, 239, 232, 0.30);
+  }
+  .shutter-door-right {
+    transform-origin: right center;
+    border-left: 1px solid rgba(26, 27, 23, 0.9);
+  }
+  .swiss-hinge {
+    position: absolute;
+    width: 5px;
+    height: 24px;
+    background-color: #C9E54B;
+    border-radius: 1px;
+  }
+  .hinge-lt { left: -3px; top: 18%; }
+  .hinge-lb { left: -3px; bottom: 18%; }
+  .hinge-rt { right: -3px; top: 18%; }
+  .hinge-rb { right: -3px; bottom: 18%; }
+  .swiss-louver-grid {
+    flex: 1;
+    margin: 14px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .swiss-slat {
+    flex: 1;
+    border-radius: 1px;
+    background: linear-gradient(180deg, #272922 0%, #1C1D18 55%, #131410 100%);
+    border-top: 1px solid rgba(241, 239, 232, 0.10);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.72);
+  }
+  .shutter-latch-wrap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 22;
+    will-change: transform, opacity;
+  }
+  .swiss-latch-plate {
+    width: 44px;
+    height: 44px;
+    border-radius: 3px;
+    background-color: #1A1B17;
+    border: 1.5px solid #C9E54B;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .shutter-latch-lever {
+    width: 24px;
+    height: 6px;
+    border-radius: 1px;
+    background-color: #6B84FF;
+    transform-origin: center;
+    will-change: transform;
+  }
+  .swiss-door-threshold {
+    position: absolute;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    height: 8px;
+    border-radius: 2px;
+    background-color: #262821;
+    border: 1px solid rgba(241, 239, 232, 0.26);
+  }
+
+  /* Act II — The Swiss Parity Guillotine */
+  .guillotine-stage {
+    position: relative;
+    width: 100%;
+    min-height: 540px;
+    border: 2px solid #1A1B17;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #1A1B17;
+    user-select: none;
+    touch-action: pan-y;
+    box-shadow: 0 22px 48px rgba(26, 27, 23, 0.18);
+  }
+  .guillotine-layer {
+    position: absolute;
+    inset: 0;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  @media (min-width: 768px) {
+    .guillotine-stage { min-height: 580px; }
+    .guillotine-layer { padding: 40px 44px; }
+  }
+  .guillotine-layer-legacy {
+    background-color: #1A1B17;
+    color: #F1EFE8;
+    background-image:
+      linear-gradient(to right, rgba(241, 239, 232, 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(241, 239, 232, 0.045) 1px, transparent 1px);
+    background-size: 64px 64px;
+    z-index: 1;
+  }
+  .guillotine-layer-parity {
+    background-color: #C9E54B;
+    color: #1A1B17;
+    background-image:
+      linear-gradient(to right, rgba(26, 27, 23, 0.075) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(26, 27, 23, 0.075) 1px, transparent 1px);
+    background-size: 64px 64px;
+    z-index: 2;
+    clip-path: inset(0 88% 0 0);
+    will-change: clip-path;
+  }
+  .guillotine-blade {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 12%;
+    width: 3px;
+    background-color: #1E3AE0;
+    box-shadow: 0 0 22px rgba(30, 58, 224, 0.55);
+    z-index: 10;
+    transform: translateX(-1.5px);
+    cursor: ew-resize;
+    will-change: left;
+  }
+  .guillotine-handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 42px;
+    height: 78px;
+    border-radius: 3px;
+    background-color: #1E3AE0;
+    border: 2px solid #1A1B17;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.42);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: #F1EFE8;
+    pointer-events: auto;
+  }
+
+  /* Act III — Braun / Swiss Campus Skill Patchboard (Warm Bone Hardware on Acid Lime) */
+  .patchboard-chassis {
+    position: relative;
+    background-color: #F1EFE8;
+    border: 1.5px solid #1A1B17;
+    border-radius: 4px;
+    box-shadow: 0 20px 44px rgba(26, 27, 23, 0.14);
+  }
+  .patch-jack-btn {
+    position: relative;
+    width: 100%;
+    text-align: left;
+    padding: 14px 16px;
+    border-radius: 3px;
+    border: 1.5px solid rgba(26, 27, 23, 0.22);
+    background-color: #E6E3D8;
+    color: #1A1B17;
+    transition: border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease;
+  }
+  .patch-jack-btn:hover { border-color: #1E3AE0; }
+  .patch-jack-btn.is-patched {
+    background-color: #1A1B17;
+    color: #F1EFE8;
+    border-color: #1E3AE0;
+  }
+  .patch-jack-btn.is-patched .jack-sub { color: #989A8E; }
+  .patch-jack-btn.is-patched .text-accent { color: #C9E54B; }
+  .jack-socket {
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    border: 2px solid #1A1B17;
+    background-color: #F1EFE8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 0.22s ease, background-color 0.22s ease;
+  }
+  .jack-socket::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background-color: #1A1B17;
+    transition: background-color 0.22s ease, transform 0.22s ease;
+  }
+  .patch-jack-btn.is-patched .jack-socket,
+  .patch-target-card.is-patched .jack-socket {
+    border-color: #6B84FF;
+    background-color: #23251F;
+  }
+  .patch-jack-btn.is-patched .jack-socket::after,
+  .patch-target-card.is-patched .jack-socket::after {
+    background-color: #C9E54B;
+    transform: scale(1.2);
+  }
+  .patch-target-card {
+    padding: 14px 16px;
+    border-radius: 3px;
+    border: 1.5px solid rgba(26, 27, 23, 0.22);
+    background-color: #E6E3D8;
+    color: #1A1B17;
+    transition: border-color 0.22s ease, background-color 0.22s ease;
+  }
+  .patch-target-card.is-patched {
+    border-color: #1E3AE0;
+    background-color: #1A1B17;
+    color: #F1EFE8;
+  }
+  .patch-target-card.is-patched .jack-sub { color: #989A8E; }
+  .patch-target-card.is-patched .text-accent { color: #C9E54B; }
+  @keyframes signalPacket {
+    from { stroke-dashoffset: 64; }
+    to { stroke-dashoffset: 0; }
+  }
+  .patch-wire-active {
+    stroke-dasharray: 12 20;
+    animation: signalPacket 1.15s linear infinite;
+  }
+
+  /* Act IV — Swiss SBB Split-Flap Board & Perforated Ticket Stub */
+  .filter-tab-shell {
+    position: relative;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 4px;
+    background-color: #F1EFE8;
+    border: 1.5px solid #1A1B17;
+  }
+  .filter-sliding-pill {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    height: calc(100% - 8px);
+    border-radius: 3px;
+    background-color: #1E3AE0;
+    pointer-events: none;
+    transition:
+      transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+      width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+      height 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .filter-tab-btn {
+    position: relative;
+    z-index: 2;
+    padding: 7px 14px;
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #1A1B17;
+    transition: color 0.2s ease;
+  }
+  .filter-tab-btn.is-active { color: #F1EFE8; font-weight: 600; }
+
+  .sbb-board-shell {
+    background-color: #1A1B17;
+    color: #F1EFE8;
+    border: 2px solid #1A1B17;
+    border-radius: 4px;
+    box-shadow: 0 22px 46px rgba(26, 27, 23, 0.24);
+    overflow: hidden;
+  }
+  .sbb-row-btn {
+    width: 100%;
+    text-align: left;
+    background-color: #1E201B;
+    border-bottom: 1px solid rgba(241, 239, 232, 0.12);
+    transition: background-color 0.2s ease;
+  }
+  .sbb-row-btn:hover,
+  .sbb-row-btn.is-expanded { background-color: #262922; }
+
+  .flap-cell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #252720 0%, #1C1E18 49%, #141511 50%, #1E201A 100%);
+    border: 1px solid rgba(241, 239, 232, 0.18);
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #F1EFE8;
+    overflow: hidden;
+  }
+  .flap-cell::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.72);
+    pointer-events: none;
+  }
+  .flap-cell-accent {
+    background: linear-gradient(180deg, #3250FF 0%, #1E3AE0 49%, #162CB3 50%, #1E3AE0 100%);
+    border-color: rgba(241, 239, 232, 0.28);
+    color: #F1EFE8;
+  }
+  @keyframes flapTick {
+    0% { transform: scaleY(1); }
+    45% { transform: scaleY(0.18); }
+    100% { transform: scaleY(1); }
+  }
+  .is-flipping { animation: flapTick 0.16s ease-in-out; }
+
+  .ticket-stub-drawer {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+    background-color: #F1EFE8;
+    color: #1A1B17;
+  }
+  .ticket-stub-drawer.is-open { grid-template-rows: 1fr; }
+  .ticket-stub-drawer > div { overflow: hidden; }
+  .perforated-edge { border-top: 2px dashed rgba(26, 27, 23, 0.38); }
+
+  .drawer-backdrop {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .drawer-panel {
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .drawer-backdrop.open .drawer-panel { transform: translateX(0%); }
+
+  input[type="range"].echo-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(26, 27, 23, 0.25);
+    outline: none;
+  }
+  input[type="range"].echo-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    background: #1E3AE0;
+    border: 2px solid #F1EFE8;
+    box-shadow: 0 2px 8px rgba(26, 27, 23, 0.3);
+    cursor: pointer;
+  }
+  input[type="range"].echo-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    background: #1E3AE0;
+    border: 2px solid #F1EFE8;
+    box-shadow: 0 2px 8px rgba(26, 27, 23, 0.3);
+    cursor: pointer;
+  }
+
+  /* Rising Carbon Vault Slab & Marquee */
+  .vault-chamber-shell {
+    position: relative;
+    background-color: #1A1B17;
+    color: #F1EFE8;
+    border-top: 3px solid #1E3AE0;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    box-shadow: 0 -22px 54px rgba(26, 27, 23, 0.32);
+  }
+  .dusk-bridge-band {
+    position: relative;
+    padding: 8vh 0;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .kinetic-track {
+    display: flex;
+    width: max-content;
+    white-space: nowrap;
+    will-change: transform;
+  }
+
+  /* Act V — Live Escrow Audit Tape (Warm Bone Thermal Paper + Cobalt Stamp) */
+  .printer-head-chassis {
+    background-color: #23251F;
+    border: 1.5px solid rgba(241, 239, 232, 0.26);
+    border-radius: 4px;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.55);
+  }
+  .printer-feed-slot {
+    height: 12px;
+    background-color: #11120F;
+    border-top: 1px solid rgba(241, 239, 232, 0.14);
+    border-bottom: 1.5px solid #C9E54B;
+    box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.9);
+  }
+  .audit-tape-viewport {
+    position: relative;
+    overflow: hidden;
+    padding: 0 12px 24px;
+  }
+  .audit-tape-paper {
+    position: relative;
+    background-color: #F1EFE8;
+    color: #1A1B17;
+    border-left: 1.5px solid #1A1B17;
+    border-right: 1.5px solid #1A1B17;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.55);
+    will-change: transform;
+  }
+  .tape-entry {
+    padding: 14px 18px;
+    border-bottom: 1px dashed rgba(26, 27, 23, 0.26);
+    opacity: 0.32;
+    transition: opacity 0.28s ease, background-color 0.28s ease;
+  }
+  .tape-entry.is-printed { opacity: 1; }
+  .tape-entry.is-current { background-color: rgba(201, 229, 75, 0.28); }
+  .tear-perforation-bar {
+    position: relative;
+    border-top: 2px dashed #1E3AE0;
+    background-color: #E6E3D8;
+    padding: 14px 18px;
+    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.55s ease, box-shadow 0.4s ease;
+    transform-origin: left top;
+  }
+  .tear-perforation-bar.is-torn {
+    transform: translateY(28px) rotate(-3.5deg);
+    box-shadow: 0 22px 34px rgba(0, 0, 0, 0.55);
+    border-top: 2px solid #C9E54B;
+    background-color: #1A1B17;
+    color: #F1EFE8;
+  }
+  .tear-progress-track {
+    position: relative;
+    height: 36px;
+    border-radius: 3px;
+    border: 1.5px solid #1A1B17;
+    background-color: #C9E54B;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .tear-progress-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0%;
+    background-color: #1E3AE0;
+    transition: width 0.25s ease;
+  }
+
+  /* Act VI — Judge Stress-Test Console */
+  .stress-key-btn {
+    position: relative;
+    text-align: left;
+    padding: 18px 20px;
+    border-radius: 4px;
+    border: 1.5px solid rgba(241, 239, 232, 0.18);
+    background-color: #23251F;
+    transition: border-color 0.22s ease, background-color 0.22s ease, transform 0.16s ease;
+  }
+  .stress-key-btn:hover { border-color: rgba(201, 229, 75, 0.55); }
+  .stress-key-btn.is-active {
+    border-color: #C9E54B;
+    background-color: #24281D;
+    box-shadow: 0 0 0 1px #C9E54B;
+  }
+  .stress-led {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    background-color: rgba(241, 239, 232, 0.22);
+    transition: background-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .stress-key-btn.is-active .stress-led {
+    background-color: #6B84FF;
+    box-shadow: 0 0 10px #6B84FF;
+  }
+  @keyframes terminalBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .term-cursor {
+    display: inline-block;
+    width: 7px;
+    height: 12px;
+    background-color: #C9E54B;
+    vertical-align: middle;
+    animation: terminalBlink 0.9s steps(1) infinite;
+  }
+
+  /* Act VII — 3D Founding Pass */
+  .pass-perspective {
+    perspective: 1200px;
+  }
+  .founding-pass-card {
+    position: relative;
+    transform-style: preserve-3d;
+    background-color: #20221C;
+    background-image:
+      linear-gradient(to right, rgba(241, 239, 232, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(241, 239, 232, 0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
+    border: 1.5px solid rgba(201, 229, 75, 0.45);
+    box-shadow: 0 28px 58px rgba(0, 0, 0, 0.62);
+    overflow: hidden;
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+  .pass-specular {
+    position: absolute;
+    inset: -45%;
+    pointer-events: none;
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(201, 229, 75, 0.24) 0%,
+      rgba(107, 132, 255, 0.12) 28%,
+      transparent 60%
+    );
+    opacity: 0;
+    transition: opacity 0.26s ease;
+  }
+  .founding-pass-card:hover .pass-specular {
+    opacity: 1;
+  }
+  @keyframes sealStamp {
+    0% { opacity: 0; transform: scale(2.1) rotate(-18deg); }
+    65% { opacity: 1; transform: scale(0.95) rotate(-6deg); }
+    100% { opacity: 1; transform: scale(1) rotate(-8deg); }
+  }
+  .seal-stamped {
+    animation: sealStamp 0.52s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  /* Act VIII — Interactive Liquid Distortion Finale (#C9E54B + Pure Black) */
+  .echo-finale-stage {
+    position: relative;
+    background-color: #C9E54B;
+    color: #0D0E0B;
+    overflow: hidden;
+  }
+  .echo-liquid-wrap {
+    position: relative;
+    display: inline-block;
+    padding: 0.14em 0.18em;
+    margin: -0.14em -0.18em;
+    cursor: crosshair;
+    user-select: none;
+    touch-action: none;
+    will-change: transform;
+  }
+  .echo-liquid-word {
+    display: block;
+    font-family: 'Anton', 'Inter', Impact, sans-serif;
+    font-size: clamp(5.5rem, 23vw, 20.5rem);
+    line-height: 0.86;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: #0D0E0B;
+    filter: url(#echo-liquid-distort);
+    transform: translateZ(0);
+  }
+  @keyframes echoStampSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .echo-rotating-seal {
+    animation: echoStampSpin 18s linear infinite;
+  }
+
+  /* Toast Entry Animation */
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(22px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .et-toast-item { animation: toastIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+  ::-webkit-scrollbar { width: 7px; }
+  ::-webkit-scrollbar-track { background: #1A1B17; }
+  ::-webkit-scrollbar-thumb { background: #C9E54B; border-radius: 2px; }
+
+
