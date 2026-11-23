@@ -401,6 +401,16 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
           </div>
         </div>
 
+        {/* Monumental Swiss Editorial Watermark Behind 3D Door & Stage */}
+        <div
+          className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center overflow-hidden select-none"
+          aria-hidden="true"
+        >
+          <div className="font-echo-monument text-[clamp(5.5rem,18.5vw,22rem)] uppercase tracking-[-0.035em] leading-none text-[#F1EFE8]/[0.045] [-webkit-text-stroke:1px_rgba(201,229,75,0.08)] select-none whitespace-nowrap text-center">
+            ECHO TIME
+          </div>
+        </div>
+
         {/* Elevated Swiss Poster Stage */}
         <div className="relative z-20 max-w-[1400px] w-full mx-auto px-5 sm:px-10 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-y-7 lg:gap-x-10 xl:gap-x-14">
           {/* Left Split Swiss Display Headline */}
@@ -451,13 +461,16 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
 
                   <div className="relative z-10 my-auto py-3">
                     <div
-                      className="font-swiss-mono text-[10px] uppercase tracking-[0.2em] mb-1.5"
-                      style={{ color: '#1E3AE0', fontWeight: 600 }}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm font-swiss-mono text-[9px] font-semibold uppercase tracking-[0.14em]"
+                      style={{
+                        backgroundColor: '#1E3AE0',
+                        color: '#F1EFE8',
+                      }}
                     >
-                      CAMPUS PARITY SYSTEM
+                      <span>PARITY OPEN</span>
                     </div>
                     <div
-                      className="font-swiss-sans font-black tracking-[-0.05em] uppercase leading-[0.88] text-[clamp(2.1rem,4.4vw,3.6rem)]"
+                      className="mt-3.5 font-swiss-sans font-black uppercase tracking-[-0.045em] text-3xl sm:text-4xl leading-[0.94]"
                       style={{ color: '#1A1B17' }}
                     >
                       1.00 HR
@@ -474,64 +487,80 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
 
                   <div
                     className="relative z-10 flex items-end justify-between pt-2.5 border-t font-swiss-mono text-[9px] uppercase tracking-[0.14em]"
-                    style={{ borderColor: 'rgba(26, 27, 23, 0.25)', color: '#46493D' }}
+                    style={{ borderColor: 'rgba(26, 27, 23, 0.25)', color: '#1A1B17' }}
                   >
-                    <span>.EDU VERIFIED</span>
-                    <span className="font-semibold" style={{ color: '#1E3AE0' }}>
-                      ET-2026-PORTAL
-                    </span>
+                    <span>0.00% FEE</span>
+                    <span style={{ color: '#1E3AE0', fontWeight: 700 }}>ATOMIC ESCROW</span>
                   </div>
                 </div>
               </div>
 
               {/* 3D Swinging Architectural Double Doors Overlay */}
-              <div className="swiss-door-frame">
+              <div className="shutter-plane">
                 {/* Left Door Leaf */}
-                <div id="shutter-left" className="swiss-door-leaf leaf-left">
-                  <div className="leaf-face">
-                    <div className="leaf-header">
-                      <span>L-01</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-                    </div>
-                    <div className="leaf-slats">
-                      {SLAT_INDICES.map((i: number) => (
-                        <div key={`slat-l-${i}`} className="door-slat" />
-                      ))}
-                    </div>
-                    <div className="leaf-hinge hinge-top" />
-                    <div className="leaf-hinge hinge-bottom" />
-                    <div className="leaf-footer">ECHO.SYS</div>
+                <div id="shutter-left" className="shutter-door shutter-door-left">
+                  <span className="swiss-hinge hinge-lt" aria-hidden="true" />
+                  <span className="swiss-hinge hinge-lb" aria-hidden="true" />
+                  <div
+                    className="flex items-center justify-between font-swiss-mono text-[9px] tracking-[0.14em]"
+                    style={{ color: '#989A8E' }}
+                  >
+                    <span>L—01</span>
+                    <span
+                      className="w-1.5 h-1.5 rounded-sm"
+                      style={{ backgroundColor: '#C9E54B' }}
+                    />
+                  </div>
+                  <div className="swiss-louver-grid" aria-hidden="true">
+                    {SLAT_INDICES.map((i) => (
+                      <div key={`l-${i}`} className="swiss-slat" />
+                    ))}
+                  </div>
+                  <div
+                    className="font-swiss-mono text-[8.5px] uppercase tracking-[0.16em]"
+                    style={{ color: '#989A8E' }}
+                  >
+                    ECHO.SYS
                   </div>
                 </div>
 
                 {/* Right Door Leaf */}
-                <div id="shutter-right" className="swiss-door-leaf leaf-right">
-                  <div className="leaf-face">
-                    <div className="leaf-header">
-                      <span className="w-1.5 h-1.5 rounded-full bg-pop" />
-                      <span>R-01</span>
-                    </div>
-                    <div className="leaf-slats">
-                      {SLAT_INDICES.map((i: number) => (
-                        <div key={`slat-r-${i}`} className="door-slat" />
-                      ))}
-                    </div>
-                    <div className="leaf-hinge hinge-top" />
-                    <div className="leaf-hinge hinge-bottom" />
-                    <div className="leaf-footer">1:1 PARITY</div>
+                <div id="shutter-right" className="shutter-door shutter-door-right">
+                  <span className="swiss-hinge hinge-rt" aria-hidden="true" />
+                  <span className="swiss-hinge hinge-rb" aria-hidden="true" />
+                  <div
+                    className="flex items-center justify-between font-swiss-mono text-[9px] tracking-[0.14em]"
+                    style={{ color: '#989A8E' }}
+                  >
+                    <span
+                      className="w-1.5 h-1.5 rounded-sm"
+                      style={{ backgroundColor: '#6B84FF' }}
+                    />
+                    <span>R—02</span>
+                  </div>
+                  <div className="swiss-louver-grid" aria-hidden="true">
+                    {SLAT_INDICES.map((i) => (
+                      <div key={`r-${i}`} className="swiss-slat" />
+                    ))}
+                  </div>
+                  <div
+                    className="font-swiss-mono text-[8.5px] uppercase tracking-[0.16em] text-right"
+                    style={{ color: '#989A8E' }}
+                  >
+                    1:1 PARITY
                   </div>
                 </div>
 
                 {/* Central Swiss Lock Bar */}
-                <div id="shutter-latch-wrap" className="swiss-lock-bar">
-                  <div className="lock-bar-core">
-                    <div id="shutter-latch-lever" className="lock-bar-lever" />
+                <div id="shutter-latch-wrap" className="shutter-latch-wrap" aria-hidden="true">
+                  <div className="swiss-latch-plate">
+                    <div id="shutter-latch-lever" className="shutter-latch-lever" />
                   </div>
                 </div>
               </div>
 
               {/* Architectural Steel Threshold Sill */}
-              <div className="swiss-door-sill" aria-hidden="true" />
+              <div className="swiss-door-threshold" aria-hidden="true" />
             </div>
           </div>
 
