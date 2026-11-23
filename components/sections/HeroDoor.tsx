@@ -958,11 +958,8 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
             </div>
           </div>
 
-          {/* Verbatim Approved Hero Content: Description, CTAs, Note & Recent Transactions */}
+          {/* Verbatim Approved Hero Content: CTAs & Recent Transactions */}
           <div className="mt-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3.5 z-20">
-            <p className="font-swiss-sans text-xs sm:text-sm text-[#989A8E] leading-relaxed max-w-lg">
-              {CANONICAL_CONTENT.hero.description}
-            </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <button
                 type="button"
