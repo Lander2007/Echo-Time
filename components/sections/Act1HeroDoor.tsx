@@ -529,12 +529,6 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
               <div className="swiss-door-threshold" aria-hidden="true" />
             </div>
           </div>
-
-          {/* Minimalist Tactile Interaction Indicator */}
-          <div className="mt-4 flex items-center justify-center gap-2 font-swiss-mono text-[9.5px] uppercase tracking-[0.22em] text-[#989A8E]/60 select-none">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#C9E54B] animate-pulse" />
-            <span>SWEEP OR CLICK LOUVERS TO FLIP</span>
-          </div>
         </div>
       </div>
 
