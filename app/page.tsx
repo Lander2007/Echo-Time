@@ -1014,11 +1014,9 @@ export default function EchoTimeLandingPage() {
         }
 
         // Velocity-Reactive Kinetic Marquee (runs only when visible on screen)
-        if (marqueeTopRef.current && marqueeBotRef.current && bridgeBandRef.current) {
+        if (marqueeTopRef.current && bridgeBandRef.current) {
           const topTrack = marqueeTopRef.current;
-          const botTrack = marqueeBotRef.current;
           let xTop = 0;
-          let xBot = -400;
           let smoothVel = 0;
           let isBridgeVisible = false;
 
@@ -1038,16 +1036,12 @@ export default function EchoTimeLandingPage() {
             const boost = Math.max(-14, Math.min(14, smoothVel * 0.22));
 
             xTop -= 0.5 + Math.abs(boost) * 0.32;
-            xBot += 0.38 + Math.abs(boost) * 0.25;
 
             const halfTop = topTrack.scrollWidth / 2 || 1200;
-            const halfBot = botTrack.scrollWidth / 2 || 1200;
             if (xTop <= -halfTop) xTop += halfTop;
-            if (xBot >= 0) xBot -= halfBot;
 
             const skew = Math.max(-4, Math.min(4, smoothVel * 0.06));
             topTrack.style.transform = `translate3d(${xTop.toFixed(1)}px, 0, 0) skewX(${skew.toFixed(2)}deg)`;
-            botTrack.style.transform = `translate3d(${xBot.toFixed(1)}px, 0, 0) skewX(${(-skew * 0.7).toFixed(2)}deg)`;
           };
           gsap.ticker.add(onMarqueeTick);
         }
