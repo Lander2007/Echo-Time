@@ -62,7 +62,7 @@ export default function ProfilePage() {
               className="relative w-14 h-14 rounded-sm font-et-mono font-black text-lg flex items-center justify-center shrink-0 border transition-transform hover:scale-105"
               style={
                 hasProfilePhoto
-                  ? { backgroundColor: '#C9E54B', color: '#1A1B17', borderColor: '#1A1B17' }
+                  ? { backgroundColor: 'var(--lime)', color: 'var(--lime-ink)', borderColor: 'var(--lime-ink)' }
                   : {
                       backgroundColor: 'var(--cobalt)',
                       color: '#F1EFE8',
@@ -86,7 +86,7 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={() => pushToast('Profile changes saved.')}
-            className="px-4 py-2.5 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono text-[11px] font-bold uppercase tracking-[0.11em] hover:brightness-95 shrink-0"
+            className="px-4 py-2.5 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-[11px] font-bold uppercase tracking-[0.11em] hover:brightness-95 shrink-0"
           >
             Save changes
           </button>
@@ -173,7 +173,7 @@ export default function ProfilePage() {
               {offeredSkills.map((sk) => (
                 <span
                   key={sk}
-                  className="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono text-[11px] font-bold"
+                  className="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-[11px] font-bold"
                 >
                   {sk}
                   <button
@@ -223,7 +223,7 @@ export default function ProfilePage() {
 
             <div className="w-full h-2 rounded-sm bg-[var(--bg)] overflow-hidden border border-[var(--border)]">
               <div
-                className="h-full bg-[#C9E54B] transition-all duration-500"
+                className="h-full bg-[var(--lime)] transition-all duration-500"
                 style={{ width: `${profileCompletionPct}%` }}
               />
             </div>
@@ -235,7 +235,7 @@ export default function ProfilePage() {
                     className="w-4 h-4 rounded-sm flex items-center justify-center text-[10px] font-bold"
                     style={
                       item.done
-                        ? { backgroundColor: '#C9E54B', color: '#1A1B17' }
+                        ? { backgroundColor: 'var(--lime)', color: 'var(--lime-ink)' }
                         : {
                             border: '1px solid var(--border-strong)',
                             color: 'var(--muted)',

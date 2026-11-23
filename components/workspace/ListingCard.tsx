@@ -26,7 +26,7 @@ export function ListingCard({ item }: ListingCardProps) {
               className="px-2 py-0.5 rounded-sm font-et-mono text-[9.5px] font-semibold uppercase tracking-[0.1em]"
               style={
                 isOffer
-                  ? { backgroundColor: 'var(--lime)', color: '#1A1B17' }
+                  ? { backgroundColor: 'var(--lime)', color: 'var(--lime-ink)' }
                   : {
                       backgroundColor: 'rgba(107, 132, 255, 0.16)',
                       color: 'var(--cobalt)',
@@ -106,7 +106,7 @@ export function ListingCard({ item }: ListingCardProps) {
         <button
           type="button"
           onClick={() => handleOpenRoomForListing(item)}
-          className="shrink-0 px-3.5 py-2 rounded-sm font-et-mono text-[10.5px] font-semibold uppercase tracking-[0.09em] border border-[var(--border-strong)] text-[var(--ink)] hover:bg-[var(--lime)] hover:text-[#1A1B17] hover:border-[var(--lime)] transition-colors"
+          className="shrink-0 px-3.5 py-2 rounded-sm font-et-mono text-[10.5px] font-semibold uppercase tracking-[0.09em] border border-[var(--border-strong)] text-[var(--ink)] hover:bg-[var(--lime)] hover:text-[var(--lime-ink)] hover:border-[var(--lime)] transition-colors"
         >
           {isOffer ? 'Request skill →' : 'Respond →'}
         </button>

@@ -277,7 +277,7 @@ export const INITIAL_BETA_PLANS: BetaPlan[] = [
     name: 'Premium',
     tagline: 'For power learners & senior peer mentors.',
     priceHint: 'Beta interest',
-    accent: '#C9E54B',
+    accent: '#D93829',
     highlights: [
       'Higher credit vault ceiling & flexible scheduling',
       'Featured mentor badge across campus categories',
@@ -290,7 +290,7 @@ export const INITIAL_BETA_PLANS: BetaPlan[] = [
     name: 'Elite',
     tagline: 'For capstone leads running multi-peer sprints.',
     priceHint: 'Beta interest',
-    accent: '#F1EFE8',
+    accent: '#021F94',
     highlights: [
       'Shared project credit pools for student teams',
       'Multi-milestone agreement room templates',
@@ -316,7 +316,7 @@ export const INITIAL_BETA_PLANS: BetaPlan[] = [
     name: 'Campus Partner',
     tagline: 'For faculties & university student unions.',
     priceHint: 'Beta interest',
-    accent: '#C9E54B',
+    accent: '#021F94',
     highlights: [
       'Institutional .edu SSO onboarding',
       'Scholarship credit pool administration',

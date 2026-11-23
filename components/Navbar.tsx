@@ -40,7 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           }}
           className="flex items-center gap-2.5 shrink-0 focus:outline-none group"
         >
-          <span className="w-5 h-5 rounded-sm bg-accent text-accent-ink border border-[#1A1B17] inline-flex items-center justify-center transition-transform duration-300 group-hover:rotate-90">
+          <span className="w-5 h-5 rounded-sm bg-accent text-accent-ink border border-accent inline-flex items-center justify-center transition-transform duration-300 group-hover:rotate-90">
             <span className="swiss-cross" />
           </span>
           <span className="font-swiss-sans font-black tracking-[-0.04em] text-sm sm:text-base uppercase leading-none text-ink">
@@ -130,7 +130,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Link
             href="/login"
             data-cursor="SIGNUP"
-            className="magnetic btn-roll px-4 sm:px-5 py-2 rounded bg-accent text-accent-ink border border-[#1A1B17] font-swiss-mono text-[10.5px] font-semibold uppercase tracking-[0.12em]"
+            className="magnetic btn-roll px-4 sm:px-5 py-2 rounded bg-accent text-accent-ink border border-accent font-swiss-mono text-[10.5px] font-semibold uppercase tracking-[0.12em]"
           >
             <span className="btn-roll-inner">
               <span className="btn-roll-text">{CANONICAL_CONTENT.nav.buttons.signup}</span>

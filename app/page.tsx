@@ -321,13 +321,13 @@ export default function EchoTimeLandingPage() {
       const d = `M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${(x1 + cpSpan).toFixed(1)} ${(y1 + sag).toFixed(1)}, ${(x2 - cpSpan).toFixed(1)} ${(y2 + sag).toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`;
 
       if (idx === circuitIndex) {
-        paths += `<path d="${d}" fill="none" stroke="rgba(26,27,23,0.22)" stroke-width="6.5" stroke-linecap="round" />`;
-        paths += `<path d="${d}" fill="none" stroke="#1E3AE0" stroke-width="3.2" stroke-linecap="round" />`;
-        paths += `<path d="${d}" fill="none" stroke="#C9E54B" stroke-width="2" stroke-linecap="round" class="patch-wire-active" />`;
-        paths += `<circle cx="${x1.toFixed(1)}" cy="${y1.toFixed(1)}" r="4.5" fill="#C9E54B" stroke="#1E3AE0" stroke-width="1.8" />`;
-        paths += `<circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="4.5" fill="#C9E54B" stroke="#1E3AE0" stroke-width="1.8" />`;
+        paths += `<path d="${d}" fill="none" stroke="rgba(2,31,148,0.22)" stroke-width="6.5" stroke-linecap="round" />`;
+        paths += `<path d="${d}" fill="none" stroke="#021F94" stroke-width="3.2" stroke-linecap="round" />`;
+        paths += `<path d="${d}" fill="none" stroke="#D93829" stroke-width="2" stroke-linecap="round" class="patch-wire-active" />`;
+        paths += `<circle cx="${x1.toFixed(1)}" cy="${y1.toFixed(1)}" r="4.5" fill="#D93829" stroke="#021F94" stroke-width="1.8" />`;
+        paths += `<circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="4.5" fill="#D93829" stroke="#021F94" stroke-width="1.8" />`;
       } else {
-        paths += `<path d="${d}" fill="none" stroke="rgba(26,27,23,0.18)" stroke-width="1.4" stroke-dasharray="4 6" />`;
+        paths += `<path d="${d}" fill="none" stroke="rgba(2,31,148,0.18)" stroke-width="1.4" stroke-dasharray="4 6" />`;
       }
     });
 
@@ -1276,7 +1276,7 @@ export default function EchoTimeLandingPage() {
 
     const cx = rect.width / 2;
     const cy = rect.height / 2;
-    const colors = ['#C9E54B', '#6B84FF', '#F1EFE8', '#1E3AE0'];
+    const colors = ['#021F94', '#D93829', '#F5F2F3', '#6B84FF'];
     const particles = Array.from({ length: 38 }, () => {
       const angle = Math.random() * Math.PI * 2;
       const speed = 2.4 + Math.random() * 5.0;

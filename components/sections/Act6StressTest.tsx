@@ -76,7 +76,7 @@ export const Act6StressTest: React.FC<Act6StressTestProps> = ({
               className="p-6 sm:p-8 rounded border border-strong bg-surface flex flex-col justify-between"
             >
               <div>
-                <span className="inline-block px-2.5 py-1 rounded bg-[#1E3AE0] text-[#F1EFE8] font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] font-semibold mb-4">
+                <span className="inline-block px-2.5 py-1 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] font-semibold mb-4">
                   {feat.badge}
                 </span>
                 <h3 className="font-swiss-sans font-bold text-2xl text-ink mb-2">
@@ -135,7 +135,7 @@ export const Act6StressTest: React.FC<Act6StressTestProps> = ({
             <div>
               <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-theme font-swiss-mono text-[10.5px] uppercase tracking-[0.14em]">
                 <span className="text-ink font-semibold text-base">{activePlan.name} Plan</span>
-                <span className="px-2.5 py-0.5 rounded-sm bg-[#1E3AE0] text-[#F1EFE8] font-semibold">
+                <span className="px-2.5 py-0.5 rounded-sm bg-[#021F94] text-[#F5F2F3] font-semibold">
                   {activePlan.badge}
                 </span>
               </div>
@@ -162,7 +162,7 @@ export const Act6StressTest: React.FC<Act6StressTestProps> = ({
               </span>
               <a
                 href="#act-pass"
-                className="px-5 py-2.5 rounded bg-accent text-accent-ink font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] hover:bg-[#d8f060] transition-colors"
+                className="px-5 py-2.5 rounded bg-accent text-accent-ink font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] hover:bg-[#032BCB] transition-colors"
               >
                 {activePlan.badge === 'Free plan' ? 'Start free' : 'Join waitlist'}
               </a>

@@ -22,7 +22,7 @@ export const ToastStack: React.FC<ToastStackProps> = ({
           <div
             key={t.id}
             className="et-toast-item pointer-events-auto px-4 py-3 rounded-sm border font-swiss-mono text-[11px] leading-snug shadow-xl"
-            style={{ backgroundColor: '#1A1B17', color: '#F1EFE8', borderColor: '#C9E54B' }}
+            style={{ backgroundColor: '#061354', color: '#F5F2F3', borderColor: '#021F94' }}
           >
             {t.message}
           </div>

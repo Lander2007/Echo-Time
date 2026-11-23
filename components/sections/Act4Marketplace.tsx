@@ -191,7 +191,7 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                     type="button"
                     data-cursor="FLIP"
                     onClick={triggerFlapScramble}
-                    className="px-3.5 py-2 rounded border border-strong bg-[#1A1B17] text-[#F1EFE8] hover:bg-[#1E3AE0] hover:border-[#1E3AE0] font-swiss-mono text-[10.5px] font-semibold uppercase tracking-[0.11em] transition-colors"
+                    className="px-3.5 py-2 rounded border border-strong bg-[#061354] text-[#F5F2F3] hover:bg-[#021F94] hover:border-[#021F94] font-swiss-mono text-[10.5px] font-semibold uppercase tracking-[0.11em] transition-colors"
                   >
                     Flip Board
                   </button>
@@ -203,21 +203,21 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                 <div
                   className="px-4 sm:px-6 py-3.5 border-b flex flex-wrap items-center justify-between gap-3 font-swiss-mono text-[10px] uppercase tracking-[0.16em]"
                   style={{
-                    borderColor: 'rgba(241, 239, 232, 0.14)',
-                    backgroundColor: '#131411',
-                    color: '#989A8E',
+                    borderColor: 'rgba(245, 242, 243, 0.14)',
+                    backgroundColor: '#040C38',
+                    color: '#B9C8FF',
                   }}
                 >
                   <div className="flex items-center gap-3">
                     <span
                       className="px-2 py-0.5 rounded-sm font-semibold"
-                      style={{ backgroundColor: '#1E3AE0', color: '#F1EFE8' }}
+                      style={{ backgroundColor: '#021F94', color: '#F5F2F3' }}
                     >
                       SBB &middot; CAMPUS LIVE
                     </span>
                     <span>CLICK ANY ROW TO INSPECT PERFORATED AGREEMENT STUB</span>
                   </div>
-                  <span className="tabular" style={{ color: '#C9E54B' }}>
+                  <span className="tabular" style={{ color: '#F5F2F3' }}>
                     {boardClock}
                   </span>
                 </div>
@@ -226,9 +226,9 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                 <div
                   className="hidden lg:grid grid-cols-12 gap-3 px-6 py-2.5 border-b font-swiss-mono text-[9.5px] uppercase tracking-[0.16em]"
                   style={{
-                    borderColor: 'rgba(241, 239, 232, 0.10)',
-                    backgroundColor: '#161713',
-                    color: '#989A8E',
+                    borderColor: 'rgba(245, 242, 243, 0.10)',
+                    backgroundColor: '#061354',
+                    color: '#B9C8FF',
                   }}
                 >
                   <span className="col-span-1">SLOT</span>
@@ -243,7 +243,7 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                   {filteredListings.length === 0 ? (
                     <div
                       className="p-10 text-center font-swiss-mono text-xs uppercase tracking-[0.14em]"
-                      style={{ color: '#989A8E' }}
+                      style={{ color: '#B9C8FF' }}
                     >
                       NO DEPARTURES MATCHING QUERY &mdash; CLEAR FILTER TO RE-SYNC BOARD
                     </div>
@@ -281,12 +281,12 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                             </div>
 
                             <div className="lg:col-span-4">
-                              <div className="font-swiss-sans font-extrabold text-base sm:text-lg tracking-tight text-[#F1EFE8] leading-snug">
+                              <div className="font-swiss-sans font-extrabold text-base sm:text-lg tracking-tight text-[#F5F2F3] leading-snug">
                                 {item.title}
                               </div>
                               <div
                                 className="mt-0.5 font-swiss-mono text-[10px] uppercase tracking-[0.12em]"
-                                style={{ color: '#989A8E' }}
+                                style={{ color: '#B9C8FF' }}
                               >
                                 {item.category} &middot; {item.sessions} SETTLED SESSIONS
                               </div>
@@ -301,7 +301,7 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                               </span>
                               <span
                                 className="font-swiss-mono text-xs"
-                                style={{ color: '#989A8E' }}
+                                style={{ color: '#B9C8FF' }}
                               >
                                 {item.peer}
                               </span>
@@ -310,14 +310,14 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                             <div className="lg:col-span-2 flex items-center gap-2">
                               <span
                                 className="flap-cell text-xs font-semibold tabular"
-                                style={{ color: '#C9E54B' }}
+                                style={{ color: '#F5F2F3' }}
                                 data-flap-text={`${item.hours.toFixed(1)} HR`}
                               >
                                 {item.hours.toFixed(1)} HR
                               </span>
                               <span
                                 className="font-swiss-mono text-[11px] tabular"
-                                style={{ color: '#6B84FF' }}
+                                style={{ color: '#B9C8FF' }}
                               >
                                 &#9733; {item.rating.toFixed(2)}
                               </span>
@@ -328,14 +328,14 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                                 className={`flap-cell ${
                                   item.status !== 'OPEN' ? 'flap-cell-accent' : ''
                                 } text-[10px] font-semibold`}
-                                style={item.status === 'OPEN' ? { color: '#C9E54B' } : undefined}
+                                style={item.status === 'OPEN' ? { color: '#F5F2F3' } : undefined}
                                 data-flap-text={item.status}
                               >
                                 {item.status}
                               </span>
                               <span
                                 className="font-swiss-mono text-xs"
-                                style={{ color: '#989A8E' }}
+                                style={{ color: '#B9C8FF' }}
                               >
                                 {isOpen ? '−' : '+'}
                               </span>
@@ -349,13 +349,13 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                                 <div className="lg:col-span-7">
                                   <div
                                     className="font-swiss-mono text-[9.5px] uppercase tracking-[0.16em] font-semibold"
-                                    style={{ color: '#1E3AE0' }}
+                                    style={{ color: '#021F94' }}
                                   >
                                     PERFORATED AGREEMENT STUB &middot; {item.meta}
                                   </div>
                                   <p
                                     className="mt-1.5 text-sm leading-relaxed"
-                                    style={{ color: '#1A1B17' }}
+                                    style={{ color: '#0B1026' }}
                                   >
                                     {item.summary}
                                   </p>
@@ -365,9 +365,9 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                                         key={d}
                                         className="px-2.5 py-1 rounded-sm border font-swiss-mono text-[10px]"
                                         style={{
-                                          borderColor: 'rgba(26, 27, 23, 0.22)',
-                                          backgroundColor: '#E6E3D8',
-                                          color: '#1A1B17',
+                                          borderColor: 'rgba(2, 31, 148, 0.16)',
+                                          backgroundColor: '#F5F2F3',
+                                          color: '#0B1026',
                                         }}
                                       >
                                         &#10003; {d}
@@ -378,12 +378,12 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
 
                                 <div
                                   className="lg:col-span-5 flex flex-wrap sm:flex-nowrap items-center justify-between lg:justify-end gap-4 pt-3 lg:pt-0 border-t lg:border-t-0"
-                                  style={{ borderColor: 'rgba(26, 27, 23, 0.16)' }}
+                                  style={{ borderColor: 'rgba(2, 31, 148, 0.16)' }}
                                 >
                                   <div className="font-swiss-mono">
                                     <div
                                       className="text-[9px] uppercase"
-                                      style={{ color: '#46493D' }}
+                                      style={{ color: '#565C73' }}
                                     >
                                       PARITY CAP
                                     </div>
@@ -397,8 +397,8 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                                     onClick={() => handleOpenAgreementRoom(item)}
                                     className="px-5 py-3 rounded-sm font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] transition-transform active:scale-95"
                                     style={{
-                                      backgroundColor: '#1E3AE0',
-                                      color: '#F1EFE8',
+                                      backgroundColor: '#021F94',
+                                      color: '#F5F2F3',
                                     }}
                                   >
                                     Open Agreement Room &rarr;

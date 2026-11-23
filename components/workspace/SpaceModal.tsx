@@ -51,7 +51,7 @@ export function SpaceModal() {
                 onClick={() => setSpaceForm((f) => ({ ...f, kind: k }))}
                 className={`py-2 rounded-sm font-et-mono text-xs font-bold uppercase border ${
                   spaceForm.kind === k
-                    ? 'bg-[#C9E54B] text-[#1A1B17] border-[#C9E54B]'
+                    ? 'bg-[var(--lime)] text-[var(--lime-ink)] border-[var(--lime)]'
                     : 'border-[var(--border)] text-[var(--muted)]'
                 }`}
               >
@@ -102,7 +102,7 @@ export function SpaceModal() {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono text-xs font-bold uppercase tracking-[0.12em]"
+            className="w-full py-3 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em]"
           >
             {editingSpaceId ? 'Save changes →' : 'Create space →'}
           </button>

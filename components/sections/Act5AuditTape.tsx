@@ -156,12 +156,12 @@ export const Act5AuditTape: React.FC<Act5AuditTapeProps> = ({
                         <div
                           className="px-5 py-3 border-b border-dashed flex items-center justify-between font-swiss-mono text-[10px] uppercase tracking-[0.14em]"
                           style={{
-                            borderColor: 'rgba(26, 27, 23, 0.25)',
-                            color: '#46493D',
+                            borderColor: 'rgba(2, 31, 148, 0.22)',
+                            color: '#565C73',
                           }}
                         >
                           <span>CONTRACT #ET-7841</span>
-                          <span style={{ color: '#1E3AE0', fontWeight: 600 }}>
+                          <span style={{ color: '#021F94', fontWeight: 600 }}>
                             1.00 HR = 1.00 ECHO
                           </span>
                         </div>
@@ -173,10 +173,10 @@ export const Act5AuditTape: React.FC<Act5AuditTapeProps> = ({
                           }`}
                         >
                           <div className="flex items-center justify-between font-swiss-mono text-[10px] uppercase tracking-[0.12em]">
-                            <span className="font-bold" style={{ color: '#1E3AE0' }}>
+                            <span className="font-bold" style={{ color: '#021F94' }}>
                               [01] VAULT_LOCKED
                             </span>
-                            <span className="tabular" style={{ color: '#46493D' }}>
+                            <span className="tabular" style={{ color: '#565C73' }}>
                               14:00:04 UTC
                             </span>
                           </div>
@@ -184,14 +184,14 @@ export const Act5AuditTape: React.FC<Act5AuditTapeProps> = ({
                             DEVON BROOKS &rarr; VAULT:{' '}
                             <span
                               className="px-1.5 py-0.5 rounded-sm"
-                              style={{ backgroundColor: '#C9E54B', color: '#1A1B17' }}
+                              style={{ backgroundColor: '#021F94', color: '#F5F2F3' }}
                             >
                               1.50 ECHO
                             </span>
                           </div>
                           <div
                             className="mt-0.5 font-swiss-mono text-[10.5px]"
-                            style={{ color: '#46493D' }}
+                            style={{ color: '#565C73' }}
                           >
                             Double-spend guard armed. Zero platform fee deducted.
                           </div>
@@ -204,23 +204,23 @@ export const Act5AuditTape: React.FC<Act5AuditTapeProps> = ({
                           }`}
                         >
                           <div className="flex items-center justify-between font-swiss-mono text-[10px] uppercase tracking-[0.12em]">
-                            <span className="font-bold" style={{ color: '#1A1B17' }}>
+                            <span className="font-bold" style={{ color: '#0B1026' }}>
                               [02] ARTIFACT_VERIFIED
                             </span>
-                            <span className="tabular" style={{ color: '#46493D' }}>
+                            <span className="tabular" style={{ color: '#565C73' }}>
                               15:24:19 UTC
                             </span>
                           </div>
                           <div className="mt-1 font-swiss-mono text-xs font-semibold">
                             PR #402 COMMIT{' '}
-                            <span className="px-1.5 py-0.5 rounded-sm bg-[#1A1B17] text-[#F1EFE8] text-[10px]">
+                            <span className="px-1.5 py-0.5 rounded-sm bg-[#061354] text-[#F5F2F3] text-[10px]">
                               8f2a9c
                             </span>{' '}
                             LOGGED
                           </div>
                           <div
                             className="mt-0.5 font-swiss-mono text-[10.5px]"
-                            style={{ color: '#46493D' }}
+                            style={{ color: '#565C73' }}
                           >
                             Deliverables 3/3 checked inside Agreement Room #AG-4089.
                           </div>
@@ -233,10 +233,10 @@ export const Act5AuditTape: React.FC<Act5AuditTapeProps> = ({
                           }`}
                         >
                           <div className="flex items-center justify-between font-swiss-mono text-[10px] uppercase tracking-[0.12em]">
-                            <span className="font-bold" style={{ color: '#1E3AE0' }}>
+                            <span className="font-bold" style={{ color: '#021F94' }}>
                               [03] DUAL_SIGNOFF_READY
                             </span>
-                            <span className="tabular" style={{ color: '#46493D' }}>
+                            <span className="tabular" style={{ color: '#565C73' }}>
                               15:31:02 UTC
                             </span>
                           </div>
@@ -245,7 +245,7 @@ export const Act5AuditTape: React.FC<Act5AuditTapeProps> = ({
                           </div>
                           <div
                             className="mt-0.5 font-swiss-mono text-[10.5px]"
-                            style={{ color: '#46493D' }}
+                            style={{ color: '#565C73' }}
                           >
                             Awaiting final tear confirmation to release 1.50 ECHO.
                           </div>
@@ -256,7 +256,7 @@ export const Act5AuditTape: React.FC<Act5AuditTapeProps> = ({
                           <div className="flex items-center justify-between font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] mb-2.5">
                             <span
                               className="font-bold"
-                              style={{ color: isTapeTorn ? '#C9E54B' : '#1E3AE0' }}
+                              style={{ color: isTapeTorn ? '#D93829' : '#021F94' }}
                             >
                               &#9986; PERFORATED SETTLEMENT STUB
                             </span>
@@ -270,7 +270,7 @@ export const Act5AuditTape: React.FC<Act5AuditTapeProps> = ({
                             data-cursor="TEAR"
                             onClick={handleTearAndSettle}
                             className="tear-progress-track w-full flex items-center justify-center font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.14em]"
-                            style={{ color: isTapeTorn ? '#F1EFE8' : '#1A1B17' }}
+                            style={{ color: isTapeTorn ? '#F5F2F3' : '#0B1026' }}
                           >
                             <span
                               className="tear-progress-fill"

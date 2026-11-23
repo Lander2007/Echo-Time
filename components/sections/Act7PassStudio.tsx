@@ -252,7 +252,7 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
                       <button
                         type="submit"
                         data-cursor="MINT"
-                        className="magnetic btn-roll w-full py-4 rounded bg-accent text-accent-ink border border-[#1A1B17] font-swiss-mono text-xs font-semibold uppercase tracking-[0.16em]"
+                        className="magnetic btn-roll w-full py-4 rounded bg-accent text-accent-ink border border-[#021F94] font-swiss-mono text-xs font-semibold uppercase tracking-[0.16em]"
                       >
                         <span className="btn-roll-inner">
                           <span className="btn-roll-text">{CANONICAL_CONTENT.cta.signupCard.submit} &rarr;</span>
@@ -349,8 +349,8 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
                         width="88"
                         height="88"
                         rx="4"
-                        fill="rgba(107, 132, 255, 0.16)"
-                        stroke="#6B84FF"
+                        fill="rgba(217, 56, 41, 0.16)"
+                        stroke="#D93829"
                         strokeWidth="2.5"
                       />
                       <rect
@@ -359,7 +359,7 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
                         width="74"
                         height="74"
                         rx="2"
-                        stroke="#C9E54B"
+                        stroke="#D93829"
                         strokeWidth="1"
                         strokeOpacity="0.8"
                       />
@@ -367,7 +367,7 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
                         x="50"
                         y="47"
                         textAnchor="middle"
-                        fill="#F1EFE8"
+                        fill="#F5F2F3"
                         fontFamily="Inter"
                         fontWeight="900"
                         fontSize="11"
@@ -379,7 +379,7 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
                         x="50"
                         y="62"
                         textAnchor="middle"
-                        fill="#C9E54B"
+                        fill="#D93829"
                         fontFamily="IBM Plex Mono"
                         fontWeight="600"
                         fontSize="8"
@@ -394,22 +394,22 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
                 {/* Pass Top Header */}
                 <div
                   className="relative z-10 flex items-start justify-between gap-4 pb-5 border-b"
-                  style={{ borderColor: 'rgba(241, 239, 232, 0.18)' }}
+                  style={{ borderColor: 'rgba(245, 242, 243, 0.18)' }}
                 >
                   <div>
                     <div
                       className="flex items-center gap-2 font-swiss-mono text-[10px] uppercase tracking-[0.18em]"
-                      style={{ color: '#989A8E' }}
+                      style={{ color: '#B9C8FF' }}
                     >
                       <span
                         className="w-2 h-2 rounded-sm"
-                        style={{ backgroundColor: '#6B84FF' }}
+                        style={{ backgroundColor: '#D93829' }}
                       />
                       <span>ECHO TIME &middot; STUDENT MEMBER</span>
                     </div>
                     <div
                       className="mt-1.5 font-swiss-sans font-black uppercase tracking-[-0.03em] text-2xl sm:text-3xl leading-none"
-                      style={{ color: '#F1EFE8' }}
+                      style={{ color: '#F5F2F3' }}
                     >
                       TIME BANK PASS
                     </div>
@@ -422,13 +422,13 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
                       width="46"
                       height="32"
                       rx="3"
-                      fill="rgba(107, 132, 255, 0.14)"
-                      stroke="#6B84FF"
+                      fill="rgba(2, 31, 148, 0.28)"
+                      stroke="#F5F2F3"
                       strokeWidth="1.4"
                     />
                     <path
                       d="M1 12H16M32 12H47M1 22H16M32 22H47M16 1V33M32 1V33"
-                      stroke="#C9E54B"
+                      stroke="#D93829"
                       strokeWidth="1.1"
                     />
                   </svg>
@@ -439,19 +439,19 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
                   <div className="sm:col-span-8">
                     <div
                       className="font-swiss-mono text-[9px] uppercase tracking-[0.16em]"
-                      style={{ color: '#989A8E' }}
+                      style={{ color: '#B9C8FF' }}
                     >
                       VERIFIED STUDENT
                     </div>
                     <div
                       className="mt-1 font-swiss-sans font-extrabold text-2xl sm:text-3xl tracking-tight truncate"
-                      style={{ color: '#F1EFE8' }}
+                      style={{ color: '#F5F2F3' }}
                     >
                       {displayStudentName}
                     </div>
                     <div
                       className="mt-1 font-swiss-mono text-xs truncate"
-                      style={{ color: '#989A8E' }}
+                      style={{ color: '#B9C8FF' }}
                     >
                       {displayUniversity}
                     </div>
@@ -460,13 +460,13 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
                   <div className="sm:col-span-4 sm:text-right">
                     <div
                       className="font-swiss-mono text-[9px] uppercase tracking-[0.16em]"
-                      style={{ color: '#989A8E' }}
+                      style={{ color: '#B9C8FF' }}
                     >
                       SEED GRANT
                     </div>
                     <div
                       className="mt-1 font-swiss-mono font-semibold text-2xl tabular"
-                      style={{ color: '#C9E54B' }}
+                      style={{ color: '#F5F2F3' }}
                     >
                       5.00 ECHO
                     </div>
@@ -476,17 +476,17 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
                 {/* Pass Bottom Serial Strip */}
                 <div
                   className="relative z-10 pt-4 border-t flex flex-wrap items-center justify-between gap-3"
-                  style={{ borderColor: 'rgba(241, 239, 232, 0.18)' }}
+                  style={{ borderColor: 'rgba(245, 242, 243, 0.18)' }}
                 >
                   <span
                     className="px-3 py-1 rounded-sm font-swiss-mono text-[10px] font-semibold uppercase tracking-[0.11em]"
-                    style={{ backgroundColor: '#C9E54B', color: '#1A1B17' }}
+                    style={{ backgroundColor: '#021F94', color: '#F5F2F3' }}
                   >
                     {displayCraft}
                   </span>
                   <span
                     className="font-swiss-mono text-[11px] tabular tracking-[0.12em]"
-                    style={{ color: '#6B84FF' }}
+                    style={{ color: '#B9C8FF' }}
                   >
                     {passSerial}
                   </span>

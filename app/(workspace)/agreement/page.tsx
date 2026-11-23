@@ -60,7 +60,7 @@ function AgreementContent() {
             className="px-3 py-1 rounded-sm font-et-mono text-[10.5px] font-bold uppercase tracking-[0.1em]"
             style={
               activeRoom.stage === 'Completed'
-                ? { backgroundColor: '#C9E54B', color: '#1A1B17' }
+                ? { backgroundColor: 'var(--lime)', color: 'var(--lime-ink)' }
                 : {
                     backgroundColor: 'rgba(107, 132, 255, 0.16)',
                     color: 'var(--cobalt)',
@@ -167,7 +167,7 @@ function AgreementContent() {
                     className="max-w-[85%] px-4 py-3 rounded-sm text-sm leading-relaxed"
                     style={
                       isMe
-                        ? { backgroundColor: '#C9E54B', color: '#1A1B17' }
+                        ? { backgroundColor: 'var(--lime)', color: 'var(--lime-ink)' }
                         : {
                             backgroundColor: 'var(--bg-subtle)',
                             color: 'var(--ink)',
@@ -208,7 +208,7 @@ function AgreementContent() {
               />
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all shrink-0"
+                className="px-5 py-2.5 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all shrink-0"
               >
                 Send →
               </button>
@@ -340,9 +340,9 @@ function AgreementContent() {
                       style={
                         isDone
                           ? {
-                              backgroundColor: '#C9E54B',
-                              color: '#1A1B17',
-                              borderColor: '#C9E54B',
+                              backgroundColor: 'var(--lime)',
+                              color: 'var(--lime-ink)',
+                              borderColor: 'var(--lime)',
                             }
                           : isCurrent
                           ? {
@@ -380,7 +380,7 @@ function AgreementContent() {
               <button
                 type="button"
                 onClick={handleAdvanceAgreementStage}
-                className="w-full py-3 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all"
+                className="w-full py-3 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all"
               >
                 {activeRoom.stage === 'Negotiating'
                   ? 'Confirm terms & lock escrow →'

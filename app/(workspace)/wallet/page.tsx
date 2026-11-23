@@ -34,8 +34,8 @@ export default function WalletPage() {
 
       {/* 2 Hero Ledger Vault Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Available Now — Acid Lime Swiss Poster Card */}
-        <div className="relative rounded-sm p-6 sm:p-8 bg-[#C9E54B] text-[#1A1B17] border border-[#1A1B17] overflow-hidden">
+        {/* Available Now — Swiss Poster Card */}
+        <div className="relative rounded-sm p-6 sm:p-8 bg-[var(--lime)] text-[var(--lime-ink)] border border-[var(--border-strong)] overflow-hidden">
           <div className="flex items-center justify-between font-et-mono text-xs font-bold uppercase tracking-[0.14em]">
             <span>Available now</span>
             <IconWallet className="w-5 h-5" />
@@ -48,7 +48,7 @@ export default function WalletPage() {
           </div>
           {/* Geometric Swiss Corner Rings */}
           <div
-            className="pointer-events-none absolute -right-10 -bottom-10 w-44 h-44 rounded-full border-[18px] border-[#1A1B17]/10"
+            className="pointer-events-none absolute -right-10 -bottom-10 w-44 h-44 rounded-full border-[18px] border-[var(--lime-ink)]/10"
             aria-hidden="true"
           />
         </div>
@@ -151,7 +151,7 @@ export default function WalletPage() {
                         className="px-2.5 py-0.5 rounded-sm font-semibold"
                         style={
                           tx.availableDelta > 0
-                            ? { backgroundColor: '#C9E54B', color: '#1A1B17' }
+                            ? { backgroundColor: 'var(--lime)', color: 'var(--lime-ink)' }
                             : {
                                 backgroundColor: 'var(--bg-subtle)',
                                 color: 'var(--ink)',

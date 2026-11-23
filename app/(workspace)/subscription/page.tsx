@@ -36,10 +36,10 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Start Here: Student Free Plan */}
-      <div className="relative rounded-sm border-2 border-[#C9E54B] bg-[var(--bg-elevated)] p-6 sm:p-8">
+      <div className="relative rounded-sm border-2 border-[var(--lime)] bg-[var(--bg-elevated)] p-6 sm:p-8">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-6 border-b border-[var(--border)]">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-sm bg-[#C9E54B] text-[#1A1B17] flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] flex items-center justify-center shrink-0">
               <IconWallet className="w-5 h-5" />
             </div>
             <div>
@@ -56,7 +56,7 @@ export default function SubscriptionPage() {
           </div>
           <div className="sm:text-right shrink-0">
             <div className="font-et-sans font-black text-3xl">Free</div>
-            <span className="mt-1.5 inline-block px-3 py-1 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono text-[10px] font-bold uppercase tracking-[0.12em]">
+            <span className="mt-1.5 inline-block px-3 py-1 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-[10px] font-bold uppercase tracking-[0.12em]">
               Current plan
             </span>
           </div>
@@ -123,7 +123,7 @@ export default function SubscriptionPage() {
                 onClick={() => handleToggleWaitlist(plan.id)}
                 className={`w-full py-2.5 rounded-sm font-et-mono text-[11px] font-bold uppercase tracking-[0.11em] border transition-colors ${
                   plan.onWaitlist
-                    ? 'bg-[#C9E54B] text-[#1A1B17] border-[#C9E54B]'
+                    ? 'bg-[var(--lime)] text-[var(--lime-ink)] border-[var(--lime)]'
                     : 'border-[var(--border-strong)] text-[var(--ink)] hover:border-[var(--lime)]'
                 }`}
               >

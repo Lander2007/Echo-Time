@@ -30,7 +30,7 @@ export const Act8EchoFinale: React.FC<Act8EchoFinaleProps> = ({
             <section
               ref={finaleSectionRef}
               id="act-finale"
-              className="echo-finale-stage relative min-h-[82vh] flex flex-col items-center justify-center px-5 sm:px-10 py-16 border-t-2 border-b-2 border-[#0D0E0B]"
+              className="echo-finale-stage relative min-h-[82vh] flex flex-col items-center justify-center px-5 sm:px-10 py-16 border-t-2 border-b-2 border-[#061354]"
             >
               {/* Hidden SVG Displacement Filter powering the liquid hover ripple */}
               <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
@@ -88,7 +88,7 @@ export const Act8EchoFinale: React.FC<Act8EchoFinaleProps> = ({
                   <span className="echo-liquid-word">ECHO</span>
                 </div>
 
-                <div className="mt-2 sm:mt-3 font-echo-monument uppercase tracking-[0.14em] text-2xl sm:text-4xl md:text-5xl text-[#0D0E0B]">
+                <div className="mt-2 sm:mt-3 font-echo-monument uppercase tracking-[0.14em] text-2xl sm:text-4xl md:text-5xl text-[#B9C8FF]">
                   TIME BANK
                 </div>
               </div>
@@ -106,7 +106,7 @@ export const Act8EchoFinale: React.FC<Act8EchoFinaleProps> = ({
               >
                 <svg
                   viewBox="0 0 100 100"
-                  className="echo-rotating-seal w-full h-full text-[#0D0E0B]"
+                  className="echo-rotating-seal w-full h-full text-[#F5F2F3]"
                   aria-hidden="true"
                 >
                   <defs>
@@ -127,7 +127,7 @@ export const Act8EchoFinale: React.FC<Act8EchoFinaleProps> = ({
                     </textPath>
                   </text>
                 </svg>
-                <span className="absolute w-9 h-9 rounded-full bg-[#0D0E0B] text-[#C9E54B] flex items-center justify-center font-swiss-mono text-sm transition-transform duration-300 group-hover:scale-110">
+                <span className="absolute w-9 h-9 rounded-full bg-[#061354] text-[#F5F2F3] flex items-center justify-center font-swiss-mono text-sm transition-transform duration-300 group-hover:scale-110">
                   &uarr;
                 </span>
               </button>

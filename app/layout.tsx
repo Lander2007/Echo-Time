@@ -63,8 +63,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#1A1B17',
-  colorScheme: 'dark',
+  themeColor: '#F5F2F3',
+  colorScheme: 'light',
 };
 
 export default function RootLayout({
@@ -73,9 +73,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="bg-[#1A1B17]">
+    <html lang="en" className="bg-[#F5F2F3]">
       <body
-        className={`${inter.variable} ${ibmPlexMono.variable} ${anton.variable} ${cairo.variable} font-swiss-sans bg-[#1A1B17] text-[#F1EFE8] antialiased selection:bg-[#C9E54B] selection:text-[#1A1B17]`}
+        className={`${inter.variable} ${ibmPlexMono.variable} ${anton.variable} ${cairo.variable} font-swiss-sans bg-[#F5F2F3] text-[#0B1026] antialiased selection:bg-[#021F94] selection:text-[#F5F2F3]`}
       >
         {children}
       </body>

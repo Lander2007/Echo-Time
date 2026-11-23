@@ -18,8 +18,8 @@ export function HomeSidebar() {
 
   return (
     <aside className="w-full lg:w-[252px] shrink-0 lg:sticky lg:top-[92px] space-y-4">
-      {/* Iconic Acid Lime Available Credits Ticket */}
-      <div className="relative rounded-sm p-5 bg-[#C9E54B] text-[#1A1B17] border border-[#1A1B17] shadow-lg overflow-hidden">
+      {/* Iconic Available Credits Ticket */}
+      <div className="relative rounded-sm p-5 bg-[var(--lime)] text-[var(--lime-ink)] border border-[var(--border-strong)] shadow-lg overflow-hidden">
         <div className="flex items-center justify-between font-et-mono text-[10px] font-bold uppercase tracking-[0.14em] opacity-80">
           <span>Available credits</span>
           <span>1:1 HR</span>
@@ -27,11 +27,11 @@ export function HomeSidebar() {
         <div className="mt-3 font-et-sans font-black text-5xl tracking-[-0.05em] tabular leading-none">
           {availableCredits}
         </div>
-        <div className="mt-4 pt-3 border-t border-[#1A1B17]/20 flex items-center justify-between font-et-mono text-[10.5px] font-semibold tabular">
+        <div className="mt-4 pt-3 border-t border-[var(--lime-ink)]/20 flex items-center justify-between font-et-mono text-[10.5px] font-semibold tabular">
           <span>Reserved · {reservedCredits}</span>
           <Link
             href="/wallet"
-            className="text-[#1E3AE0] hover:underline uppercase text-[9.5px]"
+            className="text-[var(--cobalt)] hover:underline uppercase text-[9.5px]"
           >
             Ledger →
           </Link>
@@ -58,7 +58,7 @@ export function HomeSidebar() {
               <span className="flex items-center gap-2.5">
                 <span
                   className="text-[9.5px]"
-                  style={{ color: active ? '#C9E54B' : 'var(--cobalt)' }}
+                  style={{ color: active ? 'var(--lime)' : 'var(--cobalt)' }}
                 >
                   {tab.num}
                 </span>
@@ -69,7 +69,7 @@ export function HomeSidebar() {
                   className="px-1.5 py-0.5 rounded-sm text-[9.5px] tabular"
                   style={
                     active
-                      ? { backgroundColor: '#C9E54B', color: '#1A1B17' }
+                      ? { backgroundColor: 'var(--lime)', color: 'var(--lime-ink)' }
                       : { backgroundColor: 'var(--bg-subtle)', color: 'var(--muted)' }
                   }
                 >

@@ -62,7 +62,7 @@ export default function ExplorePage() {
         <button
           type="button"
           onClick={() => setPostModalOpen(true)}
-          className="shrink-0 px-5 py-3 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all"
+          className="shrink-0 px-5 py-3 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all"
         >
           + Post a Skill / Request
         </button>
@@ -72,7 +72,7 @@ export default function ExplorePage() {
       <div className="et-card rounded-sm p-5 space-y-4">
         <div className="flex items-center justify-between gap-2 font-et-mono text-[10.5px] uppercase tracking-[0.14em]">
           <span className="inline-flex items-center gap-2 font-semibold text-[var(--ink)]">
-            <span className="w-2 h-2 rounded-sm bg-[#C9E54B]" />
+            <span className="w-2 h-2 rounded-sm bg-[var(--lime)]" />
             Find the right exchange
           </span>
           <span className="text-[var(--muted)] tabular">
@@ -90,7 +90,7 @@ export default function ExplorePage() {
                 onClick={() => setTypeFilter(t)}
                 className={`flex-1 py-2 rounded-sm font-et-mono text-[10.5px] font-semibold uppercase tracking-[0.1em] transition-colors ${
                   typeFilter === t
-                    ? 'bg-[#C9E54B] text-[#1A1B17]'
+                    ? 'bg-[var(--lime)] text-[var(--lime-ink)]'
                     : 'text-[var(--muted)] hover:text-[var(--ink)]'
                 }`}
               >

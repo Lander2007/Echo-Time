@@ -22,7 +22,7 @@ export default function LoginPage() {
     <div className={`et-shell ${themeMode === 'dark' ? 'et-app-dark' : 'et-app-light'} flex flex-col justify-between min-h-screen`}>
       <header className="w-full border-b border-[var(--border)] px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="w-5 h-5 rounded-sm bg-[#C9E54B] text-[#1A1B17] inline-flex items-center justify-center">
+          <span className="w-5 h-5 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] inline-flex items-center justify-center">
             <span className="et-swiss-cross" />
           </span>
           <span className="font-black uppercase tracking-[-0.04em] text-base">
@@ -42,10 +42,10 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center px-5 py-12">
         <div className="et-animate-in max-w-4xl w-full grid grid-cols-1 lg:grid-cols-12 border border-[var(--border-strong)] bg-[var(--bg-elevated)] rounded-sm overflow-hidden shadow-2xl">
           {/* Left Swiss Poster Column */}
-          <div className="lg:col-span-5 p-8 flex flex-col justify-between bg-[#C9E54B] text-[#1A1B17] relative">
-            <div className="flex items-center justify-between font-et-mono text-[10px] font-bold uppercase tracking-[0.16em] pb-3 border-b border-[#1A1B17]/20">
+          <div className="lg:col-span-5 p-8 flex flex-col justify-between bg-[var(--lime)] text-[var(--lime-ink)] relative">
+            <div className="flex items-center justify-between font-et-mono text-[10px] font-bold uppercase tracking-[0.16em] pb-3 border-b border-[var(--lime-ink)]/20">
               <span>STUDENT ACCESS</span>
-              <span className="text-[#1E3AE0]">1 HR = 1 CREDIT</span>
+              <span className="text-[var(--cobalt)]">1 HR = 1 CREDIT</span>
             </div>
             <div className="my-10">
               <h1 className="font-black uppercase tracking-[-0.05em] leading-[0.9] text-4xl sm:text-5xl">
@@ -53,13 +53,13 @@ export default function LoginPage() {
                 <br />
                 NOT TUITION.
               </h1>
-              <p className="mt-4 font-et-mono text-xs leading-relaxed text-[#1A1B17]/80">
+              <p className="mt-4 font-et-mono text-xs leading-relaxed text-[var(--lime-ink)]/80">
                 Sign in with your student account to access your credit wallet, explore campus listings, and open private agreement rooms.
               </p>
             </div>
-            <div className="pt-3 border-t border-[#1A1B17]/20 flex items-center justify-between font-et-mono text-[10px] font-semibold uppercase tracking-[0.12em]">
+            <div className="pt-3 border-t border-[var(--lime-ink)]/20 flex items-center justify-between font-et-mono text-[10px] font-semibold uppercase tracking-[0.12em]">
               <span>5 STARTER CREDITS</span>
-              <span className="text-[#1E3AE0]">0% FEES</span>
+              <span className="text-[var(--cobalt)]">0% FEES</span>
             </div>
           </div>
 
@@ -74,7 +74,7 @@ export default function LoginPage() {
                     onClick={() => setAuthMode(m)}
                     className={`px-4 py-1.5 rounded-sm font-et-mono text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
                       authMode === m
-                        ? 'bg-[#C9E54B] text-[#1A1B17]'
+                        ? 'bg-[var(--lime)] text-[var(--lime-ink)]'
                         : 'text-[var(--muted)] hover:text-[var(--ink)]'
                     }`}
                   >
@@ -133,7 +133,7 @@ export default function LoginPage() {
 
                 <button
                   type="submit"
-                  className="w-full mt-2 py-3.5 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono text-xs font-bold uppercase tracking-[0.14em] hover:brightness-95 transition-all"
+                  className="w-full mt-2 py-3.5 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.14em] hover:brightness-95 transition-all"
                 >
                   {authMode === 'login' ? 'Enter Student Workspace →' : 'Create Account & Claim 5 Credits →'}
                 </button>

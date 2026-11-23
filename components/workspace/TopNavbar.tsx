@@ -40,7 +40,7 @@ export function TopNavbar() {
           href="/dashboard"
           className="flex items-center gap-2.5 shrink-0 focus:outline-none group"
         >
-          <span className="w-6 h-6 rounded-sm bg-[#C9E54B] text-[#1A1B17] border border-[#1A1B17] inline-flex items-center justify-center transition-transform duration-300 group-hover:rotate-90">
+          <span className="w-6 h-6 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] border border-[var(--border-strong)] inline-flex items-center justify-center transition-transform duration-300 group-hover:rotate-90">
             <span className="et-swiss-cross" />
           </span>
           <span className="font-black uppercase tracking-[-0.04em] text-base leading-none">
@@ -62,7 +62,7 @@ export function TopNavbar() {
               href={item.href}
               className={`px-4 py-1.5 rounded-sm font-et-mono text-[11px] font-semibold uppercase tracking-[0.11em] transition-all ${
                 item.active
-                  ? 'bg-[#C9E54B] text-[#1A1B17]'
+                  ? 'bg-[var(--lime)] text-[var(--lime-ink)]'
                   : 'text-[var(--muted)] hover:text-[var(--ink)]'
               }`}
             >
@@ -85,7 +85,7 @@ export function TopNavbar() {
           >
             <IconBell className="w-4 h-4" />
             {unreadNotifs > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono text-[9.5px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-[9.5px] font-bold flex items-center justify-center">
                 {unreadNotifs}
               </span>
             )}
@@ -127,7 +127,7 @@ export function TopNavbar() {
           <button
             type="button"
             onClick={handleLogout}
-            className="px-4 py-2 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono text-[11px] font-bold uppercase tracking-[0.11em] hover:brightness-95 transition-all"
+            className="px-4 py-2 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-[11px] font-bold uppercase tracking-[0.11em] hover:brightness-95 transition-all"
           >
             Log out
           </button>
@@ -152,7 +152,7 @@ export function TopNavbar() {
             href={item.href}
             className={`px-3 py-1.5 rounded-sm font-et-mono text-[10px] font-semibold uppercase tracking-[0.1em] shrink-0 ${
               item.active
-                ? 'bg-[#C9E54B] text-[#1A1B17]'
+                ? 'bg-[var(--lime)] text-[var(--lime-ink)]'
                 : 'border border-[var(--border)] text-[var(--muted)]'
             }`}
           >

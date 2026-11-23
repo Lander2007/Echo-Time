@@ -54,7 +54,7 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                       {CANONICAL_CONTENT.solution.exampleCard.eyebrow} &middot; {CANONICAL_CONTENT.solution.exampleCard.title}
                     </span>
                   </div>
-                  <span className="px-3 py-1 rounded-sm bg-[#1A1B17] text-[#C9E54B] tabular">
+                  <span className="px-3 py-1 rounded-sm bg-[#061354] text-[#F5F2F3] tabular">
                     {CANONICAL_CONTENT.solution.exampleCard.totalLabel}: {CANONICAL_CONTENT.solution.exampleCard.totalValue}
                   </span>
                 </div>
@@ -108,7 +108,7 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
 
                   {/* CENTER COLUMN: ROUTING READOUT & CAPSTONE GUILD BUS */}
                   <div className="lg:col-span-4 flex flex-col justify-between gap-4 relative z-20 lg:px-4">
-                    <div className="rounded border border-strong bg-[#E6E3D8] p-5 flex-1 flex flex-col justify-between">
+                    <div className="rounded border border-strong bg-surface p-5 flex-1 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-muted pb-3 border-b border-theme">
                           <span>{CANONICAL_CONTENT.solution.exampleCard.title}</span>
@@ -131,7 +131,7 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                       </div>
 
                       <div className="mt-4 pt-3 border-t border-theme flex flex-wrap items-center gap-1.5 font-swiss-mono text-[10px] uppercase">
-                        <span className="px-2 py-1 rounded-sm bg-[#1A1B17] text-[#F1EFE8]">
+                        <span className="px-2 py-1 rounded-sm bg-[#061354] text-[#F5F2F3]">
                           {CANONICAL_CONTENT.solution.exampleCard.formatValue}
                         </span>
                         <span className="text-accent font-bold">&rarr;</span>
@@ -139,19 +139,19 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                           {CANONICAL_CONTENT.solution.exampleCard.durationValue}
                         </span>
                         <span className="text-accent font-bold">&rarr;</span>
-                        <span className="px-2 py-1 rounded-sm bg-[#C9E54B] border border-[#1A1B17] text-[#1A1B17] font-semibold">
+                        <span className="px-2 py-1 rounded-sm bg-[#021F94] border border-[#061354] text-[#F5F2F3] font-semibold">
                           {CANONICAL_CONTENT.solution.exampleCard.totalValue}
                         </span>
                       </div>
                     </div>
 
                     {/* Embedded Capstone Guild Shared Treasury Module */}
-                    <div className="rounded border border-strong bg-[#1A1B17] text-[#F1EFE8] p-4">
+                    <div className="rounded border border-strong bg-[#061354] text-[#F5F2F3] p-4">
                       <div className="flex items-center justify-between gap-2 font-swiss-mono text-[9.5px] uppercase tracking-[0.14em]">
-                        <span style={{ color: '#6B84FF', fontWeight: 600 }}>
+                        <span style={{ color: '#B9C8FF', fontWeight: 600 }}>
                           SHARED CAPSTONE GUILD BUS
                         </span>
-                        <span className="tabular font-semibold" style={{ color: '#C9E54B' }}>
+                        <span className="tabular font-semibold" style={{ color: '#D93829' }}>
                           {guildHours.toFixed(1)} / 16.0 ECHO
                         </span>
                       </div>
@@ -161,20 +161,20 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                       </div>
                       <div
                         className="mt-2.5 w-full h-1.5 rounded-sm overflow-hidden"
-                        style={{ backgroundColor: 'rgba(241, 239, 232, 0.14)' }}
+                        style={{ backgroundColor: 'rgba(245, 242, 243, 0.18)' }}
                       >
                         <div
                           className="h-full transition-all duration-500"
                           style={{
                             width: `${Math.min(100, (guildHours / 16.0) * 100).toFixed(1)}%`,
-                            backgroundColor: '#C9E54B',
+                            backgroundColor: '#D93829',
                           }}
                         />
                       </div>
                       <div className="mt-3 flex items-center justify-between gap-2">
                         <span
                           className="font-swiss-mono text-[9.5px] uppercase"
-                          style={{ color: '#989A8E' }}
+                          style={{ color: '#B9C8FF' }}
                         >
                           BOUNTY: CAD AUDIT
                         </span>
@@ -183,7 +183,7 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                           data-cursor="PLEDGE"
                           onClick={handleGuildPledge}
                           className="px-3 py-1.5 rounded-sm font-swiss-mono text-[10px] font-semibold uppercase tracking-[0.11em] transition-transform active:scale-95"
-                          style={{ backgroundColor: '#C9E54B', color: '#1A1B17' }}
+                          style={{ backgroundColor: '#D93829', color: '#F5F2F3' }}
                         >
                           +0.5 ECHO Pledge
                         </button>

@@ -13,7 +13,7 @@ export function ToastStack() {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className="et-toast pointer-events-auto px-4 py-3 rounded-sm border border-[#C9E54B] bg-[#1A1B17] text-[#F1EFE8] font-et-mono text-[11px] leading-snug shadow-2xl"
+          className="et-toast pointer-events-auto px-4 py-3 rounded-sm border border-[var(--lime)] bg-[var(--bg-elevated)] text-[var(--ink)] font-et-mono text-[11px] leading-snug shadow-2xl"
         >
           {t.text}
         </div>

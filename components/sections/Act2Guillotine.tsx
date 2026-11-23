@@ -42,7 +42,7 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                       THE PARITY GUILLOTINE &mdash; MARKET CUTAWAY
                     </div>
                     <div className="font-swiss-mono text-[10px] uppercase tracking-[0.13em] text-muted mt-0.5">
-                      SCROLL OR DRAG THE COBALT BLADE ACROSS THE GRID
+                      SCROLL OR DRAG THE VERMILION BLADE ACROSS THE GRID
                     </div>
                   </div>
                 </div>
@@ -50,7 +50,7 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                 <div className="flex flex-wrap items-center gap-2 font-swiss-mono text-[10px] uppercase tracking-[0.12em]">
                   <span
                     ref={guillotinePctRef}
-                    className="px-2.5 py-1 rounded-sm bg-surface border border-strong tabular font-semibold text-accent"
+                    className="px-2.5 py-1 rounded-sm bg-[#061354] border border-strong tabular font-semibold text-accent"
                   >
                     CUT: 12%
                   </span>
@@ -61,7 +61,7 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                       getAudio().click();
                       animateBladeTo(0);
                     }}
-                    className="px-2.5 py-1 rounded-sm bg-surface border border-strong hover:bg-[#1A1B17] hover:text-[#F1EFE8] text-ink transition-colors"
+                    className="px-2.5 py-1 rounded-sm bg-[#061354] border border-strong hover:bg-[#F5F2F3] hover:text-[#021F94] text-ink transition-colors"
                   >
                     Legacy
                   </button>
@@ -72,7 +72,7 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                       getAudio().click();
                       animateBladeTo(50);
                     }}
-                    className="px-2.5 py-1 rounded-sm bg-surface border border-strong hover:bg-[#1A1B17] hover:text-[#F1EFE8] text-ink transition-colors"
+                    className="px-2.5 py-1 rounded-sm bg-[#061354] border border-strong hover:bg-[#F5F2F3] hover:text-[#021F94] text-ink transition-colors"
                   >
                     50/50 Split
                   </button>
@@ -101,19 +101,19 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                   updateBladeFromPointer(e.clientX);
                 }}
               >
-                {/* LAYER A: LEGACY CASH TUTORING REALITY (#1A1B17 + #F1EFE8) */}
+                {/* LAYER A: LEGACY CASH TUTORING REALITY (#061354 + #B9C8FF) */}
                 <div className="guillotine-layer guillotine-layer-legacy">
                   <div
                     className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b font-swiss-mono text-[10.5px] uppercase tracking-[0.16em]"
                     style={{
-                      borderColor: 'rgba(241, 239, 232, 0.16)',
-                      color: '#989A8E',
+                      borderColor: 'rgba(245, 242, 243, 0.16)',
+                      color: '#B9C8FF',
                     }}
                   >
                     <span>STATE A &middot; COMMERCIAL TUTORING &amp; GROUP CHATS</span>
                     <span
                       className="px-2 py-0.5 rounded-sm border"
-                      style={{ borderColor: 'rgba(241, 239, 232, 0.24)', color: '#F1EFE8' }}
+                      style={{ borderColor: 'rgba(245, 242, 243, 0.24)', color: '#F5F2F3' }}
                     >
                       LOCKED OUT BY BUDGET
                     </span>
@@ -123,19 +123,19 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                     <div className="lg:col-span-7">
                       <div
                         className="font-swiss-mono text-[11px] uppercase tracking-[0.18em] mb-3"
-                        style={{ color: '#989A8E' }}
+                        style={{ color: '#B9C8FF' }}
                       >
                         {CANONICAL_CONTENT.problem.eyebrow}
                       </div>
                       <h2
                         className="font-swiss-sans font-black uppercase tracking-[-0.05em] leading-[0.88] text-[clamp(2.2rem,4.8vw,4.4rem)]"
-                        style={{ color: '#F1EFE8' }}
+                        style={{ color: '#F5F2F3' }}
                       >
                         {CANONICAL_CONTENT.problem.title}
                       </h2>
                       <p
                         className="mt-5 text-sm sm:text-base max-w-xl leading-relaxed"
-                        style={{ color: '#989A8E' }}
+                        style={{ color: '#B9C8FF' }}
                       >
                         {CANONICAL_CONTENT.problem.description}
                       </p>
@@ -147,15 +147,15 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                           key={pt.num}
                           className="p-3.5 rounded-sm border"
                           style={{
-                            borderColor: 'rgba(241, 239, 232, 0.16)',
-                            backgroundColor: 'rgba(241, 239, 232, 0.03)',
+                            borderColor: 'rgba(245, 242, 243, 0.16)',
+                            backgroundColor: 'rgba(245, 242, 243, 0.04)',
                           }}
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[10px] font-bold text-[#C9E54B]">{pt.num}</span>
-                            <span className="text-xs font-semibold text-[#F1EFE8]">{pt.title}</span>
+                            <span className="text-[10px] font-bold text-[#D93829]">{pt.num}</span>
+                            <span className="text-xs font-semibold text-[#F5F2F3]">{pt.title}</span>
                           </div>
-                          <p className="text-[11px] leading-relaxed text-[#989A8E]">{pt.description}</p>
+                          <p className="text-[11px] leading-relaxed text-[#B9C8FF]">{pt.description}</p>
                         </div>
                       ))}
                     </div>
@@ -164,20 +164,20 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                   <div
                     className="pt-4 border-t flex flex-wrap items-center justify-between gap-2 font-swiss-mono text-[10px] uppercase tracking-[0.14em]"
                     style={{
-                      borderColor: 'rgba(241, 239, 232, 0.16)',
-                      color: '#989A8E',
+                      borderColor: 'rgba(245, 242, 243, 0.16)',
+                      color: '#B9C8FF',
                     }}
                   >
                     <span>{CANONICAL_CONTENT.problem.title}</span>
-                    <span style={{ color: '#C9E54B' }}>DRAG BLADE TO REVEAL SOLUTION &rarr;</span>
+                    <span style={{ color: '#D93829' }}>DRAG BLADE TO REVEAL SOLUTION &rarr;</span>
                   </div>
                 </div>
 
-                {/* LAYER B: ECHO TIME 1:1 PARITY (#C9E54B MAIN + #F1EFE8 CARDS + #1E3AE0 COBALT) */}
+                {/* LAYER B: ECHO TIME 1:1 PARITY (#F5F2F3 MAIN + #FFFFFF CARDS + #021F94 BLUE) */}
                 <div ref={guillotineParityRef} className="guillotine-layer guillotine-layer-parity">
                   <div
                     className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b font-swiss-mono text-[10.5px] uppercase tracking-[0.16em]"
-                    style={{ borderColor: 'rgba(26, 27, 23, 0.25)', color: '#1A1B17' }}
+                    style={{ borderColor: 'rgba(2, 31, 148, 0.25)', color: '#0B1026' }}
                   >
                     <span className="font-semibold">
                       {CANONICAL_CONTENT.solution.eyebrow}
@@ -185,8 +185,8 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                     <span
                       className="px-2.5 py-0.5 rounded-sm font-semibold"
                       style={{
-                        backgroundColor: '#1E3AE0',
-                        color: '#F1EFE8',
+                        backgroundColor: '#021F94',
+                        color: '#F5F2F3',
                       }}
                     >
                       1.00 HR = 1.00 ECHO
@@ -197,26 +197,26 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                     <div className="lg:col-span-7">
                       <div
                         className="font-swiss-mono text-[11px] uppercase tracking-[0.18em] mb-3 font-bold"
-                        style={{ color: '#1E3AE0' }}
+                        style={{ color: '#021F94' }}
                       >
                         {CANONICAL_CONTENT.solution.eyebrow}
                       </div>
                       <h2
                         className="font-swiss-sans font-black uppercase tracking-[-0.05em] leading-[0.88] text-[clamp(2.2rem,4.8vw,4.4rem)]"
-                        style={{ color: '#1A1B17' }}
+                        style={{ color: '#0B1026' }}
                       >
                         {CANONICAL_CONTENT.solution.title}
                       </h2>
                       <p
                         className="mt-5 text-sm sm:text-base max-w-xl leading-relaxed"
-                        style={{ color: '#383B30' }}
+                        style={{ color: '#565C73' }}
                       >
                         {CANONICAL_CONTENT.solution.description}
                       </p>
                       <div className="mt-5">
                         <a
                           href="#act-marketplace"
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded bg-[#1E3AE0] text-[#F1EFE8] font-swiss-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] hover:bg-[#152bb5] transition-colors"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] hover:bg-[#032BCB] transition-colors"
                         >
                           {CANONICAL_CONTENT.solution.cta} &rarr;
                         </a>
@@ -229,13 +229,13 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                           key={idx}
                           className="p-3.5 rounded-sm border"
                           style={{
-                            borderColor: '#1A1B17',
-                            backgroundColor: '#F1EFE8',
+                            borderColor: 'rgba(2, 31, 148, 0.20)',
+                            backgroundColor: '#FFFFFF',
                           }}
                         >
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-[#1E3AE0]">0{idx + 1}</span>
-                            <span className="text-xs font-semibold text-[#1A1B17]">{bullet}</span>
+                            <span className="text-[10px] font-bold text-[#021F94]">0{idx + 1}</span>
+                            <span className="text-xs font-semibold text-[#0B1026]">{bullet}</span>
                           </div>
                         </div>
                       ))}
@@ -244,18 +244,18 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
 
                   <div
                     className="pt-4 border-t flex flex-wrap items-center justify-between gap-2 font-swiss-mono text-[10px] uppercase tracking-[0.14em]"
-                    style={{ borderColor: 'rgba(26, 27, 23, 0.25)', color: '#1A1B17' }}
+                    style={{ borderColor: 'rgba(2, 31, 148, 0.25)', color: '#0B1026' }}
                   >
                     <span className="font-semibold">
                       {CANONICAL_CONTENT.solution.title}
                     </span>
-                    <span className="font-bold" style={{ color: '#1E3AE0' }}>
+                    <span className="font-bold" style={{ color: '#021F94' }}>
                       {CANONICAL_CONTENT.solution.cta}
                     </span>
                   </div>
                 </div>
 
-                {/* RAZOR-SHARP INTERNATIONAL COBALT GUILLOTINE BLADE */}
+                {/* RAZOR-SHARP SWISS VERMILION GUILLOTINE BLADE */}
                 <div
                   ref={guillotineBladeRef}
                   className="guillotine-blade"
@@ -284,8 +284,8 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                 >
                   <div className="guillotine-handle" title="Drag left or right to slice">
                     <span className="font-swiss-mono text-[8px] font-bold tracking-widest">CUT</span>
-                    <span className="w-4 h-[1.5px] bg-[#F1EFE8]" />
-                    <span className="w-4 h-[1.5px] bg-[#F1EFE8]" />
+                    <span className="w-4 h-[1.5px] bg-[#FFFFFF]" />
+                    <span className="w-4 h-[1.5px] bg-[#FFFFFF]" />
                     <span className="font-swiss-mono text-[9px] font-bold leading-none">&harr;</span>
                   </div>
                 </div>

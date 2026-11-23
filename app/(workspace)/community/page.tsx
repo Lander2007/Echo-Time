@@ -50,7 +50,7 @@ export default function CommunityPage() {
             setSpaceForm({ kind: 'Project', tag: 'tech', title: '', description: '' });
             setSpaceModalOpen(true);
           }}
-          className="shrink-0 px-5 py-3 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all"
+          className="shrink-0 px-5 py-3 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all"
         >
           + Create space
         </button>
@@ -66,7 +66,7 @@ export default function CommunityPage() {
               onClick={() => setCommunityFilter(tab)}
               className={`px-4 py-1.5 rounded-sm font-et-mono text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors ${
                 communityFilter === tab
-                  ? 'bg-[#C9E54B] text-[#1A1B17]'
+                  ? 'bg-[var(--lime)] text-[var(--lime-ink)]'
                   : 'text-[var(--muted)] hover:text-[var(--ink)]'
               }`}
             >

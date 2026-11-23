@@ -53,7 +53,7 @@ export default function DashboardPage() {
         <span className="et-tick-br" />
 
         <div className="flex items-start sm:items-center gap-4">
-          <div className="w-12 h-12 rounded-sm bg-[#C9E54B] text-[#1A1B17] border border-[#1A1B17] flex items-center justify-center font-et-mono font-bold text-base shrink-0">
+          <div className="w-12 h-12 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] border border-[var(--border-strong)] flex items-center justify-center font-et-mono font-bold text-base shrink-0">
             {userInitials}
           </div>
           <div>
@@ -71,7 +71,7 @@ export default function DashboardPage() {
 
         {/* 3-Day Streak Module */}
         <div className="flex items-center gap-3.5 px-4 py-3 rounded-sm border border-[var(--lime)]/40 bg-[var(--bg)] max-w-sm">
-          <div className="w-10 h-10 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono font-black text-lg flex items-center justify-center shrink-0 tabular">
+          <div className="w-10 h-10 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono font-black text-lg flex items-center justify-center shrink-0 tabular">
             03
           </div>
           <div className="min-w-0">
@@ -118,7 +118,7 @@ export default function DashboardPage() {
       <div className="flex flex-wrap items-center gap-3">
         <Link
           href="/explore"
-          className="inline-flex items-center gap-2.5 px-5 py-3 rounded-sm bg-[#C9E54B] text-[#1A1B17] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all"
+          className="inline-flex items-center gap-2.5 px-5 py-3 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all"
         >
           <IconSearch className="w-4 h-4" />
           <span>Find a skill</span>

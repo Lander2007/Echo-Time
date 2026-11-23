@@ -178,9 +178,9 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
           currentY,
           SPOTLIGHT_RADIUS
         );
-        grad.addColorStop(0, 'rgba(201, 229, 75, 0.06)');
-        grad.addColorStop(0.5, 'rgba(107, 132, 255, 0.025)');
-        grad.addColorStop(1, 'rgba(26, 27, 23, 0)');
+        grad.addColorStop(0, 'rgba(2, 31, 148, 0.08)');
+        grad.addColorStop(0.5, 'rgba(217, 56, 41, 0.03)');
+        grad.addColorStop(1, 'rgba(245, 242, 243, 0)');
 
         ctx.fillStyle = grad;
         ctx.beginPath();
@@ -212,8 +212,8 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
         }
 
         ctx.fillStyle = isAccent
-          ? `rgba(201, 229, 75, ${alpha.toFixed(3)})`
-          : `rgba(241, 239, 232, ${alpha.toFixed(3)})`;
+          ? `rgba(2, 31, 148, ${alpha.toFixed(3)})`
+          : `rgba(2, 31, 148, ${(alpha * 0.35).toFixed(3)})`;
 
         ctx.beginPath();
         ctx.arc(px, py, radius, 0, Math.PI * 2);
@@ -253,7 +253,7 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
     if (fxLayerRef.current) {
       const ring = document.createElement('div');
       ring.className =
-        'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border-2 border-[#6B84FF] pointer-events-none';
+        'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border-2 border-[#D93829] pointer-events-none';
       fxLayerRef.current.appendChild(ring);
       gsap.fromTo(
         ring,
@@ -334,7 +334,7 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
 
         const ripple = document.createElement('div');
         ripple.className =
-          'absolute rounded-full border border-[#C9E54B] pointer-events-none';
+          'absolute rounded-full border border-[#D93829] pointer-events-none';
         ripple.style.left = `${rx}px`;
         ripple.style.top = `${ry}px`;
         ripple.style.transform = 'translate(-50%, -50%)';
@@ -642,7 +642,7 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
       ref={heroSectionRef}
       id="act-hero"
       className="theme-dark relative w-full min-h-screen overflow-hidden"
-      style={{ backgroundColor: '#1A1B17', color: '#F1EFE8' }}
+      style={{ backgroundColor: '#F5F2F3', color: '#0B1026' }}
     >
       {/* Camera Rig Wrapper: Powers 60fps Mechanical Screen-Shake Without Breaking GSAP Pin */}
       <div
@@ -669,8 +669,9 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
           className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center overflow-hidden select-none px-4"
           aria-hidden="true"
         >
-          <div className="font-echo-monument text-[clamp(6rem,22vw,26rem)] uppercase tracking-[-0.035em] leading-none text-[#F1EFE8]/[0.05] [-webkit-text-stroke:1px_rgba(201,229,75,0.08)] select-none whitespace-nowrap text-center">
-            ECHO TIME
+          <div className="font-echo-monument text-[clamp(6rem,22vw,26rem)] uppercase tracking-[-0.035em] leading-none select-none whitespace-nowrap text-center">
+            <span className="text-[#0B1026]/[0.05] [-webkit-text-stroke:1px_rgba(11,16,38,0.12)]">ECHO</span>{' '}
+            <span className="text-[#021F94]/[0.08] [-webkit-text-stroke:1px_rgba(2,31,148,0.18)]">TIME</span>
           </div>
         </div>
 
@@ -688,7 +689,7 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
               className="light-leak-aura pointer-events-none absolute inset-[-55px] rounded-full opacity-0 blur-3xl z-0"
               style={{
                 background:
-                  'radial-gradient(circle, rgba(201, 229, 75, 0.42) 0%, rgba(201, 229, 75, 0.12) 50%, transparent 75%)',
+                  'radial-gradient(circle, rgba(2, 31, 148, 0.42) 0%, rgba(2, 31, 148, 0.12) 50%, transparent 75%)',
                 willChange: 'opacity',
               }}
               aria-hidden="true"
@@ -721,18 +722,18 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
 
                   {/* Verbatim Approved Content from echotime-gdoud7zw.manus.space */}
                   <div className="relative z-10 my-auto py-4">
-                    <div className="font-swiss-mono text-[9px] uppercase tracking-[0.2em] text-[#1E3AE0] font-semibold mb-2">
+                    <div className="font-swiss-mono text-[9px] uppercase tracking-[0.2em] text-[#B9C8FF] font-semibold mb-2">
                       {CANONICAL_CONTENT.hero.eyebrow}
                     </div>
                     <div
                       className="font-swiss-sans font-black uppercase tracking-[-0.045em] text-3xl sm:text-4xl leading-[0.92]"
-                      style={{ color: '#1A1B17' }}
+                      style={{ color: '#F5F2F3' }}
                     >
                       {CANONICAL_CONTENT.hero.titleLine1}
                       <br />
                       {CANONICAL_CONTENT.hero.titleLine2}
                     </div>
-                    <p className="mt-3 font-swiss-mono text-[9.5px] leading-relaxed max-w-[220px] mx-auto text-[#46493D]">
+                    <p className="mt-3 font-swiss-mono text-[9.5px] leading-relaxed max-w-[220px] mx-auto text-[#B9C8FF]">
                       {CANONICAL_CONTENT.hero.note}
                     </p>
                   </div>
@@ -742,7 +743,7 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
               {/* Center Light Seam (.light-leak-seam): translateZ(3px) */}
               <div
                 ref={lightLeakSeamRef}
-                className="light-leak-seam pointer-events-none absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[3px] bg-[#C9E54B] opacity-0 blur-[1.5px] z-10"
+                className="light-leak-seam pointer-events-none absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[3px] bg-[#021F94] opacity-0 blur-[1.5px] z-10"
                 style={{ transform: 'translateZ(3px)', willChange: 'opacity, width' }}
                 aria-hidden="true"
               />
@@ -787,13 +788,13 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
                   >
                     {/* Recessed Louver Backlight */}
                     <div
-                      className="louver-backlight pointer-events-none absolute inset-0 bg-[#C9E54B]/20 blur-sm opacity-0 transition-opacity duration-200"
+                      className="louver-backlight pointer-events-none absolute inset-0 bg-[#021F94]/20 blur-sm opacity-0 transition-opacity duration-200"
                       aria-hidden="true"
                     />
 
-                    <div className="flex items-center justify-between font-swiss-mono text-[9px] tracking-[0.14em] text-[#989A8E]">
+                    <div className="flex items-center justify-between font-swiss-mono text-[9px] tracking-[0.14em] text-[#565C73]">
                       <span>L—01</span>
-                      <span className="w-1.5 h-1.5 rounded-sm bg-[#C9E54B]" />
+                      <span className="w-1.5 h-1.5 rounded-sm bg-[#021F94]" />
                     </div>
 
                     <div className="swiss-louver-grid m-0 h-full" aria-hidden="true">
@@ -802,22 +803,22 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
                       ))}
                     </div>
 
-                    <div className="font-swiss-mono text-[8.5px] uppercase tracking-[0.16em] text-[#989A8E]">
+                    <div className="font-swiss-mono text-[8.5px] uppercase tracking-[0.16em] text-[#565C73]">
                       ECHO.SYS
                     </div>
                   </div>
 
-                  {/* Leaf Back: Clean Dark Steel Interior Face (Zero Mirrored Text Past 90°) */}
+                  {/* Leaf Back: Clean Interior Face */}
                   <div
-                    className="leaf-back absolute inset-0 bg-[#1F201B] border border-[rgba(241,239,232,0.18)]"
+                    className="leaf-back absolute inset-0 bg-[#EAE5E7] border border-[rgba(2,31,148,0.18)]"
                     style={{
                       transform: 'rotateY(180deg)',
                       backfaceVisibility: 'hidden',
                     }}
                   >
-                    <div className="w-full h-full p-3 flex flex-col justify-between opacity-35">
-                      <span className="w-1.5 h-1.5 rounded-sm bg-[#989A8E]" />
-                      <span className="font-swiss-mono text-[8px] text-[#989A8E] tracking-[0.16em]">
+                    <div className="w-full h-full p-3 flex flex-col justify-between opacity-50">
+                      <span className="w-1.5 h-1.5 rounded-sm bg-[#565C73]" />
+                      <span className="font-swiss-mono text-[8px] text-[#565C73] tracking-[0.16em]">
                         ECHO STEEL
                       </span>
                     </div>
@@ -854,12 +855,12 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
                     style={{ backfaceVisibility: 'hidden', transformStyle: 'preserve-3d' }}
                   >
                     <div
-                      className="louver-backlight pointer-events-none absolute inset-0 bg-[#C9E54B]/20 blur-sm opacity-0 transition-opacity duration-200"
+                      className="louver-backlight pointer-events-none absolute inset-0 bg-[#021F94]/20 blur-sm opacity-0 transition-opacity duration-200"
                       aria-hidden="true"
                     />
 
-                    <div className="flex items-center justify-between font-swiss-mono text-[9px] tracking-[0.14em] text-[#989A8E]">
-                      <span className="w-1.5 h-1.5 rounded-sm bg-[#6B84FF]" />
+                    <div className="flex items-center justify-between font-swiss-mono text-[9px] tracking-[0.14em] text-[#565C73]">
+                      <span className="w-1.5 h-1.5 rounded-sm bg-[#D93829]" />
                       <span>R—02</span>
                     </div>
 
@@ -869,22 +870,22 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
                       ))}
                     </div>
 
-                    <div className="font-swiss-mono text-[8.5px] uppercase tracking-[0.16em] text-right text-[#989A8E]">
+                    <div className="font-swiss-mono text-[8.5px] uppercase tracking-[0.16em] text-right text-[#565C73]">
                       1:1 PARITY
                     </div>
                   </div>
 
-                  {/* Leaf Back: Clean Dark Steel Interior Face (Zero Mirrored Text Past 90°) */}
+                  {/* Leaf Back: Clean Interior Face */}
                   <div
-                    className="leaf-back absolute inset-0 bg-[#1F201B] border border-[rgba(241,239,232,0.18)]"
+                    className="leaf-back absolute inset-0 bg-[#EAE5E7] border border-[rgba(2,31,148,0.18)]"
                     style={{
                       transform: 'rotateY(180deg)',
                       backfaceVisibility: 'hidden',
                     }}
                   >
-                    <div className="w-full h-full p-3 flex flex-col justify-between items-end opacity-35">
-                      <span className="w-1.5 h-1.5 rounded-sm bg-[#6B84FF]" />
-                      <span className="font-swiss-mono text-[8px] text-[#989A8E] tracking-[0.16em]">
+                    <div className="w-full h-full p-3 flex flex-col justify-between items-end opacity-50">
+                      <span className="w-1.5 h-1.5 rounded-sm bg-[#D93829]" />
+                      <span className="font-swiss-mono text-[8px] text-[#565C73] tracking-[0.16em]">
                         ECHO STEEL
                       </span>
                     </div>
@@ -922,7 +923,7 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
                         cy="22"
                         r="18"
                         fill="none"
-                        stroke="rgba(201, 229, 75, 0.2)"
+                        stroke="rgba(2, 31, 148, 0.2)"
                         strokeWidth="1.5"
                       />
                       <circle
@@ -931,7 +932,7 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
                         cy="22"
                         r="18"
                         fill="none"
-                        stroke="#C9E54B"
+                        stroke="#021F94"
                         strokeWidth="2"
                         strokeDasharray="113"
                         strokeDashoffset="113"
@@ -965,14 +966,14 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
                 type="button"
                 data-cursor="START"
                 onClick={executeUnlock}
-                className="px-5 py-2.5 rounded bg-[#C9E54B] text-[#1A1B17] font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] hover:bg-[#d8f060] transition-colors"
+                className="px-5 py-2.5 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] hover:bg-[#032BCB] transition-colors"
               >
                 {CANONICAL_CONTENT.hero.primaryCta}
               </button>
               <a
                 href="#act-marketplace"
                 data-cursor="EXPLORE"
-                className="px-5 py-2.5 rounded border border-[#989A8E]/40 text-[#F1EFE8] font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] hover:border-[#C9E54B] hover:text-[#C9E54B] transition-colors"
+                className="px-5 py-2.5 rounded border border-[#021F94]/40 text-[#0B1026] font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] hover:border-[#021F94] hover:text-[#021F94] hover:bg-[#021F94]/5 transition-colors"
               >
                 {CANONICAL_CONTENT.hero.secondaryCta}
               </a>
@@ -985,7 +986,7 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
       <div
         id="hero-parchment-wash"
         className="pointer-events-none absolute inset-0 z-40 opacity-0"
-        style={{ backgroundColor: '#C9E54B', willChange: 'opacity' }}
+        style={{ backgroundColor: '#021F94', willChange: 'opacity' }}
       />
     </section>
   );
