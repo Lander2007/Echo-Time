@@ -1503,6 +1503,7 @@ export default function EchoTimeLandingPage() {
           heroImpactVignetteRef={heroImpactVignetteRef}
           doorImpactFrameRef={doorImpactFrameRef}
           latchPulseRef={latchPulseRef}
+          getAudio={getAudio}
         />
 
         <div id="light-world" className="theme-light swiss-grid-light bg-theme text-ink">
