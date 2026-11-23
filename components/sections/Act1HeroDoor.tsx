@@ -8,20 +8,17 @@ interface Act1HeroDoorProps {
   latchPulseRef: React.RefObject<HTMLDivElement | null>;
 }
 
-interface VectorNeedle {
+interface GridDot {
   x: number;
   y: number;
-  currentAngle: number;
-  targetAngle: number;
-  baseAngle: number;
 }
 
-interface ShockwavePulse {
+interface ClickRipple {
   x: number;
   y: number;
   radius: number;
   maxRadius: number;
-  strength: number;
+  alpha: number;
 }
 
 export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
@@ -32,10 +29,6 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
 }) => {
   const heroSectionRef = useRef<HTMLElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const crosshairHRef = useRef<HTMLDivElement | null>(null);
-  const crosshairVRef = useRef<HTMLDivElement | null>(null);
-  const reticleRingRef = useRef<HTMLDivElement | null>(null);
-  const hudBadgeRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const section = heroSectionRef.current;
@@ -54,18 +47,15 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
     let targetY = -2000;
     let currentX = -2000;
     let currentY = -2000;
-    let prevX = -2000;
-    let prevY = -2000;
-    let pointerVelocity = 0;
     let isHovering = false;
 
-    const needles: VectorNeedle[] = [];
-    const pulses: ShockwavePulse[] = [];
+    const dots: GridDot[] = [];
+    const ripples: ClickRipple[] = [];
 
-    const SPACING = 56; // High density Swiss architectural grid spacing
+    const SPACING = 56; // Minimalist Swiss architectural grid spacing
 
     const initGrid = () => {
-      needles.length = 0;
+      dots.length = 0;
       const cols = Math.ceil(width / SPACING) + 2;
       const rows = Math.ceil(height / SPACING) + 2;
       const offsetX = (width - (cols - 1) * SPACING) / 2;
@@ -73,14 +63,9 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const x = offsetX + c * SPACING;
-          const y = offsetY + r * SPACING;
-          needles.push({
-            x,
-            y,
-            currentAngle: 0,
-            targetAngle: 0,
-            baseAngle: 0,
+          dots.push({
+            x: offsetX + c * SPACING,
+            y: offsetY + r * SPACING,
           });
         }
       }
@@ -120,21 +105,11 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
           isHovering = true;
           currentX = targetX;
           currentY = targetY;
-          prevX = targetX;
-          prevY = targetY;
-          if (crosshairHRef.current) crosshairHRef.current.style.opacity = '1';
-          if (crosshairVRef.current) crosshairVRef.current.style.opacity = '1';
-          if (reticleRingRef.current) reticleRingRef.current.style.opacity = '1';
-          if (hudBadgeRef.current) hudBadgeRef.current.style.opacity = '1';
         }
-      } else if (isHovering) {
+      } else {
         isHovering = false;
         targetX = -2000;
         targetY = -2000;
-        if (crosshairHRef.current) crosshairHRef.current.style.opacity = '0';
-        if (crosshairVRef.current) crosshairVRef.current.style.opacity = '0';
-        if (reticleRingRef.current) reticleRingRef.current.style.opacity = '0';
-        if (hudBadgeRef.current) hudBadgeRef.current.style.opacity = '0';
       }
     };
 
@@ -142,20 +117,16 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
       isHovering = false;
       targetX = -2000;
       targetY = -2000;
-      if (crosshairHRef.current) crosshairHRef.current.style.opacity = '0';
-      if (crosshairVRef.current) crosshairVRef.current.style.opacity = '0';
-      if (reticleRingRef.current) reticleRingRef.current.style.opacity = '0';
-      if (hudBadgeRef.current) hudBadgeRef.current.style.opacity = '0';
     };
 
     const onClick = (e: MouseEvent) => {
       const rect = section.getBoundingClientRect();
-      pulses.push({
+      ripples.push({
         x: e.clientX - rect.left,
         y: e.clientY - rect.top,
         radius: 0,
-        maxRadius: 620,
-        strength: 1.0,
+        maxRadius: 280,
+        alpha: 0.6,
       });
     };
 
@@ -163,144 +134,88 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
     section.addEventListener('pointerleave', onPointerLeave);
     section.addEventListener('click', onClick, { passive: true });
 
-    let time = 0;
+    const SPOTLIGHT_RADIUS = 240;
 
     const render = () => {
-      time++;
       ctx.clearRect(0, 0, width, height);
 
+      // Smooth position lerp
       if (isHovering) {
-        const vx = targetX - currentX;
-        const vy = targetY - currentY;
-        pointerVelocity = Math.min(Math.hypot(vx, vy), 40);
-        currentX += vx * 0.18;
-        currentY += vy * 0.18;
-
-        // Position crosshairs & reticle
-        if (crosshairHRef.current) {
-          crosshairHRef.current.style.transform = `translate3d(0, ${currentY}px, 0)`;
-        }
-        if (crosshairVRef.current) {
-          crosshairVRef.current.style.transform = `translate3d(${currentX}px, 0, 0)`;
-        }
-        if (reticleRingRef.current) {
-          reticleRingRef.current.style.transform = `translate3d(${currentX - 22}px, ${currentY - 22}px, 0)`;
-        }
-        if (hudBadgeRef.current) {
-          const badgeX = Math.min(Math.max(currentX + 18, 12), (width || 1200) - 260);
-          const badgeY = Math.min(Math.max(currentY + 18, 12), (height || 800) - 40);
-          hudBadgeRef.current.style.transform = `translate3d(${badgeX}px, ${badgeY}px, 0)`;
-          const deg = Math.round(((Math.atan2(currentY - height / 2, currentX - width / 2) * 180) / Math.PI + 360) % 360);
-          hudBadgeRef.current.textContent = `VECTOR FLUX · θ:${deg.toString().padStart(3, '0')}° · [${Math.round(currentX).toString().padStart(4, '0')}:${Math.round(currentY).toString().padStart(4, '0')}] · SYS.ACTIVE`;
-        }
+        currentX += (targetX - currentX) * 0.14;
+        currentY += (targetY - currentY) * 0.14;
       }
 
-      // Base influence radius expands dynamically with mouse velocity
-      const dynamicRadius = 310 + pointerVelocity * 3.5;
+      // Draw subtle ambient radial spotlight near cursor
+      if (isHovering && currentX > -500) {
+        const grad = ctx.createRadialGradient(
+          currentX,
+          currentY,
+          0,
+          currentX,
+          currentY,
+          SPOTLIGHT_RADIUS
+        );
+        grad.addColorStop(0, 'rgba(201, 229, 75, 0.06)');
+        grad.addColorStop(0.5, 'rgba(107, 132, 255, 0.025)');
+        grad.addColorStop(1, 'rgba(26, 27, 23, 0)');
 
-      // Update and draw vector needles
-      for (let i = 0; i < needles.length; i++) {
-        const needle = needles[i];
-        const dx = currentX - needle.x;
-        const dy = currentY - needle.y;
-        const dist = Math.hypot(dx, dy);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(currentX, currentY, SPOTLIGHT_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
-        let influence = 0;
-        let targetAngle = 0;
+      // Draw minimalist Swiss dot matrix
+      for (let i = 0; i < dots.length; i++) {
+        const dot = dots[i];
+        let px = dot.x;
+        let py = dot.y;
+        let radius = 1.15;
+        let alpha = 0.11;
+        let isAccent = false;
 
-        if (dist < dynamicRadius && isHovering) {
-          influence = Math.pow(1 - dist / dynamicRadius, 1.35);
-          targetAngle = Math.atan2(dy, dx);
-        } else {
-          // Idle harmonic wave: subtle rhythmic breathing across Swiss grid
-          targetAngle = Math.sin(time * 0.016 + (needle.x * 0.006 + needle.y * 0.008)) * 0.38;
-        }
+        if (isHovering && currentX > -500) {
+          const dx = currentX - dot.x;
+          const dy = currentY - dot.y;
+          const dist = Math.hypot(dx, dy);
 
-        // Apply kinetic shockwave impulse from clicks
-        for (let j = 0; j < pulses.length; j++) {
-          const pulse = pulses[j];
-          const pDist = Math.hypot(needle.x - pulse.x, needle.y - pulse.y);
-          const waveDist = Math.abs(pDist - pulse.radius);
-          if (waveDist < 55) {
-            const waveStrength = (1 - waveDist / 55) * pulse.strength;
-            influence = Math.max(influence, waveStrength * 0.85);
-            const waveAngle = Math.atan2(needle.y - pulse.y, needle.x - pulse.x) + Math.PI * 0.5;
-            targetAngle = targetAngle * (1 - waveStrength) + waveAngle * waveStrength;
+          if (dist < SPOTLIGHT_RADIUS) {
+            const factor = 1 - dist / SPOTLIGHT_RADIUS;
+            alpha = 0.11 + factor * 0.55;
+            radius = 1.15 + factor * 1.5;
+            isAccent = true;
+
+            // Subtle magnetic displacement (1-3px elastic pull)
+            px += (dx / (dist || 1)) * factor * 3.5;
+            py += (dy / (dist || 1)) * factor * 3.5;
           }
         }
 
-        // Smooth shortest-path angular lerping
-        let diff = targetAngle - needle.currentAngle;
-        while (diff < -Math.PI) diff += Math.PI * 2;
-        while (diff > Math.PI) diff -= Math.PI * 2;
-        needle.currentAngle += diff * (0.12 + influence * 0.16);
-
-        // Vector needle rendering
-        const len = 11 + influence * 12; // Expands from 11px to 23px under magnetic field
-        const cos = Math.cos(needle.currentAngle);
-        const sin = Math.sin(needle.currentAngle);
-
-        const x1 = needle.x - cos * (len * 0.35);
-        const y1 = needle.y - sin * (len * 0.35);
-        const x2 = needle.x + cos * (len * 0.65);
-        const y2 = needle.y + sin * (len * 0.65);
+        ctx.fillStyle = isAccent
+          ? `rgba(201, 229, 75, ${alpha.toFixed(3)})`
+          : `rgba(241, 239, 232, ${alpha.toFixed(3)})`;
 
         ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-
-        if (influence > 0.08) {
-          const alpha = Math.min(1, 0.2 + influence * 0.8);
-          if (influence > 0.42) {
-            ctx.strokeStyle = `rgba(201, 229, 75, ${alpha.toFixed(3)})`; // #C9E54B Acid Lime
-            ctx.lineWidth = 1.45;
-          } else {
-            ctx.strokeStyle = `rgba(107, 132, 255, ${alpha.toFixed(3)})`; // #6B84FF Pop Blue
-            ctx.lineWidth = 1.15;
-          }
-        } else {
-          ctx.strokeStyle = 'rgba(241, 239, 232, 0.12)';
-          ctx.lineWidth = 0.9;
-        }
-        ctx.stroke();
-
-        // Glowing needle tip & pivot indicator
-        if (influence > 0.22) {
-          ctx.beginPath();
-          ctx.arc(x2, y2, 1.25 + influence * 0.75, 0, Math.PI * 2);
-          ctx.fillStyle = '#C9E54B';
-          ctx.fill();
-        } else {
-          ctx.beginPath();
-          ctx.arc(needle.x, needle.y, 0.85, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(152, 154, 142, 0.28)';
-          ctx.fill();
-        }
+        ctx.arc(px, py, radius, 0, Math.PI * 2);
+        ctx.fill();
       }
 
-      // Draw expanding shockwave rings
-      for (let k = pulses.length - 1; k >= 0; k--) {
-        const pulse = pulses[k];
-        pulse.radius += 15;
-        pulse.strength *= 0.942;
+      // Draw minimalist tactile click ripples
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const r = ripples[i];
+        r.radius += (r.maxRadius - r.radius) * 0.09 + 1.2;
+        r.alpha *= 0.92;
 
+        if (r.alpha < 0.01 || r.radius >= r.maxRadius) {
+          ripples.splice(i, 1);
+          continue;
+        }
+
+        ctx.strokeStyle = `rgba(201, 229, 75, ${r.alpha.toFixed(3)})`;
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(201, 229, 75, ${(pulse.strength * 0.38).toFixed(3)})`;
-        ctx.lineWidth = 1.4;
+        ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
         ctx.stroke();
-
-        if (pulse.radius > 30) {
-          ctx.beginPath();
-          ctx.arc(pulse.x, pulse.y, pulse.radius - 16, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(107, 132, 255, ${(pulse.strength * 0.2).toFixed(3)})`;
-          ctx.lineWidth = 1.0;
-          ctx.stroke();
-        }
-
-        if (pulse.radius > pulse.maxRadius || pulse.strength < 0.02) {
-          pulses.splice(k, 1);
-        }
       }
 
       rafId = requestAnimationFrame(render);
@@ -321,7 +236,7 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
     <section
       ref={heroSectionRef}
       id="act-hero"
-      className="theme-dark relative w-full min-h-screen overflow-hidden cursor-crosshair"
+      className="theme-dark relative w-full min-h-screen overflow-hidden"
       style={{ backgroundColor: '#1A1B17', color: '#F1EFE8' }}
     >
       {/* Camera Rig Wrapper: Powers 60fps Mechanical Screen-Shake Without Breaking GSAP Pin */}
@@ -333,109 +248,31 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
         {/* Kinetic Impact Vignette Flash */}
         <div ref={heroImpactVignetteRef} className="hero-impact-vignette" aria-hidden="true" />
 
-        {/* ===================================================================
-            CONCEPT 3: INTERACTIVE MAGNETIC VECTOR FLOW / COMPASS FIELD
-            =================================================================== */}
+        {/* Minimalist Interactive Ambient Background Canvas */}
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden select-none" aria-hidden="true">
-          {/* Canvas-Rendered Magnetic Needle Vector Field */}
           <canvas
             ref={canvasRef}
             className="absolute inset-0 block w-full h-full pointer-events-none"
             style={{ willChange: 'contents' }}
           />
-
-          {/* Horizontal Hairline Precision Axis */}
-          <div
-            ref={crosshairHRef}
-            className="absolute left-0 right-0 h-[1px] opacity-0 pointer-events-none transition-opacity duration-300"
-            style={{
-              background:
-                'linear-gradient(90deg, transparent 0%, rgba(201, 229, 75, 0.04) 15%, rgba(201, 229, 75, 0.3) 50%, rgba(201, 229, 75, 0.04) 85%, transparent 100%)',
-              willChange: 'transform',
-            }}
-          />
-
-          {/* Vertical Hairline Precision Axis */}
-          <div
-            ref={crosshairVRef}
-            className="absolute top-0 bottom-0 w-[1px] opacity-0 pointer-events-none transition-opacity duration-300"
-            style={{
-              background:
-                'linear-gradient(180deg, transparent 0%, rgba(107, 132, 255, 0.04) 15%, rgba(107, 132, 255, 0.28) 50%, rgba(107, 132, 255, 0.04) 85%, transparent 100%)',
-              willChange: 'transform',
-            }}
-          />
-
-          {/* Magnetic Crosshair Reticle Ring */}
-          <div
-            ref={reticleRingRef}
-            className="absolute w-11 h-11 border border-[#C9E54B]/35 rounded-full opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center"
-            style={{ willChange: 'transform' }}
-          >
-            <div className="w-1.5 h-1.5 bg-[#C9E54B] rounded-full shadow-[0_0_8px_#C9E54B]" />
-            <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-[1px] h-2 bg-[#C9E54B]" />
-            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-[1px] h-2 bg-[#C9E54B]" />
-            <span className="absolute top-1/2 -left-1 -translate-y-1/2 h-[1px] w-2 bg-[#C9E54B]" />
-            <span className="absolute top-1/2 -right-1 -translate-y-1/2 h-[1px] w-2 bg-[#C9E54B]" />
-          </div>
-
-          {/* Floating Swiss Magnetic Telemetry Coordinates Badge */}
-          <div
-            ref={hudBadgeRef}
-            className="absolute opacity-0 pointer-events-none transition-opacity duration-300 font-swiss-mono text-[9px] uppercase tracking-[0.16em] px-2 py-0.5 rounded-sm bg-[#1A1B17]/90 border border-[#C9E54B]/35 text-[#C9E54B] shadow-2xl backdrop-blur-sm whitespace-nowrap"
-            style={{ willChange: 'transform' }}
-          >
-            VECTOR FLUX · θ:000° · [0000:0000] · SYS.ACTIVE
-          </div>
-
-          {/* Ambient Swiss Corner Specifications */}
-          <div className="hidden sm:flex absolute top-20 left-6 lg:left-12 items-center gap-2 font-swiss-mono text-[9px] uppercase tracking-[0.18em] text-[#989A8E]/55">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#C9E54B] animate-pulse" />
-            <span>MAGNETIC VECTOR FIELD · 56PX COMPASS MATRIX</span>
-          </div>
-
-          <div className="hidden sm:flex absolute bottom-6 right-6 lg:right-12 items-center gap-2 font-swiss-mono text-[9px] uppercase tracking-[0.16em] text-[#989A8E]/55">
-            <span>VELOCITY REACTIVE</span>
-            <span className="text-[#6B84FF]">&middot;</span>
-            <span>1.00 HR = 1.00 ECHO FLUX</span>
-          </div>
         </div>
 
-        {/* Monumental Swiss Editorial Watermark Behind 3D Door & Stage */}
+        {/* Monumental Swiss Editorial Wordmark Behind 3D Door */}
         <div
-          className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center overflow-hidden select-none"
+          id="hero-monument-watermark"
+          className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center overflow-hidden select-none px-4"
           aria-hidden="true"
         >
-          <div className="font-echo-monument text-[clamp(5.5rem,18.5vw,22rem)] uppercase tracking-[-0.035em] leading-none text-[#F1EFE8]/[0.045] [-webkit-text-stroke:1px_rgba(201,229,75,0.08)] select-none whitespace-nowrap text-center">
+          <div className="font-echo-monument text-[clamp(6rem,22vw,26rem)] uppercase tracking-[-0.035em] leading-none text-[#F1EFE8]/[0.05] [-webkit-text-stroke:1px_rgba(201,229,75,0.08)] select-none whitespace-nowrap text-center">
             ECHO TIME
           </div>
         </div>
 
-        {/* Elevated Swiss Poster Stage */}
-        <div className="relative z-20 max-w-[1400px] w-full mx-auto px-5 sm:px-10 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-y-7 lg:gap-x-10 xl:gap-x-14">
-          {/* Left Split Swiss Display Headline */}
-          <div className="order-2 lg:order-1 text-center lg:text-right">
-            <div
-              id="hero-meta-left"
-              className="hero-stagger hidden lg:inline-flex items-center gap-2 mb-4 font-swiss-mono text-[10px] uppercase tracking-[0.18em]"
-              style={{ color: '#989A8E' }}
-            >
-              <span>01 / PORTAL</span>
-              <span className="w-4 h-[1px]" style={{ backgroundColor: '#6B84FF' }} />
-            </div>
-            <h1
-              id="hero-headline-left"
-              className="hero-stagger font-swiss-sans font-black uppercase tracking-[-0.048em] leading-[0.88] text-[clamp(2.85rem,5.6vw,5.6rem)]"
-              style={{ color: '#F1EFE8' }}
-            >
-              TRADE
-              <br className="hidden lg:inline" /> HOURS,
-            </h1>
-          </div>
-
+        {/* Elevated Swiss Poster Stage — Centered 3D Door Portal */}
+        <div className="hero-stagger relative z-20 max-w-[1400px] w-full mx-auto px-5 sm:px-10 flex items-center justify-center">
           {/* Centerpiece: Elevated 3D Swiss Architectural Dual-Leaf Opening Door */}
-          <div id="atelier-portal-stage" className="order-1 lg:order-2 swiss-portal-stage mx-auto">
-            <div id="atelier-window-outer" className="swiss-door-outer" data-cursor="OPEN">
+          <div id="atelier-portal-stage" className="swiss-portal-stage mx-auto">
+            <div id="atelier-window-outer" className="swiss-door-outer">
               {/* Kinetic Door-Stop Slam Frame & Latch Shockwave */}
               <div ref={doorImpactFrameRef} className="door-impact-frame" aria-hidden="true" />
               <div ref={latchPulseRef} className="latch-pulse-ring" aria-hidden="true" />
@@ -448,49 +285,18 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
 
               {/* Inner Acid Lime Poster with International Cobalt Accents */}
               <div className="swiss-door-aperture">
-                <div className="door-daylight-poster">
+                <div className="door-daylight-poster flex flex-col items-center justify-center text-center p-6 sm:p-8">
                   <div id="door-sunbeam" className="door-sunbeam" aria-hidden="true" />
 
-                  <div
-                    className="relative z-10 flex items-center justify-between pb-2.5 border-b font-swiss-mono text-[9px] uppercase tracking-[0.16em]"
-                    style={{ borderColor: 'rgba(26, 27, 23, 0.25)', color: '#46493D' }}
-                  >
-                    <span>ECHO TIME LEDGER</span>
-                    <span style={{ color: '#1E3AE0', fontWeight: 700 }}>FIG. 01</span>
-                  </div>
-
-                  <div className="relative z-10 my-auto py-3">
+                  <div className="relative z-10 my-auto py-4">
                     <div
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm font-swiss-mono text-[9px] font-semibold uppercase tracking-[0.14em]"
-                      style={{
-                        backgroundColor: '#1E3AE0',
-                        color: '#F1EFE8',
-                      }}
-                    >
-                      <span>PARITY OPEN</span>
-                    </div>
-                    <div
-                      className="mt-3.5 font-swiss-sans font-black uppercase tracking-[-0.045em] text-3xl sm:text-4xl leading-[0.94]"
+                      className="font-swiss-sans font-black uppercase tracking-[-0.045em] text-4xl sm:text-5xl leading-[0.92]"
                       style={{ color: '#1A1B17' }}
                     >
                       1.00 HR
                       <br />
                       = 1.00 ECHO
                     </div>
-                    <p
-                      className="mt-3 font-swiss-mono text-[10px] leading-relaxed max-w-[240px]"
-                      style={{ color: '#46493D' }}
-                    >
-                      ATOMIC CREDIT ESCROW. ZERO TUITION BARTER. PEER-VALIDATED PROOFS.
-                    </p>
-                  </div>
-
-                  <div
-                    className="relative z-10 flex items-end justify-between pt-2.5 border-t font-swiss-mono text-[9px] uppercase tracking-[0.14em]"
-                    style={{ borderColor: 'rgba(26, 27, 23, 0.25)', color: '#1A1B17' }}
-                  >
-                    <span>0.00% FEE</span>
-                    <span style={{ color: '#1E3AE0', fontWeight: 700 }}>ATOMIC ESCROW</span>
                   </div>
                 </div>
               </div>
@@ -501,26 +307,10 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
                 <div id="shutter-left" className="shutter-door shutter-door-left">
                   <span className="swiss-hinge hinge-lt" aria-hidden="true" />
                   <span className="swiss-hinge hinge-lb" aria-hidden="true" />
-                  <div
-                    className="flex items-center justify-between font-swiss-mono text-[9px] tracking-[0.14em]"
-                    style={{ color: '#989A8E' }}
-                  >
-                    <span>L—01</span>
-                    <span
-                      className="w-1.5 h-1.5 rounded-sm"
-                      style={{ backgroundColor: '#C9E54B' }}
-                    />
-                  </div>
-                  <div className="swiss-louver-grid" aria-hidden="true">
+                  <div className="swiss-louver-grid m-0 h-full" aria-hidden="true">
                     {SLAT_INDICES.map((i) => (
                       <div key={`l-${i}`} className="swiss-slat" />
                     ))}
-                  </div>
-                  <div
-                    className="font-swiss-mono text-[8.5px] uppercase tracking-[0.16em]"
-                    style={{ color: '#989A8E' }}
-                  >
-                    ECHO.SYS
                   </div>
                 </div>
 
@@ -528,26 +318,10 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
                 <div id="shutter-right" className="shutter-door shutter-door-right">
                   <span className="swiss-hinge hinge-rt" aria-hidden="true" />
                   <span className="swiss-hinge hinge-rb" aria-hidden="true" />
-                  <div
-                    className="flex items-center justify-between font-swiss-mono text-[9px] tracking-[0.14em]"
-                    style={{ color: '#989A8E' }}
-                  >
-                    <span
-                      className="w-1.5 h-1.5 rounded-sm"
-                      style={{ backgroundColor: '#6B84FF' }}
-                    />
-                    <span>R—02</span>
-                  </div>
-                  <div className="swiss-louver-grid" aria-hidden="true">
+                  <div className="swiss-louver-grid m-0 h-full" aria-hidden="true">
                     {SLAT_INDICES.map((i) => (
                       <div key={`r-${i}`} className="swiss-slat" />
                     ))}
-                  </div>
-                  <div
-                    className="font-swiss-mono text-[8.5px] uppercase tracking-[0.16em] text-right"
-                    style={{ color: '#989A8E' }}
-                  >
-                    1:1 PARITY
                   </div>
                 </div>
 
@@ -562,26 +336,6 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
               {/* Architectural Steel Threshold Sill */}
               <div className="swiss-door-threshold" aria-hidden="true" />
             </div>
-          </div>
-
-          {/* Right Split Acid Lime Display Headline */}
-          <div className="order-3 text-center lg:text-left">
-            <div
-              id="hero-meta-right"
-              className="hero-stagger hidden lg:inline-flex items-center gap-2 mb-4 font-swiss-mono text-[10px] uppercase tracking-[0.18em]"
-              style={{ color: '#989A8E' }}
-            >
-              <span className="w-4 h-[1px]" style={{ backgroundColor: '#C9E54B' }} />
-              <span>TIME BANK</span>
-            </div>
-            <h1
-              id="hero-headline-right"
-              className="hero-stagger font-swiss-sans font-black uppercase tracking-[-0.048em] leading-[0.88] text-[clamp(2.85rem,5.6vw,5.6rem)]"
-              style={{ color: '#C9E54B' }}
-            >
-              NOT
-              <br className="hidden lg:inline" /> TUITION.
-            </h1>
           </div>
         </div>
       </div>

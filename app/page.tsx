@@ -814,18 +814,18 @@ export default function EchoTimeLandingPage() {
             scrub: 0.7,
             anticipatePin: 1,
             onLeaveBack: () => {
-              gsap.set(['#hero-headline-left', '#hero-meta-left', '#hero-headline-right', '#hero-meta-right'], {
+              gsap.set('#hero-monument-watermark', {
                 opacity: 1,
-                x: 0,
+                scale: 1,
                 overwrite: 'auto',
               });
             },
             onUpdate: (self: ScrollTrigger) => {
               const p = self.progress;
               if (p <= 0.04) {
-                gsap.set(['#hero-headline-left', '#hero-meta-left', '#hero-headline-right', '#hero-meta-right'], {
+                gsap.set('#hero-monument-watermark', {
                   opacity: 1,
-                  x: 0,
+                  scale: 1,
                   overwrite: 'auto',
                 });
               }
@@ -872,17 +872,10 @@ export default function EchoTimeLandingPage() {
             { opacity: 0, scale: 0.55, duration: 0.12, ease: 'power1.in' },
             0.12
           )
-          .fromTo(
-            ['#hero-headline-left', '#hero-meta-left'],
-            { x: 0, opacity: 1 },
-            { x: -110, opacity: 0, duration: 0.36, ease: 'power2.in' },
-            0.06
-          )
-          .fromTo(
-            ['#hero-headline-right', '#hero-meta-right'],
-            { x: 0, opacity: 1 },
-            { x: 110, opacity: 0, duration: 0.36, ease: 'power2.in' },
-            0.06
+          .to(
+            '#hero-monument-watermark',
+            { opacity: 0, scale: 1.06, duration: 0.36, ease: 'power2.in' },
+            0.14
           )
           .to('#shutter-left', { rotateY: -112, duration: 0.44, ease: 'power2.inOut' }, 0.14)
           .to('#shutter-right', { rotateY: 112, duration: 0.44, ease: 'power2.inOut' }, 0.14)
