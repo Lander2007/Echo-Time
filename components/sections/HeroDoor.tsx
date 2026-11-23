@@ -977,24 +977,6 @@ export const HeroDoor: React.FC<HeroDoorProps> = ({
                 {CANONICAL_CONTENT.hero.secondaryCta}
               </a>
             </div>
-            {/* Live Recent Transactions Proof */}
-            <div className="mt-1 flex flex-wrap items-center justify-center gap-2 font-swiss-mono text-[10px] text-[#989A8E]">
-              {CANONICAL_CONTENT.hero.recentTransactions.map((tx, idx) => (
-                <div
-                  key={idx}
-                  className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#23251F] border border-[rgba(241,239,232,0.1)]"
-                >
-                  <span className="w-4 h-4 rounded-full bg-[#C9E54B]/20 text-[#C9E54B] font-bold text-[9px] flex items-center justify-center">
-                    {tx.avatar}
-                  </span>
-                  <span>{tx.text}</span>
-                  <span className={tx.amount.startsWith('+') ? 'text-[#C9E54B] font-semibold' : 'text-[#6B84FF] font-semibold'}>
-                    {tx.amount}
-                  </span>
-                  <span className="text-[#989A8E]/60">{tx.unit}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>
