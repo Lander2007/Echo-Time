@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { SLAT_INDICES } from '@/data/echoData';
 
 interface Act1HeroDoorProps {
@@ -8,28 +8,21 @@ interface Act1HeroDoorProps {
   latchPulseRef: React.RefObject<HTMLDivElement | null>;
 }
 
-interface PulseWave {
+interface VectorNeedle {
+  x: number;
+  y: number;
+  currentAngle: number;
+  targetAngle: number;
+  baseAngle: number;
+}
+
+interface ShockwavePulse {
   x: number;
   y: number;
   radius: number;
   maxRadius: number;
   strength: number;
 }
-
-const LEDGER_TRANSACTIONS = [
-  { tx: 'ET-TX::0x9E21A4', action: 'MINT +1.50 ECHO', peer: 'MAYA CHEN (CS) ⇄ OMAR FAROOQ (ARCH)', status: 'ESCROW ATTESTED', color: 'acc' },
-  { tx: 'PROOF::ZK-SNARK', action: 'DUAL SIGN-OFF', peer: '1.00 HR = 1.00 ECHO INVARIANT LOCKED', status: '0.00% TUITION FEE', color: 'pop' },
-  { tx: 'VAULT::BLOCK#9021', action: 'SHA-256 TIMELOCK', peer: '7f83b1657ff1fc53b92dc18148a1d65dfc2d', status: 'ATOMIC FINALITY', color: 'ink' },
-  { tx: 'STRESS::AUDIT', action: 'REPLAY RESISTANT', peer: 'DOUBLE-SPEND IMMUNITY CONFIRMED', status: '0 BARTER DEADLOCK', color: 'acc' },
-  { tx: 'GUILD::TREASURY', action: 'POOL +11.50H', peer: 'CAPSTONE SHARED GUILD BUS ACTIVE', status: '5 CONTRIBUTORS', color: 'pop' },
-  { tx: 'PEER::DISPUTE', action: '48H SAFEGUARD', peer: 'ED25519 DUAL-KEY TIMELOCK WINDOW', status: 'VAULT SECURED', color: 'ink' },
-  { tx: 'CONSENSUS::EDU', action: 'VERIFIED PEER', peer: 'UC BERKELEY ⇄ MIT ⇄ STANFORD PASS', status: 'SYBIL RESISTANT', color: 'acc' },
-  { tx: 'BALANCE::DELTA', action: 'ZERO-SUM LEDGER', peer: 'ALICE: 4.50H BAL ⇄ ESCROW: 1.50H HELD', status: 'NET ZERO DELTA', color: 'pop' },
-  { tx: 'ET-TX::0x3B8820', action: 'MINT +2.00 ECHO', peer: 'ELENA VANCE (LATEX) ⇄ DAVID KIM (ME)', status: 'SETTLED & TORN', color: 'acc' },
-  { tx: 'ORACLE::SYNC', action: 'EPOCH 2026.04', peer: 'DISTRIBUTED UNIVERSITY TIME QUORUM', status: 'GASLESS SYSTEM', color: 'ink' },
-  { tx: 'CRYPTO::STARK', action: 'ATOMIC ATTEST', peer: 'TIME-STAMPED ROOT: a94f82c10e53a29b', status: 'STATE FINALIZED', color: 'pop' },
-  { tx: 'LEDGER::STREAM', action: 'LIVE PEER MINT', peer: 'SARAH CHEN (QUANT) ⇄ LIAM ROSS (DES)', status: 'ATOMIC ESCROW', color: 'acc' },
-];
 
 export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
   heroCameraRigRef,
@@ -39,9 +32,10 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
 }) => {
   const heroSectionRef = useRef<HTMLElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const reticleRef = useRef<HTMLDivElement | null>(null);
-  const maskedLedgerRef = useRef<HTMLDivElement | null>(null);
-  const hudCoordRef = useRef<HTMLSpanElement | null>(null);
+  const crosshairHRef = useRef<HTMLDivElement | null>(null);
+  const crosshairVRef = useRef<HTMLDivElement | null>(null);
+  const reticleRingRef = useRef<HTMLDivElement | null>(null);
+  const hudBadgeRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const section = heroSectionRef.current;
@@ -60,9 +54,37 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
     let targetY = -2000;
     let currentX = -2000;
     let currentY = -2000;
+    let prevX = -2000;
+    let prevY = -2000;
+    let pointerVelocity = 0;
     let isHovering = false;
 
-    const pulses: PulseWave[] = [];
+    const needles: VectorNeedle[] = [];
+    const pulses: ShockwavePulse[] = [];
+
+    const SPACING = 56; // High density Swiss architectural grid spacing
+
+    const initGrid = () => {
+      needles.length = 0;
+      const cols = Math.ceil(width / SPACING) + 2;
+      const rows = Math.ceil(height / SPACING) + 2;
+      const offsetX = (width - (cols - 1) * SPACING) / 2;
+      const offsetY = (height - (rows - 1) * SPACING) / 2;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = offsetX + c * SPACING;
+          const y = offsetY + r * SPACING;
+          needles.push({
+            x,
+            y,
+            currentAngle: 0,
+            targetAngle: 0,
+            baseAngle: 0,
+          });
+        }
+      }
+    };
 
     const updateSize = () => {
       width = section.offsetWidth || window.innerWidth;
@@ -76,6 +98,8 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
 
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
+
+      initGrid();
     };
 
     updateSize();
@@ -96,15 +120,21 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
           isHovering = true;
           currentX = targetX;
           currentY = targetY;
-          if (reticleRef.current) reticleRef.current.style.opacity = '1';
-          if (maskedLedgerRef.current) maskedLedgerRef.current.style.opacity = '1';
+          prevX = targetX;
+          prevY = targetY;
+          if (crosshairHRef.current) crosshairHRef.current.style.opacity = '1';
+          if (crosshairVRef.current) crosshairVRef.current.style.opacity = '1';
+          if (reticleRingRef.current) reticleRingRef.current.style.opacity = '1';
+          if (hudBadgeRef.current) hudBadgeRef.current.style.opacity = '1';
         }
       } else if (isHovering) {
         isHovering = false;
         targetX = -2000;
         targetY = -2000;
-        if (reticleRef.current) reticleRef.current.style.opacity = '0';
-        if (maskedLedgerRef.current) maskedLedgerRef.current.style.opacity = '0';
+        if (crosshairHRef.current) crosshairHRef.current.style.opacity = '0';
+        if (crosshairVRef.current) crosshairVRef.current.style.opacity = '0';
+        if (reticleRingRef.current) reticleRingRef.current.style.opacity = '0';
+        if (hudBadgeRef.current) hudBadgeRef.current.style.opacity = '0';
       }
     };
 
@@ -112,19 +142,19 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
       isHovering = false;
       targetX = -2000;
       targetY = -2000;
-      if (reticleRef.current) reticleRef.current.style.opacity = '0';
-      if (maskedLedgerRef.current) maskedLedgerRef.current.style.opacity = '0';
+      if (crosshairHRef.current) crosshairHRef.current.style.opacity = '0';
+      if (crosshairVRef.current) crosshairVRef.current.style.opacity = '0';
+      if (reticleRingRef.current) reticleRingRef.current.style.opacity = '0';
+      if (hudBadgeRef.current) hudBadgeRef.current.style.opacity = '0';
     };
 
     const onClick = (e: MouseEvent) => {
       const rect = section.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const clickY = e.clientY - rect.top;
       pulses.push({
-        x: clickX,
-        y: clickY,
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
         radius: 0,
-        maxRadius: 520,
+        maxRadius: 620,
         strength: 1.0,
       });
     };
@@ -133,59 +163,143 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
     section.addEventListener('pointerleave', onPointerLeave);
     section.addEventListener('click', onClick, { passive: true });
 
-    const LENS_RADIUS = 210;
+    let time = 0;
 
     const render = () => {
+      time++;
+      ctx.clearRect(0, 0, width, height);
+
       if (isHovering) {
-        currentX += (targetX - currentX) * 0.18;
-        currentY += (targetY - currentY) * 0.18;
+        const vx = targetX - currentX;
+        const vy = targetY - currentY;
+        pointerVelocity = Math.min(Math.hypot(vx, vy), 40);
+        currentX += vx * 0.18;
+        currentY += vy * 0.18;
 
-        // Position circular instrument reticle
-        if (reticleRef.current) {
-          reticleRef.current.style.transform = `translate3d(${currentX - LENS_RADIUS}px, ${currentY - LENS_RADIUS}px, 0)`;
+        // Position crosshairs & reticle
+        if (crosshairHRef.current) {
+          crosshairHRef.current.style.transform = `translate3d(0, ${currentY}px, 0)`;
         }
-
-        // Update radial mask on the illuminated ledger stream
-        if (maskedLedgerRef.current) {
-          const maskVal = `radial-gradient(circle ${LENS_RADIUS}px at ${currentX}px ${currentY}px, black 0%, black ${LENS_RADIUS * 0.65}px, rgba(0,0,0,0.4) ${LENS_RADIUS * 0.88}px, transparent ${LENS_RADIUS}px)`;
-          maskedLedgerRef.current.style.maskImage = maskVal;
-          maskedLedgerRef.current.style.webkitMaskImage = maskVal;
+        if (crosshairVRef.current) {
+          crosshairVRef.current.style.transform = `translate3d(${currentX}px, 0, 0)`;
         }
-
-        // Live coordinate badge in reticle
-        if (hudCoordRef.current) {
-          const normX = Math.round(currentX).toString().padStart(4, '0');
-          const normY = Math.round(currentY).toString().padStart(4, '0');
-          hudCoordRef.current.textContent = `INSPECT [X:${normX} Y:${normY}] · ATTESTED`;
+        if (reticleRingRef.current) {
+          reticleRingRef.current.style.transform = `translate3d(${currentX - 22}px, ${currentY - 22}px, 0)`;
+        }
+        if (hudBadgeRef.current) {
+          const badgeX = Math.min(Math.max(currentX + 18, 12), (width || 1200) - 260);
+          const badgeY = Math.min(Math.max(currentY + 18, 12), (height || 800) - 40);
+          hudBadgeRef.current.style.transform = `translate3d(${badgeX}px, ${badgeY}px, 0)`;
+          const deg = Math.round(((Math.atan2(currentY - height / 2, currentX - width / 2) * 180) / Math.PI + 360) % 360);
+          hudBadgeRef.current.textContent = `VECTOR FLUX · θ:${deg.toString().padStart(3, '0')}° · [${Math.round(currentX).toString().padStart(4, '0')}:${Math.round(currentY).toString().padStart(4, '0')}] · SYS.ACTIVE`;
         }
       }
 
-      ctx.clearRect(0, 0, width, height);
+      // Base influence radius expands dynamically with mouse velocity
+      const dynamicRadius = 310 + pointerVelocity * 3.5;
 
-      // Render expanding cryptographic sonar pulses on canvas
-      for (let i = pulses.length - 1; i >= 0; i--) {
-        const p = pulses[i];
-        p.radius += 14;
-        p.strength *= 0.942;
+      // Update and draw vector needles
+      for (let i = 0; i < needles.length; i++) {
+        const needle = needles[i];
+        const dx = currentX - needle.x;
+        const dy = currentY - needle.y;
+        const dist = Math.hypot(dx, dy);
 
-        // Draw precision concentric attestation wave
+        let influence = 0;
+        let targetAngle = 0;
+
+        if (dist < dynamicRadius && isHovering) {
+          influence = Math.pow(1 - dist / dynamicRadius, 1.35);
+          targetAngle = Math.atan2(dy, dx);
+        } else {
+          // Idle harmonic wave: subtle rhythmic breathing across Swiss grid
+          targetAngle = Math.sin(time * 0.016 + (needle.x * 0.006 + needle.y * 0.008)) * 0.38;
+        }
+
+        // Apply kinetic shockwave impulse from clicks
+        for (let j = 0; j < pulses.length; j++) {
+          const pulse = pulses[j];
+          const pDist = Math.hypot(needle.x - pulse.x, needle.y - pulse.y);
+          const waveDist = Math.abs(pDist - pulse.radius);
+          if (waveDist < 55) {
+            const waveStrength = (1 - waveDist / 55) * pulse.strength;
+            influence = Math.max(influence, waveStrength * 0.85);
+            const waveAngle = Math.atan2(needle.y - pulse.y, needle.x - pulse.x) + Math.PI * 0.5;
+            targetAngle = targetAngle * (1 - waveStrength) + waveAngle * waveStrength;
+          }
+        }
+
+        // Smooth shortest-path angular lerping
+        let diff = targetAngle - needle.currentAngle;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        needle.currentAngle += diff * (0.12 + influence * 0.16);
+
+        // Vector needle rendering
+        const len = 11 + influence * 12; // Expands from 11px to 23px under magnetic field
+        const cos = Math.cos(needle.currentAngle);
+        const sin = Math.sin(needle.currentAngle);
+
+        const x1 = needle.x - cos * (len * 0.35);
+        const y1 = needle.y - sin * (len * 0.35);
+        const x2 = needle.x + cos * (len * 0.65);
+        const y2 = needle.y + sin * (len * 0.65);
+
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(201, 229, 75, ${(p.strength * 0.32).toFixed(3)})`;
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+
+        if (influence > 0.08) {
+          const alpha = Math.min(1, 0.2 + influence * 0.8);
+          if (influence > 0.42) {
+            ctx.strokeStyle = `rgba(201, 229, 75, ${alpha.toFixed(3)})`; // #C9E54B Acid Lime
+            ctx.lineWidth = 1.45;
+          } else {
+            ctx.strokeStyle = `rgba(107, 132, 255, ${alpha.toFixed(3)})`; // #6B84FF Pop Blue
+            ctx.lineWidth = 1.15;
+          }
+        } else {
+          ctx.strokeStyle = 'rgba(241, 239, 232, 0.12)';
+          ctx.lineWidth = 0.9;
+        }
+        ctx.stroke();
+
+        // Glowing needle tip & pivot indicator
+        if (influence > 0.22) {
+          ctx.beginPath();
+          ctx.arc(x2, y2, 1.25 + influence * 0.75, 0, Math.PI * 2);
+          ctx.fillStyle = '#C9E54B';
+          ctx.fill();
+        } else {
+          ctx.beginPath();
+          ctx.arc(needle.x, needle.y, 0.85, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(152, 154, 142, 0.28)';
+          ctx.fill();
+        }
+      }
+
+      // Draw expanding shockwave rings
+      for (let k = pulses.length - 1; k >= 0; k--) {
+        const pulse = pulses[k];
+        pulse.radius += 15;
+        pulse.strength *= 0.942;
+
+        ctx.beginPath();
+        ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(201, 229, 75, ${(pulse.strength * 0.38).toFixed(3)})`;
         ctx.lineWidth = 1.4;
         ctx.stroke();
 
-        // Secondary subtle blue halo
-        if (p.radius > 25) {
+        if (pulse.radius > 30) {
           ctx.beginPath();
-          ctx.arc(p.x, p.y, p.radius - 12, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(107, 132, 255, ${(p.strength * 0.18).toFixed(3)})`;
+          ctx.arc(pulse.x, pulse.y, pulse.radius - 16, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(107, 132, 255, ${(pulse.strength * 0.2).toFixed(3)})`;
           ctx.lineWidth = 1.0;
           ctx.stroke();
         }
 
-        if (p.radius > p.maxRadius || p.strength < 0.02) {
-          pulses.splice(i, 1);
+        if (pulse.radius > pulse.maxRadius || pulse.strength < 0.02) {
+          pulses.splice(k, 1);
         }
       }
 
@@ -220,110 +334,70 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
         <div ref={heroImpactVignetteRef} className="hero-impact-vignette" aria-hidden="true" />
 
         {/* ===================================================================
-            CONCEPT 2: CRYPTOGRAPHIC "X-RAY LEDGER" LENS OVERLAY
+            CONCEPT 3: INTERACTIVE MAGNETIC VECTOR FLOW / COMPASS FIELD
             =================================================================== */}
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden select-none" aria-hidden="true">
-          {/* Layer A: Ambient Ghost Ledger Texture (Extremely Subtle Background Depth) */}
-          <div className="absolute inset-0 p-6 sm:p-12 opacity-[0.055] font-swiss-mono text-[10px] leading-relaxed flex flex-col justify-between overflow-hidden">
-            {[0, 1, 2, 3].map((setIdx) => (
-              <div key={`ghost-set-${setIdx}`} className="space-y-2 whitespace-nowrap">
-                {LEDGER_TRANSACTIONS.map((row, i) => (
-                  <div key={`ghost-${setIdx}-${i}`} className="flex items-center gap-6">
-                    <span className="text-[#989A8E]">{row.tx}</span>
-                    <span className="text-[#F1EFE8]">{row.action}</span>
-                    <span className="text-[#989A8E]">{row.peer}</span>
-                    <span className="text-[#989A8E]">{row.status}</span>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
+          {/* Canvas-Rendered Magnetic Needle Vector Field */}
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 block w-full h-full pointer-events-none"
+            style={{ willChange: 'contents' }}
+          />
 
-          {/* Layer B: Masked High-Vibrancy Ledger Stream (Revealed Under Lens) */}
+          {/* Horizontal Hairline Precision Axis */}
           <div
-            ref={maskedLedgerRef}
-            className="absolute inset-0 p-6 sm:p-12 font-swiss-mono text-[10.5px] leading-relaxed flex flex-col justify-between overflow-hidden opacity-0 transition-opacity duration-300"
+            ref={crosshairHRef}
+            className="absolute left-0 right-0 h-[1px] opacity-0 pointer-events-none transition-opacity duration-300"
             style={{
-              willChange: 'mask-image, -webkit-mask-image',
+              background:
+                'linear-gradient(90deg, transparent 0%, rgba(201, 229, 75, 0.04) 15%, rgba(201, 229, 75, 0.3) 50%, rgba(201, 229, 75, 0.04) 85%, transparent 100%)',
+              willChange: 'transform',
             }}
-          >
-            {[0, 1, 2, 3].map((setIdx) => (
-              <div key={`lens-set-${setIdx}`} className="space-y-2 whitespace-nowrap">
-                {LEDGER_TRANSACTIONS.map((row, i) => (
-                  <div key={`lens-${setIdx}-${i}`} className="flex items-center gap-6">
-                    <span className="text-[#C9E54B] font-semibold">{row.tx}</span>
-                    <span className="text-[#6B84FF] font-medium">{row.action}</span>
-                    <span className="text-[#F1EFE8]">{row.peer}</span>
-                    <span className="text-[#C9E54B]/80 px-1.5 py-0.5 rounded-[2px] bg-[#C9E54B]/10 border border-[#C9E54B]/20">
-                      {row.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
+          />
 
-          {/* Layer C: Interactive 60fps Click Sonar Pulse Canvas */}
-          <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
-
-          {/* Layer D: The Physical Circular Inspection Reticle Instrument */}
+          {/* Vertical Hairline Precision Axis */}
           <div
-            ref={reticleRef}
-            className="absolute top-0 left-0 w-[420px] h-[420px] rounded-full pointer-events-none opacity-0 transition-opacity duration-300"
+            ref={crosshairVRef}
+            className="absolute top-0 bottom-0 w-[1px] opacity-0 pointer-events-none transition-opacity duration-300"
+            style={{
+              background:
+                'linear-gradient(180deg, transparent 0%, rgba(107, 132, 255, 0.04) 15%, rgba(107, 132, 255, 0.28) 50%, rgba(107, 132, 255, 0.04) 85%, transparent 100%)',
+              willChange: 'transform',
+            }}
+          />
+
+          {/* Magnetic Crosshair Reticle Ring */}
+          <div
+            ref={reticleRingRef}
+            className="absolute w-11 h-11 border border-[#C9E54B]/35 rounded-full opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center"
             style={{ willChange: 'transform' }}
           >
-            {/* Soft Inner Green/Blue Flashlight Beam */}
-            <div
-              className="absolute inset-0 rounded-full"
-              style={{
-                background:
-                  'radial-gradient(circle, rgba(201, 229, 75, 0.14) 0%, rgba(107, 132, 255, 0.06) 48%, transparent 72%)',
-              }}
-            />
-
-            {/* Precision Swiss Lens Border */}
-            <div className="absolute inset-0 rounded-full border border-[#C9E54B]/60 shadow-[0_0_24px_rgba(201,229,75,0.18)]" />
-
-            {/* Counter-Rotating Dashed Orbit Ring */}
-            <div
-              className="absolute -inset-3 rounded-full border border-dashed border-[#6B84FF]/35 pointer-events-none"
-              style={{ animation: 'spin 45s linear infinite' }}
-            />
-
-            {/* 4 Cardinal Swiss Crosshairs (+) on Reticle Rim */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-[1px] bg-[#C9E54B]" />
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-4 h-[1px] bg-[#C9E54B]" />
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-4 w-[1px] bg-[#C9E54B]" />
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-4 w-[1px] bg-[#C9E54B]" />
-
-            {/* Center Precision Target Crosshair */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-[1px] bg-[#C9E54B]" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-3 w-[1px] bg-[#C9E54B]" />
-
-            {/* Top Monospace Instrument Badge */}
-            <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-sm bg-[#1A1B17]/95 border border-[#C9E54B]/40 font-swiss-mono text-[8.5px] uppercase tracking-[0.16em] text-[#C9E54B] shadow-xl whitespace-nowrap backdrop-blur-sm">
-              <span>LENS::X-RAY_LEDGER &middot; 01 PORTAL</span>
-            </div>
-
-            {/* Bottom Monospace Telemetry Badge */}
-            <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-sm bg-[#1A1B17]/95 border border-[#6B84FF]/40 font-swiss-mono text-[8.5px] uppercase tracking-[0.14em] text-[#6B84FF] shadow-xl whitespace-nowrap backdrop-blur-sm">
-              <span ref={hudCoordRef}>INSPECT [0000:0000] &middot; ATTESTED</span>
-            </div>
+            <div className="w-1.5 h-1.5 bg-[#C9E54B] rounded-full shadow-[0_0_8px_#C9E54B]" />
+            <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-[1px] h-2 bg-[#C9E54B]" />
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-[1px] h-2 bg-[#C9E54B]" />
+            <span className="absolute top-1/2 -left-1 -translate-y-1/2 h-[1px] w-2 bg-[#C9E54B]" />
+            <span className="absolute top-1/2 -right-1 -translate-y-1/2 h-[1px] w-2 bg-[#C9E54B]" />
           </div>
 
-          {/* Bottom-Left Stationary Status Indicator */}
-          <div className="absolute bottom-6 left-6 lg:left-12 flex items-center gap-2.5 px-3 py-1.5 rounded-sm bg-[#1A1B17]/90 border border-[#C9E54B]/30 font-swiss-mono text-[9px] uppercase tracking-[0.16em] text-[#989A8E] shadow-2xl backdrop-blur-sm">
+          {/* Floating Swiss Magnetic Telemetry Coordinates Badge */}
+          <div
+            ref={hudBadgeRef}
+            className="absolute opacity-0 pointer-events-none transition-opacity duration-300 font-swiss-mono text-[9px] uppercase tracking-[0.16em] px-2 py-0.5 rounded-sm bg-[#1A1B17]/90 border border-[#C9E54B]/35 text-[#C9E54B] shadow-2xl backdrop-blur-sm whitespace-nowrap"
+            style={{ willChange: 'transform' }}
+          >
+            VECTOR FLUX · θ:000° · [0000:0000] · SYS.ACTIVE
+          </div>
+
+          {/* Ambient Swiss Corner Specifications */}
+          <div className="hidden sm:flex absolute top-20 left-6 lg:left-12 items-center gap-2 font-swiss-mono text-[9px] uppercase tracking-[0.18em] text-[#989A8E]/55">
             <span className="w-1.5 h-1.5 rounded-full bg-[#C9E54B] animate-pulse" />
-            <span className="text-[#C9E54B]">
-              ATOMIC X-RAY LENS &middot; HOVER TO INSPECT RUNNING LEDGER
-            </span>
+            <span>MAGNETIC VECTOR FIELD · 56PX COMPASS MATRIX</span>
           </div>
 
-          {/* Bottom-Right Specification Tag */}
-          <div className="hidden sm:flex absolute bottom-6 right-6 lg:right-12 items-center gap-2 font-swiss-mono text-[9px] uppercase tracking-[0.16em] text-[#989A8E]/60">
-            <span>DISTRIBUTED CONSENSUS</span>
+          <div className="hidden sm:flex absolute bottom-6 right-6 lg:right-12 items-center gap-2 font-swiss-mono text-[9px] uppercase tracking-[0.16em] text-[#989A8E]/55">
+            <span>VELOCITY REACTIVE</span>
             <span className="text-[#6B84FF]">&middot;</span>
-            <span>FIG. 01 CRYPTO ATTESTATION</span>
+            <span>1.00 HR = 1.00 ECHO FLUX</span>
           </div>
         </div>
 
