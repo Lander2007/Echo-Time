@@ -819,6 +819,10 @@ export default function EchoTimeLandingPage() {
                 scale: 1,
                 overwrite: 'auto',
               });
+              gsap.set('.swiss-slat', {
+                rotateX: 0,
+                overwrite: 'auto',
+              });
             },
             onUpdate: (self: ScrollTrigger) => {
               const p = self.progress;
@@ -826,6 +830,10 @@ export default function EchoTimeLandingPage() {
                 gsap.set('#hero-monument-watermark', {
                   opacity: 1,
                   scale: 1,
+                  overwrite: 'auto',
+                });
+                gsap.set('.swiss-slat', {
+                  rotateX: 0,
                   overwrite: 'auto',
                 });
               }
@@ -866,6 +874,7 @@ export default function EchoTimeLandingPage() {
         });
 
         portalTl
+          .to('.swiss-slat', { rotateX: -80, duration: 0.14, ease: 'power2.inOut', stagger: 0.005 }, 0)
           .to('#shutter-latch-lever', { rotation: -90, duration: 0.14, ease: 'power2.inOut' }, 0)
           .to(
             '#shutter-latch-wrap',

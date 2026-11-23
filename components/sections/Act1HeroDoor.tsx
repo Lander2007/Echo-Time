@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
 import { SLAT_INDICES } from '@/data/echoData';
 import { TactileAudioEngine } from '@/lib/audio';
@@ -34,17 +34,12 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
   const heroSectionRef = useRef<HTMLElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const doorOuterRef = useRef<HTMLDivElement | null>(null);
-  const doorGlareRef = useRef<HTMLDivElement | null>(null);
-  const posterInnerRef = useRef<HTMLDivElement | null>(null);
+  const louverGridLeftRef = useRef<HTMLDivElement | null>(null);
+  const louverGridRightRef = useRef<HTMLDivElement | null>(null);
 
-  const [isOpen, setIsOpen] = useState(false);
-  const isOpenRef = useRef(false);
-  isOpenRef.current = isOpen;
-
-  const isDraggingRef = useRef(false);
-  const dragStartXRef = useRef(0);
-  const dragDeltaXRef = useRef(0);
-  const isHoveringDoorRef = useRef(false);
+  const lastFlapTimeRef = useRef(0);
+  const lastHoveredSlatRef = useRef<number | null>(null);
+  const isWaveActiveRef = useRef(false);
 
   // ---------------------------------------------------------------------------
   // Minimalist Background Dot Matrix + Ambient Spotlight
@@ -245,379 +240,167 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
   }, []);
 
   // ---------------------------------------------------------------------------
-  // Master Door State Transitions: Open & Close
+  // Cascading Split-Flap Acoustic Wave on Click
   // ---------------------------------------------------------------------------
-  const openDoor = useCallback(() => {
-    setIsOpen(true);
-    getAudio?.().shutter();
+  const triggerAcousticWave = useCallback(() => {
+    if (isWaveActiveRef.current) return;
+    isWaveActiveRef.current = true;
+    getAudio?.().flap();
 
-    // 1. Latch unlocks and disappears
-    gsap.to('#shutter-latch-lever', {
-      rotation: -90,
-      duration: 0.18,
-      ease: 'power2.inOut',
-      overwrite: 'auto',
-    });
-    gsap.to('#shutter-latch-wrap', {
-      opacity: 0,
-      scale: 0.5,
-      duration: 0.14,
-      delay: 0.06,
-      ease: 'power1.in',
-      overwrite: 'auto',
-    });
-
-    // 2. Dual leaves swing open wide with elastic momentum
-    gsap.to('#shutter-left', {
-      rotateY: -108,
-      duration: 0.58,
-      ease: 'back.out(1.35)',
-      overwrite: 'auto',
-    });
-    gsap.to('#shutter-right', {
-      rotateY: 108,
-      duration: 0.58,
-      ease: 'back.out(1.35)',
-      overwrite: 'auto',
-    });
-
-    // 3. Sunbeam reveals daylight
-    gsap.to('#door-sunbeam', {
-      opacity: 1,
-      x: '75%',
-      duration: 0.5,
-      ease: 'power2.out',
-      overwrite: 'auto',
-    });
-
-    // 4. Latch shockwave ring pulse
+    // Screen micro-pulse
     if (latchPulseRef.current) {
       gsap.fromTo(
         latchPulseRef.current,
-        { scale: 0.45, opacity: 0.95, rotation: 0 },
+        { scale: 0.5, opacity: 0.8 },
+        { scale: 2.2, opacity: 0, duration: 0.38, ease: 'power2.out', overwrite: 'auto' }
+      );
+    }
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        isWaveActiveRef.current = false;
+      },
+    });
+
+    // Wave 1: Flip louvers open from top to bottom
+    tl.to('.swiss-slat', {
+      rotateX: -80,
+      duration: 0.14,
+      stagger: {
+        each: 0.022,
+        from: 'start',
+      },
+      ease: 'power2.out',
+      onStart: () => {
+        getAudio?.().flap();
+      },
+    })
+      // Sunbeam sweeps momentarily through open slats
+      .to(
+        '#door-sunbeam',
         {
-          scale: 2.8,
+          opacity: 0.85,
+          x: '40%',
+          duration: 0.22,
+          ease: 'power1.inOut',
+        },
+        0.08
+      )
+      // Wave 2: Snap louvers flush shut with spring dampening
+      .to(
+        '.swiss-slat',
+        {
+          rotateX: 0,
+          duration: 0.36,
+          stagger: {
+            each: 0.022,
+            from: 'start',
+          },
+          ease: 'elastic.out(1.2, 0.45)',
+        },
+        0.12
+      )
+      .to(
+        '#door-sunbeam',
+        {
           opacity: 0,
-          rotation: 45,
-          duration: 0.48,
-          ease: 'power3.out',
-          overwrite: 'auto',
-        }
+          x: '0%',
+          duration: 0.28,
+        },
+        0.24
       );
-    }
-
-    // 5. Tactile screen recoil
-    if (heroCameraRigRef.current) {
-      gsap.fromTo(
-        heroCameraRigRef.current,
-        { y: 6 },
-        { y: 0, duration: 0.35, ease: 'elastic.out(1.2, 0.3)', overwrite: 'auto' }
-      );
-    }
-  }, [getAudio, heroCameraRigRef, latchPulseRef]);
-
-  const closeDoor = useCallback(() => {
-    setIsOpen(false);
-    getAudio?.().doorSlam();
-
-    // 1. Shutters slam shut
-    gsap.to(['#shutter-left', '#shutter-right'], {
-      rotateY: 0,
-      duration: 0.36,
-      ease: 'power3.in',
-      overwrite: 'auto',
-    });
-
-    // 2. Latch bar snaps back into place
-    gsap.to('#shutter-latch-wrap', {
-      opacity: 1,
-      scale: 1,
-      duration: 0.22,
-      delay: 0.24,
-      ease: 'power2.out',
-      overwrite: 'auto',
-    });
-    gsap.to('#shutter-latch-lever', {
-      rotation: 0,
-      duration: 0.22,
-      delay: 0.26,
-      ease: 'power2.out',
-      overwrite: 'auto',
-    });
-
-    // 3. Sunbeam dims
-    gsap.to('#door-sunbeam', {
-      opacity: 0,
-      x: '0%',
-      duration: 0.28,
-      overwrite: 'auto',
-    });
-
-    // 4. Door impact frame flash
-    if (doorImpactFrameRef.current) {
-      gsap.fromTo(
-        doorImpactFrameRef.current,
-        { scale: 1, opacity: 0.95 },
-        { scale: 1.25, opacity: 0, duration: 0.44, ease: 'power3.out', overwrite: 'auto' }
-      );
-    }
-
-    // 5. Impact vignette flash
-    if (heroImpactVignetteRef.current) {
-      gsap.fromTo(
-        heroImpactVignetteRef.current,
-        { opacity: 0.7 },
-        { opacity: 0, duration: 0.36, ease: 'power2.out', overwrite: 'auto' }
-      );
-    }
-
-    // 6. Mechanical camera recoil
-    if (heroCameraRigRef.current) {
-      gsap.fromTo(
-        heroCameraRigRef.current,
-        { y: -7 },
-        { y: 0, duration: 0.32, ease: 'elastic.out(1.25, 0.28)', overwrite: 'auto' }
-      );
-    }
-  }, [doorImpactFrameRef, getAudio, heroCameraRigRef, heroImpactVignetteRef]);
-
-  // Toggle open/closed
-  const toggleDoor = useCallback(() => {
-    if (isOpenRef.current) {
-      closeDoor();
-    } else {
-      openDoor();
-    }
-  }, [closeDoor, openDoor]);
+  }, [getAudio, latchPulseRef]);
 
   // ---------------------------------------------------------------------------
-  // 3D Parallax Tilt & Tactile Peek on Pointer Move / Hover
+  // Real-time SBB Louver Flip Tracking on Pointer Sweep
   // ---------------------------------------------------------------------------
   useEffect(() => {
     const doorEl = doorOuterRef.current;
     if (!doorEl) return;
 
-    // Reset interaction when scrolling down so ScrollTrigger is unimpeded
-    const handleScroll = () => {
-      if (window.scrollY > 30 && isOpenRef.current) {
-        setIsOpen(false);
+    const playFlapThrottled = () => {
+      const now = performance.now();
+      if (now - lastFlapTimeRef.current > 42) {
+        lastFlapTimeRef.current = now;
+        getAudio?.().flap();
       }
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
 
-    const handlePointerMove = (e: PointerEvent) => {
-      if (window.scrollY > 30) return;
+    const handleDoorPointerMove = (e: PointerEvent) => {
+      if (isWaveActiveRef.current || window.scrollY > 30) return;
+
       const rect = doorEl.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+      const relativeY = e.clientY - rect.top;
+      const totalSlats = SLAT_INDICES.length;
+      const slatHeight = rect.height / totalSlats;
+      const activeIdx = Math.max(0, Math.min(totalSlats - 1, Math.floor(relativeY / slatHeight)));
 
-      const normX = Math.max(-1, Math.min(1, (e.clientX - centerX) / (rect.width * 1.4)));
-      const normY = Math.max(-1, Math.min(1, (e.clientY - centerY) / (rect.height * 1.4)));
+      if (lastHoveredSlatRef.current !== activeIdx) {
+        lastHoveredSlatRef.current = activeIdx;
+        playFlapThrottled();
+      }
 
-      // 3D Perspective Tilt on Door Casing
-      gsap.to(doorEl, {
-        rotateY: normX * 13,
-        rotateX: -normY * 11,
-        duration: 0.32,
-        ease: 'power2.out',
-        overwrite: 'auto',
+      // Update rotation for each slat pair across left and right shutters
+      const slats = doorEl.querySelectorAll<HTMLElement>('.swiss-slat');
+      slats.forEach((slat) => {
+        const idx = parseInt(slat.getAttribute('data-idx') || '0', 10);
+        const dist = Math.abs(idx - activeIdx);
+
+        let targetAngle = 0;
+        if (dist === 0) {
+          targetAngle = -78; // Main flipped slat directly under cursor
+        } else if (dist === 1) {
+          targetAngle = -42; // Neighboring slats partially flipped
+        } else if (dist === 2) {
+          targetAngle = -16;
+        }
+
+        gsap.to(slat, {
+          rotateX: targetAngle,
+          duration: 0.16,
+          ease: 'power2.out',
+          overwrite: 'auto',
+        });
       });
 
-      // Layer Parallax Depth: inner daylight poster recedes slightly
-      if (posterInnerRef.current) {
-        gsap.to(posterInnerRef.current, {
-          x: -normX * 8,
-          y: -normY * 8,
-          duration: 0.32,
-          ease: 'power2.out',
-          overwrite: 'auto',
-        });
-      }
-
-      // Specular Glare Tracking
-      if (doorGlareRef.current) {
-        const glareX = 50 + normX * 40;
-        const glareY = 50 + normY * 40;
-        doorGlareRef.current.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(201, 229, 75, 0.16) 0%, rgba(241, 239, 232, 0.05) 45%, transparent 75%)`;
-      }
-
-      // Real-time Drag tracking
-      if (isDraggingRef.current && !isOpenRef.current) {
-        const delta = e.clientX - dragStartXRef.current;
-        dragDeltaXRef.current = delta;
-        const dragProgress = Math.min(1, Math.max(0, Math.abs(delta) / 140));
-        const angle = dragProgress * 105;
-
-        gsap.to('#shutter-left', {
-          rotateY: -angle,
-          duration: 0.1,
-          overwrite: 'auto',
-        });
-        gsap.to('#shutter-right', {
-          rotateY: angle,
-          duration: 0.1,
-          overwrite: 'auto',
-        });
-        gsap.to('#shutter-latch-lever', {
-          rotation: -dragProgress * 90,
-          duration: 0.1,
-          overwrite: 'auto',
-        });
-        gsap.to('#shutter-latch-wrap', {
-          opacity: 1 - dragProgress * 1.5,
-          scale: 1 - dragProgress * 0.4,
-          duration: 0.1,
-          overwrite: 'auto',
-        });
-        gsap.to('#door-sunbeam', {
-          opacity: dragProgress,
-          x: `${dragProgress * 75}%`,
-          duration: 0.1,
-          overwrite: 'auto',
-        });
-      }
+      // Glimpse of daylight behind the flipped louvers
+      gsap.to('#door-sunbeam', {
+        opacity: 0.65,
+        x: '28%',
+        duration: 0.2,
+        overwrite: 'auto',
+      });
     };
 
-    const handlePointerEnter = () => {
-      if (window.scrollY > 30) return;
-      isHoveringDoorRef.current = true;
-      if (doorGlareRef.current) doorGlareRef.current.style.opacity = '1';
+    const handleDoorPointerLeave = () => {
+      if (isWaveActiveRef.current) return;
+      lastHoveredSlatRef.current = null;
 
-      // Tactile spring peek when resting closed
-      if (!isOpenRef.current && !isDraggingRef.current) {
-        getAudio?.().click();
-        gsap.to('#shutter-left', {
-          rotateY: -14,
-          duration: 0.32,
-          ease: 'power2.out',
-          overwrite: 'auto',
-        });
-        gsap.to('#shutter-right', {
-          rotateY: 14,
-          duration: 0.32,
-          ease: 'power2.out',
-          overwrite: 'auto',
-        });
-        gsap.to('#shutter-latch-lever', {
-          rotation: -18,
-          duration: 0.24,
-          ease: 'power2.out',
-          overwrite: 'auto',
-        });
-        gsap.to('#door-sunbeam', {
-          opacity: 0.75,
-          x: '25%',
-          duration: 0.32,
-          overwrite: 'auto',
-        });
-      }
-    };
-
-    const handlePointerLeave = () => {
-      isHoveringDoorRef.current = false;
-      if (doorGlareRef.current) doorGlareRef.current.style.opacity = '0';
-
-      // Return 3D tilt to neutral
-      gsap.to(doorEl, {
-        rotateY: 0,
+      // Snap all slats flush shut
+      gsap.to('.swiss-slat', {
         rotateX: 0,
-        duration: 0.55,
-        ease: 'power3.out',
+        duration: 0.42,
+        stagger: 0.012,
+        ease: 'elastic.out(1.18, 0.42)',
         overwrite: 'auto',
       });
 
-      if (posterInnerRef.current) {
-        gsap.to(posterInnerRef.current, {
-          x: 0,
-          y: 0,
-          duration: 0.55,
-          ease: 'power3.out',
-          overwrite: 'auto',
-        });
-      }
-
-      // If closed, snap leaves flush shut
-      if (!isOpenRef.current && !isDraggingRef.current) {
-        gsap.to(['#shutter-left', '#shutter-right'], {
-          rotateY: 0,
-          duration: 0.42,
-          ease: 'elastic.out(1.15, 0.45)',
-          overwrite: 'auto',
-        });
-        gsap.to('#shutter-latch-lever', {
-          rotation: 0,
-          duration: 0.28,
-          ease: 'power2.out',
-          overwrite: 'auto',
-        });
-        gsap.to('#door-sunbeam', {
-          opacity: 0,
-          x: '0%',
-          duration: 0.28,
-          overwrite: 'auto',
-        });
-      }
+      gsap.to('#door-sunbeam', {
+        opacity: 0,
+        x: '0%',
+        duration: 0.28,
+        overwrite: 'auto',
+      });
     };
 
-    const handlePointerDown = (e: PointerEvent) => {
-      if (window.scrollY > 30) return;
-      isDraggingRef.current = true;
-      dragStartXRef.current = e.clientX;
-      dragDeltaXRef.current = 0;
-    };
-
-    const handlePointerUp = () => {
-      if (!isDraggingRef.current) return;
-      isDraggingRef.current = false;
-
-      // If dragged past threshold (50px), finish opening
-      if (Math.abs(dragDeltaXRef.current) > 50) {
-        openDoor();
-      } else if (!isOpenRef.current) {
-        // Snap back shut
-        gsap.to(['#shutter-left', '#shutter-right'], {
-          rotateY: 0,
-          duration: 0.35,
-          ease: 'elastic.out(1.1, 0.4)',
-          overwrite: 'auto',
-        });
-        gsap.to('#shutter-latch-lever', {
-          rotation: 0,
-          duration: 0.25,
-          ease: 'power2.out',
-          overwrite: 'auto',
-        });
-        gsap.to('#shutter-latch-wrap', {
-          opacity: 1,
-          scale: 1,
-          duration: 0.25,
-          ease: 'power2.out',
-          overwrite: 'auto',
-        });
-        gsap.to('#door-sunbeam', {
-          opacity: 0,
-          x: '0%',
-          duration: 0.25,
-          overwrite: 'auto',
-        });
-      }
-    };
-
-    window.addEventListener('pointermove', handlePointerMove, { passive: true });
-    window.addEventListener('pointerup', handlePointerUp);
-    doorEl.addEventListener('pointerenter', handlePointerEnter);
-    doorEl.addEventListener('pointerleave', handlePointerLeave);
-    doorEl.addEventListener('pointerdown', handlePointerDown);
+    doorEl.addEventListener('pointermove', handleDoorPointerMove, { passive: true });
+    doorEl.addEventListener('pointerleave', handleDoorPointerLeave);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-      doorEl.removeEventListener('pointerenter', handlePointerEnter);
-      doorEl.removeEventListener('pointerleave', handlePointerLeave);
-      doorEl.removeEventListener('pointerdown', handlePointerDown);
+      doorEl.removeEventListener('pointermove', handleDoorPointerMove);
+      doorEl.removeEventListener('pointerleave', handleDoorPointerLeave);
     };
-  }, [openDoor, getAudio]);
+  }, [getAudio]);
 
   return (
     <section
@@ -655,33 +438,25 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
           </div>
         </div>
 
-        {/* Elevated Swiss Poster Stage — Centered Hyper-Interactive 3D Door Portal */}
+        {/* Elevated Swiss Poster Stage — Centered Architectural 3D Door Portal */}
         <div className="hero-stagger relative z-20 max-w-[1400px] w-full mx-auto px-5 sm:px-10 flex flex-col items-center justify-center">
           {/* Centerpiece: Elevated 3D Swiss Architectural Dual-Leaf Opening Door */}
           <div id="atelier-portal-stage" className="swiss-portal-stage mx-auto">
             <div
               ref={doorOuterRef}
               id="atelier-window-outer"
-              className="swiss-door-outer cursor-pointer select-none transition-shadow duration-300 hover:shadow-[0_40px_90px_rgba(0,0,0,0.85)]"
-              onClick={toggleDoor}
+              className="swiss-door-outer cursor-pointer select-none"
+              onClick={triggerAcousticWave}
               role="button"
               tabIndex={0}
-              aria-label={isOpen ? 'Click to lock door' : 'Click to unlock door'}
+              aria-label="Click to trigger acoustic louver flip wave"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  toggleDoor();
+                  triggerAcousticWave();
                 }
               }}
             >
-              {/* Dynamic Specular Sheen Glare */}
-              <div
-                ref={doorGlareRef}
-                className="pointer-events-none absolute inset-0 rounded-[3px] opacity-0 transition-opacity duration-300 z-30"
-                style={{ mixBlendMode: 'screen' }}
-                aria-hidden="true"
-              />
-
               {/* Kinetic Door-Stop Slam Frame & Latch Shockwave */}
               <div ref={doorImpactFrameRef} className="door-impact-frame" aria-hidden="true" />
               <div ref={latchPulseRef} className="latch-pulse-ring" aria-hidden="true" />
@@ -694,10 +469,7 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
 
               {/* Inner Acid Lime Poster with International Cobalt Accents */}
               <div className="swiss-door-aperture">
-                <div
-                  ref={posterInnerRef}
-                  className="door-daylight-poster flex flex-col items-center justify-center text-center p-6 sm:p-8"
-                >
+                <div className="door-daylight-poster flex flex-col items-center justify-center text-center p-6 sm:p-8">
                   <div id="door-sunbeam" className="door-sunbeam" aria-hidden="true" />
 
                   <div className="relative z-10 my-auto py-4">
@@ -719,9 +491,13 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
                 <div id="shutter-left" className="shutter-door shutter-door-left">
                   <span className="swiss-hinge hinge-lt" aria-hidden="true" />
                   <span className="swiss-hinge hinge-lb" aria-hidden="true" />
-                  <div className="swiss-louver-grid m-0 h-full" aria-hidden="true">
+                  <div ref={louverGridLeftRef} className="swiss-louver-grid m-0 h-full" aria-hidden="true">
                     {SLAT_INDICES.map((i) => (
-                      <div key={`l-${i}`} className="swiss-slat" />
+                      <div
+                        key={`slat-l-${i}`}
+                        data-idx={i}
+                        className="swiss-slat"
+                      />
                     ))}
                   </div>
                 </div>
@@ -730,9 +506,13 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
                 <div id="shutter-right" className="shutter-door shutter-door-right">
                   <span className="swiss-hinge hinge-rt" aria-hidden="true" />
                   <span className="swiss-hinge hinge-rb" aria-hidden="true" />
-                  <div className="swiss-louver-grid m-0 h-full" aria-hidden="true">
+                  <div ref={louverGridRightRef} className="swiss-louver-grid m-0 h-full" aria-hidden="true">
                     {SLAT_INDICES.map((i) => (
-                      <div key={`r-${i}`} className="swiss-slat" />
+                      <div
+                        key={`slat-r-${i}`}
+                        data-idx={i}
+                        className="swiss-slat"
+                      />
                     ))}
                   </div>
                 </div>
@@ -752,12 +532,8 @@ export const Act1HeroDoor: React.FC<Act1HeroDoorProps> = ({
 
           {/* Minimalist Tactile Interaction Indicator */}
           <div className="mt-4 flex items-center justify-center gap-2 font-swiss-mono text-[9.5px] uppercase tracking-[0.22em] text-[#989A8E]/60 select-none">
-            <span
-              className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
-                isOpen ? 'bg-[#6B84FF]' : 'bg-[#C9E54B] animate-pulse'
-              }`}
-            />
-            <span>{isOpen ? 'CLICK TO SLAM LOCK' : 'HOVER TO PEEL · CLICK TO UNLOCK'}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#C9E54B] animate-pulse" />
+            <span>SWEEP OR CLICK LOUVERS TO FLIP</span>
           </div>
         </div>
       </div>
