@@ -100,12 +100,6 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
       >
         <div className="max-w-[1380px] w-full mx-auto px-5 sm:px-10">
           <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
-            {/* Section Eyebrow */}
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#021F94]/8 border border-[#021F94]/18 font-swiss-mono text-[10.5px] uppercase tracking-[0.16em] text-[#021F94] font-semibold mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#D93829]" />
-              <span>07 &middot; {CANONICAL_CONTENT.cta.title}</span>
-            </div>
-
             {/* Monumental Headline */}
             <h2 className="font-swiss-sans font-black uppercase tracking-[-0.045em] leading-[0.92] text-4xl sm:text-6xl lg:text-7xl text-[#0B1026]">
               {CANONICAL_CONTENT.cta.title}
