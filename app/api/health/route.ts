@@ -6,6 +6,14 @@ export async function GET() {
   const isLocalhost = rawDbUrl.includes('localhost') || rawDbUrl.includes('127.0.0.1');
   const isConfigured = Boolean(rawDbUrl);
 
+  let dbHost = 'unknown';
+  let dbName = 'unknown';
+  try {
+    const parsed = new URL(rawDbUrl);
+    dbHost = parsed.host;
+    dbName = parsed.pathname.replace('/', '');
+  } catch {}
+
   try {
     const userCount = await prisma.user.count();
     const listingCount = await prisma.skillListing.count();
@@ -13,6 +21,8 @@ export async function GET() {
     return NextResponse.json({
       status: 'healthy',
       database: 'connected',
+      dbHost,
+      dbName,
       environment: process.env.NODE_ENV,
       isLocalhost,
       stats: {
@@ -27,6 +37,8 @@ export async function GET() {
       {
         status: 'error',
         database: 'unreachable',
+        dbHost,
+        dbName,
         isLocalhost,
         isConfigured,
         errorCode: error?.code || 'UNKNOWN',
