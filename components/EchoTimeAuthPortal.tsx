@@ -20,6 +20,14 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
   const router = useRouter();
   const [mode, setMode] = useState<AuthMode>(initialMode);
 
+  const switchMode = (next: AuthMode) => {
+    setMode(next);
+    if (typeof window !== 'undefined') {
+      const url = next === 'signup' ? '/login?mode=signup' : '/login';
+      window.history.replaceState(null, '', url);
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const q = new URLSearchParams(window.location.search).get('mode');
@@ -294,7 +302,7 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
               <button
                 type="button"
                 tabIndex={isSignup ? -1 : 0}
-                onClick={() => setMode('signup')}
+                onClick={() => switchMode('signup')}
                 className="mt-4 sm:mt-6 px-6 py-3 rounded-md font-et-mono text-xs font-bold uppercase tracking-[0.14em] border-2 border-[#F5F2F3] text-[#F5F2F3] bg-transparent hover:bg-[#F5F2F3] hover:text-[#021F94] transition-all active:scale-95"
               >
                 Create Account →
@@ -341,7 +349,7 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
               <button
                 type="button"
                 tabIndex={!isSignup ? -1 : 0}
-                onClick={() => setMode('login')}
+                onClick={() => switchMode('login')}
                 className="mt-4 sm:mt-6 px-6 py-3 rounded-md font-et-mono text-xs font-bold uppercase tracking-[0.14em] border-2 border-[#F5F2F3] text-[#F5F2F3] bg-transparent hover:bg-[#F5F2F3] hover:text-[#021F94] transition-all active:scale-95"
               >
                 ← Log In

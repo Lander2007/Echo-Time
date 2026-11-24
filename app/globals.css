@@ -1316,7 +1316,7 @@
 }
 
 /* ============================================================================
-   CORE SWEEPING 300% CURVED CURTAIN ENGINE (DESKTOP HORIZONTAL SWEEP)
+   ECHO TIME — FIXED 60FPS GPU SWEEPING CURVED CURTAIN TRANSITION
    ============================================================================ */
 .et-auth-stage {
   position: relative;
@@ -1324,10 +1324,11 @@
   max-width: 960px;
   min-height: 580px;
   border-radius: 18px;
-  background-color: var(--card-bg);
-  border: 1.5px solid var(--border-strong);
+  background-color: #FFFFFF;
+  border: 1.5px solid rgba(2, 31, 148, 0.34);
   box-shadow: 0 32px 72px rgba(2, 31, 148, 0.14);
   overflow: hidden;
+  isolation: isolate;
 }
 
 .et-curtain-layer {
@@ -1335,31 +1336,35 @@
   inset: 0;
   pointer-events: none;
   z-index: 20;
+  overflow: hidden;
 }
 
+/* 300%-wide GPU-composited sweeping blob:
+   - Login mode (left half 0..50%): translateX(-83.3333%) -> -2.5W + 3W = +0.5W
+   - Sign-Up mode (right half 50..100%): translateX(16.6667%) -> +0.5W */
 .et-curtain-blob {
   position: absolute;
   top: 0;
-  left: -250%; /* Resting on LEFT half (Login mode) */
+  left: 0;
   width: 300%;
   height: 100%;
   border-radius: 140px;
-  background-color: var(--curtain-bg);
+  background-color: #021F94;
   background-image:
-    linear-gradient(to right, var(--curtain-grid) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--curtain-grid) 1px, transparent 1px);
+    linear-gradient(to right, rgba(245, 242, 243, 0.075) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(245, 242, 243, 0.075) 1px, transparent 1px);
   background-size: 40px 40px;
   box-shadow: 0 0 48px rgba(2, 31, 148, 0.34);
-  transition: left 1.35s cubic-bezier(0.65, 0, 0.35, 1);
-  will-change: left;
+  transform: translate3d(-83.3333%, 0, 0);
+  transition: transform 1.25s cubic-bezier(0.65, 0, 0.35, 1) !important;
+  will-change: transform;
 }
 
-/* Sign-Up mode: 300% curved curtain sweeps across to rest on the RIGHT half */
 .et-auth-stage.is-signup .et-curtain-blob {
-  left: 50%;
+  transform: translate3d(16.6667%, 0, 0);
 }
 
-/* Form Panels (Underneath the sweeping curtain — swap while covered) */
+/* Both Form Panels Stay Mounted Simultaneously Underneath the Curtain */
 .et-form-panel {
   position: absolute;
   top: 0;
@@ -1370,43 +1375,43 @@
   flex-direction: column;
   justify-content: center;
   z-index: 10;
-  transition:
-    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.5s ease;
+  transition-property: transform, opacity !important;
+  transition-duration: 0.6s, 0.45s !important;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1), ease !important;
   will-change: transform, opacity;
 }
 
-/* Login Form occupies RIGHT half */
+/* Login Form (Right Half) */
 .et-form-login {
   right: 0;
   opacity: 1;
-  transform: translateX(0);
+  transform: translate3d(0, 0, 0);
   pointer-events: auto;
-  transition-delay: 0.6s, 0.6s;
+  transition-delay: 0.55s, 0.55s !important;
 }
 .et-auth-stage.is-signup .et-form-login {
   opacity: 0;
-  transform: translateX(28%);
+  transform: translate3d(24%, 0, 0);
   pointer-events: none;
-  transition-delay: 0s, 0s;
+  transition-delay: 0s, 0s !important;
 }
 
-/* Sign-Up Form occupies LEFT half */
+/* Sign-Up Form (Left Half) */
 .et-form-signup {
   left: 0;
   opacity: 0;
-  transform: translateX(-28%);
+  transform: translate3d(-24%, 0, 0);
   pointer-events: none;
-  transition-delay: 0s, 0s;
+  transition-delay: 0s, 0s !important;
 }
 .et-auth-stage.is-signup .et-form-signup {
   opacity: 1;
-  transform: translateX(0);
+  transform: translate3d(0, 0, 0);
   pointer-events: auto;
-  transition-delay: 0.6s, 0.6s;
+  transition-delay: 0.55s, 0.55s !important;
 }
 
-/* Curtain Copy Overlays (Slide smoothly ON TOP of the sweeping blob) */
+/* Curtain Copy Overlays (Slide Smoothly Above the Sweeping Blob) */
 .et-toggle-panel {
   position: absolute;
   top: 0;
@@ -1416,46 +1421,46 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  color: var(--curtain-ink);
+  color: #F5F2F3;
   z-index: 30;
-  pointer-events: none;
-  transition:
-    left 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-    right 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.45s ease;
-  will-change: left, right, opacity;
+  transition-property: transform, opacity !important;
+  transition-duration: 0.65s, 0.4s !important;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1), ease !important;
+  will-change: transform, opacity;
 }
 
-/* Left Panel (Visible in Login mode -> invites Sign Up) */
+/* Left Toggle Copy (Visible in Login Mode) */
 .et-toggle-left {
   left: 0;
   opacity: 1;
+  transform: translate3d(0, 0, 0);
   pointer-events: auto;
-  transition-delay: 0.72s, 0.72s, 0.72s;
+  transition-delay: 0.65s, 0.65s !important;
 }
 .et-auth-stage.is-signup .et-toggle-left {
-  left: -50%;
   opacity: 0;
+  transform: translate3d(-100%, 0, 0);
   pointer-events: none;
-  transition-delay: 0.1s, 0.1s, 0.05s;
+  transition-delay: 0.05s, 0s !important;
 }
 
-/* Right Panel (Visible in Sign-Up mode -> invites Log In) */
+/* Right Toggle Copy (Visible in Sign-Up Mode) */
 .et-toggle-right {
-  right: -50%;
+  right: 0;
   opacity: 0;
+  transform: translate3d(100%, 0, 0);
   pointer-events: none;
-  transition-delay: 0.1s, 0.1s, 0.05s;
+  transition-delay: 0.05s, 0s !important;
 }
 .et-auth-stage.is-signup .et-toggle-right {
-  right: 0;
   opacity: 1;
+  transform: translate3d(0, 0, 0);
   pointer-events: auto;
-  transition-delay: 0.72s, 0.72s, 0.72s;
+  transition-delay: 0.65s, 0.65s !important;
 }
 
 /* ============================================================================
-   RESPONSIVE VERTICAL CURTAIN SWEEP FOR MOBILE (< 768px)
+   RESPONSIVE VERTICAL GPU SWEEP FOR MOBILE (< 768px)
    ============================================================================ */
 @media (max-width: 767px) {
   .et-auth-stage {
@@ -1464,17 +1469,14 @@
   }
 
   .et-curtain-blob {
-    left: 0 !important;
-    top: -268%;
     width: 100%;
     height: 300%;
     border-radius: 64px;
-    transition: top 1.25s cubic-bezier(0.65, 0, 0.35, 1);
-    will-change: top;
+    transform: translate3d(0, -89.3333%, 0);
   }
 
   .et-auth-stage.is-signup .et-curtain-blob {
-    top: 68%;
+    transform: translate3d(0, 22.6667%, 0);
   }
 
   .et-form-panel {
@@ -1487,57 +1489,46 @@
 
   .et-form-login {
     top: 32%;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
   .et-auth-stage.is-signup .et-form-login {
-    transform: translateY(16%);
+    transform: translate3d(0, 14%, 0);
   }
 
   .et-form-signup {
     top: 0;
-    transform: translateY(-16%);
+    transform: translate3d(0, -14%, 0);
   }
   .et-auth-stage.is-signup .et-form-signup {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 
   .et-toggle-panel {
-    left: 0 !important;
-    right: 0 !important;
     width: 100%;
     height: 32%;
     padding: 22px 24px;
-    transition:
-      top 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-      bottom 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 0.45s ease;
   }
 
   .et-toggle-left {
     top: 0;
+    left: 0;
+    transform: translate3d(0, 0, 0);
   }
   .et-auth-stage.is-signup .et-toggle-left {
-    top: -32%;
+    transform: translate3d(0, -100%, 0);
   }
 
   .et-toggle-right {
     top: auto;
-    bottom: -32%;
+    bottom: 0;
+    right: 0;
+    transform: translate3d(0, 100%, 0);
   }
   .et-auth-stage.is-signup .et-toggle-right {
-    bottom: 0;
+    transform: translate3d(0, 0, 0);
   }
 }
 
-/* Reduced Motion Respect */
-@media (prefers-reduced-motion: reduce) {
-  .et-curtain-blob,
-  .et-form-panel,
-  .et-toggle-panel {
-    transition-duration: 0.01ms !important;
-    transition-delay: 0ms !important;
-  }
-}
 
 /* Form Input Styling */
 .et-field-input {
