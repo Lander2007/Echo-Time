@@ -1661,3 +1661,72 @@
     transition: none;
   }
 }
+
+/* ============================================================================
+   ECHO TIME — MOBILE SWISS EDITORIAL PRIMITIVES (< 1024px ONLY)
+   ============================================================================ */
+.et-m-grid-paper {
+  background-color: #F5F2F3;
+  background-image:
+    linear-gradient(to right, rgba(2, 31, 148, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(2, 31, 148, 0.055) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.et-m-grid-blue {
+  background-color: #021F94;
+  background-image:
+    linear-gradient(to right, rgba(245, 242, 243, 0.075) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(245, 242, 243, 0.075) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.et-m-box {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(2, 31, 148, 0.38);
+  border-radius: 2px;
+}
+
+.et-m-perforated {
+  border-top: 1.5px dashed rgba(2, 31, 148, 0.38);
+}
+
+/* Registration Corner Ticks */
+.et-m-tick-tl,
+.et-m-tick-br {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+}
+.et-m-tick-tl {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid #021F94;
+  border-left: 2px solid #021F94;
+}
+.et-m-tick-br {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid #D93829;
+  border-right: 2px solid #D93829;
+}
+.et-m-tick-on-blue-tl {
+  border-top-color: #F5F2F3;
+  border-left-color: #F5F2F3;
+}
+
+/* Hide Horizontal Scrollbars on Mobile Category Strips */
+.et-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.et-no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe-Area Bottom Support for iOS / Android Mobile Browsers */
+.et-m-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
