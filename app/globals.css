@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 
+  :root {
+    --font-inter: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font-ibm-plex-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --font-anton: 'Anton', 'Inter', Impact, sans-serif;
+    --font-cairo: 'Cairo', 'Inter', sans-serif;
+  }
+
   :root,
   .theme-dark {
     --bg: #F5F2F3;

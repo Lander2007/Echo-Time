@@ -1,34 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, IBM_Plex_Mono, Anton, Cairo } from 'next/font/google';
 import './globals.css';
-
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800', '900'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const ibmPlexMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-ibm-plex-mono',
-  display: 'swap',
-});
-
-const anton = Anton({
-  subsets: ['latin'],
-  weight: ['400'],
-  variable: '--font-anton',
-  display: 'swap',
-});
-
-const cairo = Cairo({
-  subsets: ['latin', 'arabic'],
-  weight: ['600', '700', '800'],
-  variable: '--font-cairo',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: 'Echo Time – Your Time. Your Opportunities.',
@@ -71,8 +42,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-[#F5F2F3]">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Anton&family=Cairo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body
-        className={`${inter.variable} ${ibmPlexMono.variable} ${anton.variable} ${cairo.variable} font-swiss-sans bg-[#F5F2F3] text-[#0B1026] antialiased selection:bg-[#021F94] selection:text-[#F5F2F3]`}
+        className="font-swiss-sans bg-[#F5F2F3] text-[#0B1026] antialiased selection:bg-[#021F94] selection:text-[#F5F2F3]"
       >
         {children}
       </body>
