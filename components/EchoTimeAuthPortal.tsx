@@ -70,18 +70,16 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
         method: 'POST',
       });
       const data = await res.json();
-      const userName = data?.user?.fullName || 'Khaled Amr Ahmeed';
-      const userEmail = data?.user?.email || 'khaled@echotime.edu';
-      pushToast(`⚖️ Welcome Judge! Authenticated as ${userName} (${userEmail})`);
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to authenticate Judge Demo');
+      }
+      pushToast(`⚖️ Welcome Judge! Authenticated as ${data.user.fullName} (${data.user.email})`);
       window.setTimeout(() => {
         router.push('/dashboard');
-      }, 500);
+      }, 400);
     } catch (err: any) {
-      console.warn('Judge demo local fallback activated:', err);
-      pushToast('⚖️ Welcome Judge! Authenticated as Khaled Amr Ahmeed (khaled@echotime.edu)');
-      window.setTimeout(() => {
-        router.push('/dashboard');
-      }, 500);
+      console.error(err);
+      pushToast(err.message || 'Error signing in to Judge Demo');
     } finally {
       setJudgeLoading(false);
     }
@@ -137,7 +135,7 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
       if (!res.ok) {
         throw new Error(data.error || 'Registration failed');
       }
-      pushToast(`Ledger created for ${data.user.fullName} (+5.00 ECHO starter grant minted).`);
+      pushToast(`Ledger created for ${data.user.fullName} (+5.00 ECHO starter grant minted in database).`);
       window.setTimeout(() => {
         router.push('/dashboard');
       }, 400);

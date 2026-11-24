@@ -7,6 +7,7 @@ export type CommunityCategory = 'Project' | 'Group' | 'Event';
 
 export interface SkillListing {
   id: string;
+  authorId?: string;
   category: string;
   type: ListingType;
   authorInitials: string;

@@ -16,36 +16,35 @@ import {
   ProfileChecklistItem,
   AgreementStage,
 } from '@/types/workspace';
-import {
-  INITIAL_LISTINGS,
-  INITIAL_ROOMS,
-  INITIAL_TRANSACTIONS,
-  INITIAL_SPACES,
-  INITIAL_BETA_PLANS,
-} from '@/lib/seed-workspace';
+import { INITIAL_BETA_PLANS } from '@/lib/seed-workspace';
 
 function getInitials(name: string): string {
   const parts = (name || '').trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return 'KA';
-  return ((parts[0][0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'KA';
+  if (!parts.length) return 'ET';
+  return ((parts[0][0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'ET';
 }
 
 function mapApiListing(l: any, currentUserId?: string): SkillListing {
+  const authorName = l.authorName || l.author?.fullName || 'Student Member';
+  const authorInitials = getInitials(authorName);
+  const isMine = Boolean(currentUserId && (l.authorId === currentUserId || l.isMine));
+
   return {
     id: l.id,
+    authorId: l.authorId,
     category: l.category || 'General',
-    type: l.type === 'LOOKING_FOR' ? 'Looking for' : 'Offering',
-    authorInitials: getInitials(l.author?.fullName || 'Echo Student'),
-    authorName: l.author?.fullName || 'Echo Student',
+    type: (l.type === 'LOOKING_FOR' || l.type === 'Looking for' || l.type === 'Requests') ? 'Looking for' : 'Offering',
+    authorInitials,
+    authorName,
     listedAt: l.createdAt ? new Date(l.createdAt).toLocaleDateString() : 'Listed recently',
     rating: l.rating ?? 5.0,
-    reviewsCount: l.reviewsCount ?? 1,
+    reviewsCount: l.reviewsCount ?? 0,
     title: l.title,
     description: l.description,
-    format: l.format === 'IN_PERSON' ? 'In-person' : l.format === 'HYBRID' ? 'Hybrid' : 'Online',
+    format: (l.format === 'IN_PERSON' || l.format === 'In-person') ? 'In-person' : (l.format === 'HYBRID' || l.format === 'Hybrid') ? 'Hybrid' : 'Online',
     creditsPerHr: l.creditsPerHr || 1,
-    saved: Boolean(l.isSaved),
-    isMine: Boolean(currentUserId && l.authorId === currentUserId),
+    saved: Boolean(l.isSaved || l.saved),
+    isMine,
   };
 }
 
@@ -133,7 +132,7 @@ interface WorkspaceContextType {
   rooms: AgreementRoom[];
   activeRoomId: string;
   setActiveRoomId: (id: string) => void;
-  activeRoom: AgreementRoom;
+  activeRoom: AgreementRoom | undefined;
   roomSwitcherOpen: boolean;
   setRoomSwitcherOpen: React.Dispatch<React.SetStateAction<boolean>>;
   chatInput: string;
@@ -239,42 +238,42 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Auth & Profile
-  const [currentUserId, setCurrentUserId] = useState<string>('usr_seed_khaled');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [authEmail, setAuthEmail] = useState<string>('khaled@echotime.edu');
-  const [authPassword, setAuthPassword] = useState<string>('••••••••••••');
-  const [authFullName, setAuthFullName] = useState<string>('Khaled Amr Ahmeed');
-  const [profileFullName, setProfileFullName] = useState<string>('Khaled Amr Ahmeed');
-  const [profileUsername, setProfileUsername] = useState<string>('khaled-amr-ahmeed');
-  const [profileUniversity, setProfileUniversity] = useState<string>('Cairo University — Computer Engineering');
-  const [profileBio, setProfileBio] = useState<string>('Senior Computer Engineering student passionate about distributed systems and time reciprocity.');
+  const [authEmail, setAuthEmail] = useState<string>('');
+  const [authPassword, setAuthPassword] = useState<string>('');
+  const [authFullName, setAuthFullName] = useState<string>('');
+  const [profileFullName, setProfileFullName] = useState<string>('');
+  const [profileUsername, setProfileUsername] = useState<string>('');
+  const [profileUniversity, setProfileUniversity] = useState<string>('');
+  const [profileBio, setProfileBio] = useState<string>('');
   const [profileAvailability, setProfileAvailability] = useState<string>('Weekends & Evenings');
   const [hasProfilePhoto, setHasProfilePhoto] = useState<boolean>(true);
-  const [offeredSkills, setOfferedSkills] = useState<string[]>(['Next.js 15', 'TypeScript', 'Prisma ORM']);
+  const [offeredSkills, setOfferedSkills] = useState<string[]>([]);
   const [newSkillInput, setNewSkillInput] = useState<string>('');
 
   // Ledger & Balances
-  const [availableCredits, setAvailableCredits] = useState<number>(6);
+  const [availableCredits, setAvailableCredits] = useState<number>(0);
   const [reservedCredits, setReservedCredits] = useState<number>(0);
-  const [earnedLifetime, setEarnedLifetime] = useState<number>(4);
-  const [spentLifetime, setSpentLifetime] = useState<number>(2);
-  const [completedExchanges, setCompletedExchanges] = useState<number>(4);
-  const [transactions, setTransactions] = useState<WalletTransaction[]>(INITIAL_TRANSACTIONS);
+  const [earnedLifetime, setEarnedLifetime] = useState<number>(0);
+  const [spentLifetime, setSpentLifetime] = useState<number>(0);
+  const [completedExchanges, setCompletedExchanges] = useState<number>(0);
+  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
 
   // Explore Listings
-  const [listings, setListings] = useState<SkillListing[]>(INITIAL_LISTINGS);
+  const [listings, setListings] = useState<SkillListing[]>([]);
   const [postModalOpen, setPostModalOpen] = useState<boolean>(false);
 
   // Agreement Rooms
-  const [rooms, setRooms] = useState<AgreementRoom[]>(INITIAL_ROOMS);
-  const [activeRoomId, setActiveRoomId] = useState<string>('room-1');
+  const [rooms, setRooms] = useState<AgreementRoom[]>([]);
+  const [activeRoomId, setActiveRoomId] = useState<string>('');
   const [roomSwitcherOpen, setRoomSwitcherOpen] = useState<boolean>(false);
   const [chatInput, setChatInput] = useState<string>('');
   const [editingGoal, setEditingGoal] = useState<boolean>(false);
 
   // Community
-  const [spaces, setSpaces] = useState<CommunitySpace[]>(INITIAL_SPACES);
+  const [spaces, setSpaces] = useState<CommunitySpace[]>([]);
   const [spaceModalOpen, setSpaceModalOpen] = useState<boolean>(false);
   const [editingSpaceId, setEditingSpaceId] = useState<string | null>(null);
   const [spaceForm, setSpaceForm] = useState<{
@@ -296,7 +295,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   // Notifications
-  const [unreadNotifs, setUnreadNotifs] = useState<number>(1);
+  const [unreadNotifs, setUnreadNotifs] = useState<number>(0);
   const [notifOpen, setNotifOpen] = useState<boolean>(false);
 
   const pushToast = useCallback((text: string) => {
@@ -307,40 +306,46 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }, 3200);
   }, []);
 
-  // Sync with live Backend API on Mount
-  useEffect(() => {
-    let isMounted = true;
+  // Sync with live PostgreSQL Backend API on Mount & on Route Change
+  const refreshDatabaseState = useCallback(async () => {
+    try {
+      // 1. Session & Profile
+      const sessionRes = await fetch('/api/auth/session', { cache: 'no-store' });
+      let loggedInUserId = '';
 
-    async function syncBackendState() {
-      try {
-        // 1. Session & Profile
-        const sessionRes = await fetch('/api/auth/session');
-        if (sessionRes.ok) {
-          const sessionData = await sessionRes.json();
-          if (sessionData?.user && isMounted) {
-            const u = sessionData.user;
-            setCurrentUserId(u.id);
-            setIsAuthenticated(true);
-            setProfileFullName(u.fullName || 'Khaled Amr Ahmeed');
-            setAuthFullName(u.fullName || 'Khaled Amr Ahmeed');
-            setProfileUsername(u.username || 'khaled-amr-ahmeed');
-            setProfileUniversity(u.university || 'Cairo University');
-            if (u.bio) setProfileBio(u.bio);
-            if (u.availability) setProfileAvailability(u.availability);
-            if (u.offeredSkills?.length) setOfferedSkills(u.offeredSkills);
-            if (typeof u.availableCredits === 'number') setAvailableCredits(u.availableCredits);
-            if (typeof u.reservedCredits === 'number') setReservedCredits(u.reservedCredits);
-            if (typeof u.earnedLifetime === 'number') setEarnedLifetime(u.earnedLifetime);
-            if (typeof u.spentLifetime === 'number') setSpentLifetime(u.spentLifetime);
-            if (typeof u.completedExchanges === 'number') setCompletedExchanges(u.completedExchanges);
-          }
+      if (sessionRes.ok) {
+        const sessionData = await sessionRes.json();
+        if (sessionData?.user) {
+          const u = sessionData.user;
+          loggedInUserId = u.id;
+          setCurrentUserId(u.id);
+          setIsAuthenticated(true);
+          setProfileFullName(u.fullName || '');
+          setAuthFullName(u.fullName || '');
+          setAuthEmail(u.email || '');
+          setProfileUsername(u.username || '');
+          setProfileUniversity(u.university || '');
+          setProfileBio(u.bio || '');
+          setProfileAvailability(u.availability || 'Weekends & Evenings');
+          setOfferedSkills(Array.isArray(u.offeredSkills) ? u.offeredSkills : []);
+          setAvailableCredits(typeof u.availableCredits === 'number' ? u.availableCredits : 5.0);
+          setReservedCredits(typeof u.reservedCredits === 'number' ? u.reservedCredits : 0.0);
+          setEarnedLifetime(typeof u.earnedLifetime === 'number' ? u.earnedLifetime : 0.0);
+          setSpentLifetime(typeof u.spentLifetime === 'number' ? u.spentLifetime : 0.0);
+          setCompletedExchanges(typeof u.completedExchanges === 'number' ? u.completedExchanges : 0);
+        } else {
+          setIsAuthenticated(false);
         }
+      } else {
+        setIsAuthenticated(false);
+      }
 
-        // 2. Wallet & Transactions
-        const walletRes = await fetch('/api/wallet');
+      // 2. Wallet & Transactions
+      if (loggedInUserId) {
+        const walletRes = await fetch('/api/wallet', { cache: 'no-store' });
         if (walletRes.ok) {
           const walletData = await walletRes.json();
-          if (walletData?.telemetry && isMounted) {
+          if (walletData?.telemetry) {
             const t = walletData.telemetry;
             setAvailableCredits(t.availableCredits);
             setReservedCredits(t.reservedCredits);
@@ -348,7 +353,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
             setSpentLifetime(t.spentLifetime);
             setCompletedExchanges(t.completedExchanges);
           }
-          if (Array.isArray(walletData?.transactions) && walletData.transactions.length > 0 && isMounted) {
+          if (Array.isArray(walletData?.transactions)) {
             setTransactions(
               walletData.transactions.map((tx: any) => ({
                 id: tx.id,
@@ -364,55 +369,57 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // 3. Listings
-        const listingsRes = await fetch('/api/listings');
-        if (listingsRes.ok) {
-          const listingsData = await listingsRes.json();
-          if (Array.isArray(listingsData?.listings) && listingsData.listings.length > 0 && isMounted) {
-            setListings(listingsData.listings.map((l: any) => mapApiListing(l, currentUserId)));
-          }
-        }
-
-        // 4. Agreements
-        const agreementsRes = await fetch('/api/agreements');
+        // 3. Agreement Rooms
+        const agreementsRes = await fetch('/api/agreements', { cache: 'no-store' });
         if (agreementsRes.ok) {
           const agreementsData = await agreementsRes.json();
-          if (Array.isArray(agreementsData?.agreements) && agreementsData.agreements.length > 0 && isMounted) {
-            const mappedRooms = agreementsData.agreements.map((r: any) => mapApiRoom(r, currentUserId));
+          if (Array.isArray(agreementsData?.agreements)) {
+            const mappedRooms = agreementsData.agreements.map((r: any) => mapApiRoom(r, loggedInUserId));
             setRooms(mappedRooms);
-            if (mappedRooms[0]) {
+            if (mappedRooms[0] && !activeRoomId) {
               setActiveRoomId(mappedRooms[0].id);
             }
           }
         }
+      }
 
-        // 5. Community Spaces
-        const communityRes = await fetch('/api/community');
-        if (communityRes.ok) {
-          const commData = await communityRes.json();
-          if (Array.isArray(commData?.spaces) && commData.spaces.length > 0 && isMounted) {
-            setSpaces(
-              commData.spaces.map((s: any) => ({
-                id: s.id,
-                kind: s.kind === 'GROUP' ? 'Group' : s.kind === 'EVENT' ? 'Event' : 'Project',
-                tag: s.tag,
-                eyebrowCta: s.eyebrowCta,
-                title: s.title,
-                description: s.description,
-                hostName: s.host?.fullName || 'Campus Peer',
-                hostInitials: getInitials(s.host?.fullName || 'CP'),
-                members: s.membersCount || 1,
-                isHost: s.hostId === currentUserId,
-              }))
-            );
-          }
+      // 4. All Database Listings (Available to everyone)
+      const listingsRes = await fetch('/api/listings', { cache: 'no-store' });
+      if (listingsRes.ok) {
+        const listingsData = await listingsRes.json();
+        if (Array.isArray(listingsData?.listings)) {
+          setListings(listingsData.listings.map((l: any) => mapApiListing(l, loggedInUserId)));
         }
+      }
 
-        // 6. Beta Subscription Interests
-        const betaRes = await fetch('/api/subscription/beta');
+      // 5. Community Spaces
+      const communityRes = await fetch('/api/community', { cache: 'no-store' });
+      if (communityRes.ok) {
+        const commData = await communityRes.json();
+        if (Array.isArray(commData?.spaces)) {
+          setSpaces(
+            commData.spaces.map((s: any) => ({
+              id: s.id,
+              kind: s.kind === 'GROUP' ? 'Group' : s.kind === 'EVENT' ? 'Event' : 'Project',
+              tag: s.tag,
+              eyebrowCta: s.eyebrowCta,
+              title: s.title,
+              description: s.description,
+              hostName: s.host?.fullName || 'Campus Peer',
+              hostInitials: getInitials(s.host?.fullName || 'CP'),
+              members: s.membersCount || 1,
+              isHost: Boolean(loggedInUserId && s.hostId === loggedInUserId),
+            }))
+          );
+        }
+      }
+
+      // 6. Beta Subscription
+      if (loggedInUserId) {
+        const betaRes = await fetch('/api/subscription/beta', { cache: 'no-store' });
         if (betaRes.ok) {
           const betaData = await betaRes.json();
-          if (Array.isArray(betaData?.plans) && isMounted) {
+          if (Array.isArray(betaData?.plans)) {
             setBetaPlans((prev) =>
               prev.map((p) => ({
                 ...p,
@@ -421,21 +428,18 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
             );
           }
         }
-      } catch (err) {
-        // Gracefully keep initial seeded state
-        console.warn('Backend live sync warning (using seeded local state):', err);
       }
+    } catch (err) {
+      console.error('Database sync error:', err);
     }
+  }, [activeRoomId]);
 
-    syncBackendState();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [currentUserId]);
+  useEffect(() => {
+    refreshDatabaseState();
+  }, [refreshDatabaseState]);
 
   const userInitials = useMemo(() => {
-    return getInitials(profileFullName);
+    return getInitials(profileFullName || 'Student');
   }, [profileFullName]);
 
   const activeRoom = useMemo(() => {
@@ -460,9 +464,13 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   }, [profileChecklist]);
 
   // Handlers
-  const handleToggleSaveListing = useCallback((id: string) => {
+  const handleToggleSaveListing = useCallback(async (id: string) => {
     setListings((prev) => prev.map((l) => (l.id === id ? { ...l, saved: !l.saved } : l)));
-    fetch(`/api/listings/${id}/save`, { method: 'POST' }).catch(() => {});
+    try {
+      await fetch(`/api/listings/${id}/save`, { method: 'POST' });
+    } catch {
+      // Revert if request failed
+    }
   }, []);
 
   const handleCreateListing = useCallback(
@@ -479,29 +487,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Optimistic create
-      const created: SkillListing = {
-        id: `lst-${Date.now()}`,
-        category: form.category,
-        type: form.type,
-        authorInitials: userInitials,
-        authorName: profileFullName,
-        listedAt: 'Listed just now',
-        rating: 5.0,
-        reviewsCount: 1,
-        title: form.title.trim(),
-        description: form.description.trim() || 'Agree on details inside the agreement room.',
-        format: form.format,
-        creditsPerHr: form.creditsPerHr,
-        saved: false,
-        isMine: true,
-      };
-
-      setListings((prev) => [created, ...prev]);
-      setPostModalOpen(false);
-      pushToast(`Published "${created.title}" to Explore marketplace.`);
-
-      // Sync to live DB
       try {
         const res = await fetch('/api/listings', {
           method: 'POST',
@@ -515,23 +500,29 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
             creditsPerHr: form.creditsPerHr,
           }),
         });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.listing?.id) {
-            setListings((prev) =>
-              prev.map((l) => (l.id === created.id ? mapApiListing(data.listing, currentUserId) : l))
-            );
-          }
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to publish skill');
         }
-      } catch (e) {
-        console.warn('Listing DB write skipped/cached:', e);
+
+        if (data?.listing) {
+          const mapped = mapApiListing(data.listing, currentUserId);
+          setListings((prev) => [mapped, ...prev.filter((l) => l.id !== mapped.id)]);
+          setPostModalOpen(false);
+          pushToast(`Published "${mapped.title}" to Explore marketplace.`);
+        }
+      } catch (err: any) {
+        console.error('Publish error:', err);
+        pushToast(err.message || 'Error publishing skill to database.');
       }
     },
-    [userInitials, profileFullName, currentUserId, pushToast]
+    [currentUserId, pushToast]
   );
 
   const handleOpenRoomForListing = useCallback(
     async (listing: SkillListing) => {
+      // Check if room already exists locally
       const existing = rooms.find(
         (r) =>
           r.title.toLowerCase() === listing.title.toLowerCase() &&
@@ -544,36 +535,35 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const newRoom: AgreementRoom = {
-        id: `room-${Date.now()}`,
-        title: listing.title,
-        category: listing.category,
-        peerName: listing.authorName,
-        peerInitials: listing.authorInitials,
-        role: listing.type === 'Offering' ? 'requester' : 'provider',
-        goal: 'Define the outcome you are agreeing to',
-        format: listing.format,
-        durationHrs: 1,
-        creditsPerHr: listing.creditsPerHr,
-        termsVersion: 1,
-        stage: 'Negotiating',
-        messages: [
-          {
-            id: `sys-${Date.now()}`,
-            sender: 'system',
-            author: 'System',
-            text: 'Exchange started. Agree on the goal, format, duration, and credits, then both confirm the same terms.',
-            time: 'Just now',
-          },
-        ],
-      };
+      try {
+        const res = await fetch('/api/agreements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            listingId: listing.id,
+            providerId: listing.authorId,
+            title: listing.title,
+            category: listing.category,
+            creditsPerHr: listing.creditsPerHr,
+            format: listing.format,
+          }),
+        });
 
-      setRooms((prev) => [newRoom, ...prev]);
-      setActiveRoomId(newRoom.id);
-      router.push(`/agreement?roomId=${newRoom.id}`);
-      pushToast(`Opened Agreement room for "${listing.title}" with ${listing.authorName}.`);
+        const data = await res.json();
+        if (res.ok && data?.agreement) {
+          const mapped = mapApiRoom(data.agreement, currentUserId);
+          setRooms((prev) => [mapped, ...prev]);
+          setActiveRoomId(mapped.id);
+          router.push(`/agreement?roomId=${mapped.id}`);
+          pushToast(`Opened Agreement room for "${listing.title}" with ${listing.authorName}.`);
+        } else {
+          throw new Error(data.error || 'Failed to open agreement room');
+        }
+      } catch (err: any) {
+        pushToast(err.message || 'Error creating agreement room in database.');
+      }
     },
-    [rooms, router, pushToast]
+    [rooms, currentUserId, router, pushToast]
   );
 
   const handleSendChatMessage = useCallback(
@@ -581,29 +571,46 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       e.preventDefault();
       if (!chatInput.trim() || !activeRoom) return;
       const text = chatInput.trim();
+      setChatInput('');
+
+      const tempId = `msg-${Date.now()}`;
       const msg: ChatMessage = {
-        id: `msg-${Date.now()}`,
+        id: tempId,
         sender: 'me',
         author: profileFullName,
         text,
         time: 'Just now',
       };
+
       setRooms((prev) =>
         prev.map((r) => (r.id === activeRoom.id ? { ...r, messages: [...r.messages, msg] } : r))
       );
-      setChatInput('');
 
-      // Send to DB if real room id
-      if (activeRoom.id.length > 10) {
-        try {
-          await fetch(`/api/agreements/${activeRoom.id}/messages`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ body: text }),
-          });
-        } catch {
-          // Keep optimistic message
+      try {
+        const res = await fetch(`/api/agreements/${activeRoom.id}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body: text }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.message) {
+            setRooms((prev) =>
+              prev.map((r) =>
+                r.id === activeRoom.id
+                  ? {
+                      ...r,
+                      messages: r.messages.map((m) =>
+                        m.id === tempId ? { ...m, id: data.message.id } : m
+                      ),
+                    }
+                  : r
+              )
+            );
+          }
         }
+      } catch (err) {
+        console.error('Failed to persist chat message:', err);
       }
     },
     [chatInput, activeRoom, profileFullName]
@@ -612,22 +619,21 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const handleUpdateRoomTerms = useCallback(
     async (patch: Partial<AgreementRoom>) => {
       if (!activeRoom || activeRoom.stage !== 'Negotiating') return;
+
       setRooms((prev) =>
         prev.map((r) =>
           r.id === activeRoom.id ? { ...r, ...patch, termsVersion: r.termsVersion + 1 } : r
         )
       );
 
-      if (activeRoom.id.length > 10) {
-        try {
-          await fetch(`/api/agreements/${activeRoom.id}/terms`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(patch),
-          });
-        } catch {
-          // Keep optimistic
-        }
+      try {
+        await fetch(`/api/agreements/${activeRoom.id}/terms`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(patch),
+        });
+      } catch (err) {
+        console.error('Failed to update terms in database:', err);
       }
     },
     [activeRoom]
@@ -637,185 +643,90 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     if (!activeRoom) return;
     const totalCredits = activeRoom.durationHrs * activeRoom.creditsPerHr;
 
-    if (activeRoom.stage === 'Negotiating') {
-      if (activeRoom.role === 'requester' && availableCredits < totalCredits) {
-        pushToast('Not enough available credits to reserve this exchange.');
-        return;
-      }
-      if (activeRoom.role === 'requester') {
-        setAvailableCredits((c) => Math.max(0, c - totalCredits));
-        setReservedCredits((r) => r + totalCredits);
-        setTransactions((prev) => [
-          {
-            id: `tx-${Date.now()}`,
-            initials: activeRoom.peerInitials,
-            counterparty: activeRoom.peerName,
-            title: `Credits reserved in escrow for ${activeRoom.title}`,
-            availableDelta: -totalCredits,
-            reservedDelta: totalCredits,
-            typeLabel: 'Escrow reserve',
-            time: 'Just now',
-          },
-          ...prev,
-        ]);
-      }
-      setRooms((prev) =>
-        prev.map((r) =>
-          r.id === activeRoom.id
-            ? {
-                ...r,
-                stage: 'Confirmed & escrowed',
-                messages: [
-                  ...r.messages,
-                  {
-                    id: `sys-${Date.now()}`,
-                    sender: 'system',
-                    author: 'System',
-                    text: `Terms v${r.termsVersion} confirmed & escrowed (${totalCredits} credit${
-                      totalCredits > 1 ? 's' : ''
-                    }).`,
-                    time: 'Just now',
-                  },
-                ],
-              }
-            : r
-        )
-      );
-      pushToast(`Agreement confirmed & ${totalCredits} credit(s) escrowed.`);
-    } else if (activeRoom.stage === 'Confirmed & escrowed') {
-      setRooms((prev) =>
-        prev.map((r) =>
-          r.id === activeRoom.id
-            ? {
-                ...r,
-                stage: 'Delivered',
-                messages: [
-                  ...r.messages,
-                  {
-                    id: `sys-${Date.now()}`,
-                    sender: 'system',
-                    author: 'System',
-                    text: 'Deliverable marked as delivered. Awaiting mutual completion confirmation.',
-                    time: 'Just now',
-                  },
-                ],
-              }
-            : r
-        )
-      );
-      pushToast('Marked as delivered — ready for mutual completion.');
-    } else if (activeRoom.stage === 'Delivered') {
-      if (activeRoom.role === 'requester') {
-        setReservedCredits((r) => Math.max(0, r - totalCredits));
-        setSpentLifetime((s) => s + totalCredits);
-        setTransactions((prev) => [
-          {
-            id: `tx-${Date.now()}`,
-            initials: activeRoom.peerInitials,
-            counterparty: activeRoom.peerName,
-            title: `Credits released for completed ${activeRoom.title}`,
-            availableDelta: 0,
-            reservedDelta: -totalCredits,
-            typeLabel: 'Completed exchange · spend',
-            time: 'Just now',
-          },
-          ...prev,
-        ]);
-      } else {
-        setAvailableCredits((c) => c + totalCredits);
-        setEarnedLifetime((e) => e + totalCredits);
-        setTransactions((prev) => [
-          {
-            id: `tx-${Date.now()}`,
-            initials: activeRoom.peerInitials,
-            counterparty: activeRoom.peerName,
-            title: `Credits earned from completed ${activeRoom.title}`,
-            availableDelta: totalCredits,
-            reservedDelta: 0,
-            typeLabel: 'Completed exchange · earn',
-            time: 'Just now',
-          },
-          ...prev,
-        ]);
-      }
-      setCompletedExchanges((c) => c + 1);
-      setRooms((prev) =>
-        prev.map((r) =>
-          r.id === activeRoom.id
-            ? {
-                ...r,
-                stage: 'Completed',
-                messages: [
-                  ...r.messages,
-                  {
-                    id: `sys-${Date.now()}`,
-                    sender: 'system',
-                    author: 'System',
-                    text: `Exchange completed. ${totalCredits} credit(s) settled atomically.`,
-                    time: 'Just now',
-                  },
-                ],
-              }
-            : r
-        )
-      );
-      pushToast('Exchange completed! Wallet ledger updated.');
+    if (activeRoom.stage === 'Negotiating' && activeRoom.role === 'requester' && availableCredits < totalCredits) {
+      pushToast(`Insufficient credits. Required: ${totalCredits.toFixed(2)} ECHO, Available: ${availableCredits.toFixed(2)} ECHO.`);
+      return;
     }
 
-    // Call live backend endpoint if roomId matches database format
-    if (activeRoom.id.length > 10) {
-      try {
-        await fetch(`/api/agreements/${activeRoom.id}/advance`, {
-          method: 'POST',
-        });
-      } catch {
-        // Keep optimistic state
+    try {
+      const res = await fetch(`/api/agreements/${activeRoom.id}/advance`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to advance agreement');
       }
+
+      if (data?.agreement) {
+        const mapped = mapApiRoom(data.agreement, currentUserId);
+        setRooms((prev) => prev.map((r) => (r.id === activeRoom.id ? mapped : r)));
+      }
+
+      // Re-fetch fresh wallet and telemetry from database
+      const walletRes = await fetch('/api/wallet', { cache: 'no-store' });
+      if (walletRes.ok) {
+        const wData = await walletRes.json();
+        if (wData?.telemetry) {
+          setAvailableCredits(wData.telemetry.availableCredits);
+          setReservedCredits(wData.telemetry.reservedCredits);
+          setEarnedLifetime(wData.telemetry.earnedLifetime);
+          setSpentLifetime(wData.telemetry.spentLifetime);
+          setCompletedExchanges(wData.telemetry.completedExchanges);
+        }
+        if (Array.isArray(wData?.transactions)) {
+          setTransactions(
+            wData.transactions.map((tx: any) => ({
+              id: tx.id,
+              initials: tx.initials || 'ET',
+              counterparty: tx.counterparty,
+              title: tx.title,
+              availableDelta: tx.availableDelta,
+              reservedDelta: tx.reservedDelta,
+              typeLabel: tx.type,
+              time: tx.date || 'Recent',
+            }))
+          );
+        }
+      }
+
+      pushToast(data.message || 'Agreement stage advanced and ledger updated.');
+    } catch (err: any) {
+      pushToast(err.message || 'Error updating agreement stage.');
     }
-  }, [activeRoom, availableCredits, pushToast]);
+  }, [activeRoom, availableCredits, currentUserId, pushToast]);
 
   const handleCancelExchange = useCallback(async () => {
     if (!activeRoom || activeRoom.stage === 'Completed' || activeRoom.stage === 'Cancelled') return;
-    const totalCredits = activeRoom.durationHrs * activeRoom.creditsPerHr;
-    if (
-      activeRoom.role === 'requester' &&
-      (activeRoom.stage === 'Confirmed & escrowed' || activeRoom.stage === 'Delivered')
-    ) {
-      setReservedCredits((r) => Math.max(0, r - totalCredits));
-      setAvailableCredits((c) => c + totalCredits);
-    }
-    setRooms((prev) =>
-      prev.map((r) =>
-        r.id === activeRoom.id
-          ? {
-              ...r,
-              stage: 'Cancelled',
-              messages: [
-                ...r.messages,
-                {
-                  id: `sys-${Date.now()}`,
-                  sender: 'system',
-                  author: 'System',
-                  text: 'Exchange cancelled. Any reserved credits were returned to Available.',
-                  time: 'Just now',
-                },
-              ],
-            }
-          : r
-      )
-    );
-    pushToast('Exchange cancelled.');
 
-    if (activeRoom.id.length > 10) {
-      try {
-        await fetch(`/api/agreements/${activeRoom.id}/cancel`, {
-          method: 'POST',
-        });
-      } catch {
-        // Keep optimistic
+    try {
+      const res = await fetch(`/api/agreements/${activeRoom.id}/cancel`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to cancel agreement');
       }
+
+      if (data?.agreement) {
+        const mapped = mapApiRoom(data.agreement, currentUserId);
+        setRooms((prev) => prev.map((r) => (r.id === activeRoom.id ? mapped : r)));
+      }
+
+      // Re-fetch wallet
+      const walletRes = await fetch('/api/wallet', { cache: 'no-store' });
+      if (walletRes.ok) {
+        const wData = await walletRes.json();
+        if (wData?.telemetry) {
+          setAvailableCredits(wData.telemetry.availableCredits);
+          setReservedCredits(wData.telemetry.reservedCredits);
+        }
+      }
+
+      pushToast('Agreement cancelled. Reserved credits refunded.');
+    } catch (err: any) {
+      pushToast(err.message || 'Error cancelling agreement.');
     }
-  }, [activeRoom, pushToast]);
+  }, [activeRoom, currentUserId, pushToast]);
 
   const handleSaveSpace = useCallback(
     async (e: React.FormEvent) => {
@@ -824,24 +735,10 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         pushToast('Enter a title for the space.');
         return;
       }
-      if (editingSpaceId) {
-        setSpaces((prev) =>
-          prev.map((s) =>
-            s.id === editingSpaceId
-              ? {
-                  ...s,
-                  kind: spaceForm.kind,
-                  tag: spaceForm.tag.trim() || 'tech',
-                  title: spaceForm.title.trim(),
-                  description: spaceForm.description.trim() || 'Student collaboration space',
-                }
-              : s
-          )
-        );
-        pushToast('Updated community space.');
 
-        if (editingSpaceId.length > 10) {
-          fetch(`/api/community/${editingSpaceId}`, {
+      try {
+        if (editingSpaceId) {
+          const res = await fetch(`/api/community/${editingSpaceId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -850,41 +747,66 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
               title: spaceForm.title,
               description: spaceForm.description,
             }),
-          }).catch(() => {});
-        }
-      } else {
-        const eyebrowMap: Record<CommunityCategory, string> = {
-          Project: 'Build with peers',
-          Group: 'Join study circle',
-          Event: 'Attend campus session',
-        };
-        const created: CommunitySpace = {
-          id: `sp-${Date.now()}`,
-          kind: spaceForm.kind,
-          tag: spaceForm.tag.trim() || 'tech',
-          eyebrowCta: eyebrowMap[spaceForm.kind],
-          title: spaceForm.title.trim(),
-          description: spaceForm.description.trim() || 'Student collaboration space',
-          hostName: profileFullName,
-          hostInitials: userInitials,
-          members: 1,
-          isHost: true,
-        };
-        setSpaces((prev) => [created, ...prev]);
-        pushToast(`Created "${created.title}" in Community.`);
+          });
+          const data = await res.json();
+          if (res.ok && data?.space) {
+            setSpaces((prev) =>
+              prev.map((s) =>
+                s.id === editingSpaceId
+                  ? {
+                      ...s,
+                      kind: spaceForm.kind,
+                      tag: spaceForm.tag,
+                      title: spaceForm.title,
+                      description: spaceForm.description,
+                    }
+                  : s
+              )
+            );
+            pushToast('Updated community space in database.');
+          }
+        } else {
+          const eyebrowMap: Record<CommunityCategory, string> = {
+            Project: 'Build with peers',
+            Group: 'Join study circle',
+            Event: 'Attend campus session',
+          };
 
-        fetch('/api/community', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            kind: spaceForm.kind.toUpperCase(),
-            tag: spaceForm.tag,
-            eyebrowCta: eyebrowMap[spaceForm.kind],
-            title: spaceForm.title,
-            description: spaceForm.description,
-          }),
-        }).catch(() => {});
+          const res = await fetch('/api/community', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              kind: spaceForm.kind.toUpperCase(),
+              tag: spaceForm.tag.trim() || 'tech',
+              eyebrowCta: eyebrowMap[spaceForm.kind],
+              title: spaceForm.title.trim(),
+              description: spaceForm.description.trim() || 'Student collaboration space',
+            }),
+          });
+
+          const data = await res.json();
+          if (res.ok && data?.space) {
+            const s = data.space;
+            const newSpace: CommunitySpace = {
+              id: s.id,
+              kind: spaceForm.kind,
+              tag: s.tag,
+              eyebrowCta: s.eyebrowCta,
+              title: s.title,
+              description: s.description,
+              hostName: profileFullName,
+              hostInitials: userInitials,
+              members: 1,
+              isHost: true,
+            };
+            setSpaces((prev) => [newSpace, ...prev]);
+            pushToast(`Created "${newSpace.title}" in Community database.`);
+          }
+        }
+      } catch (err) {
+        console.error('Space save error:', err);
       }
+
       setSpaceModalOpen(false);
       setEditingSpaceId(null);
       setSpaceForm({ kind: 'Project', tag: 'tech', title: '', description: '' });
@@ -893,23 +815,22 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   );
 
   const handleDeleteSpace = useCallback(
-    (id: string) => {
-      setSpaces((prev) => {
-        const target = prev.find((s) => s.id === id);
-        if (target) {
-          pushToast(`Deleted "${target.title}".`);
+    async (id: string) => {
+      try {
+        const res = await fetch(`/api/community/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          setSpaces((prev) => prev.filter((s) => s.id !== id));
+          pushToast('Deleted space from database.');
         }
-        return prev.filter((s) => s.id !== id);
-      });
-      if (id.length > 10) {
-        fetch(`/api/community/${id}`, { method: 'DELETE' }).catch(() => {});
+      } catch (err) {
+        console.error('Delete space error:', err);
       }
     },
     [pushToast]
   );
 
   const handleToggleWaitlist = useCallback(
-    (planId: string) => {
+    async (planId: string) => {
       setBetaPlans((prev) =>
         prev.map((p) => {
           if (p.id !== planId) return p;
@@ -922,28 +843,37 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           return { ...p, onWaitlist: next };
         })
       );
-      fetch('/api/subscription/beta', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planKey: planId }),
-      }).catch(() => {});
+
+      try {
+        await fetch('/api/subscription/beta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ planKey: planId }),
+        });
+      } catch (err) {
+        console.error('Toggle waitlist error:', err);
+      }
     },
     [pushToast]
   );
 
   const handleAddOfferedSkill = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
       const cleaned = newSkillInput.trim();
       if (!cleaned) return;
       if (!offeredSkills.includes(cleaned)) {
         const updated = [...offeredSkills, cleaned];
         setOfferedSkills(updated);
-        fetch('/api/profile', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ offeredSkills: updated }),
-        }).catch(() => {});
+        try {
+          await fetch('/api/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ offeredSkills: updated }),
+          });
+        } catch {
+          // Keep local state
+        }
       }
       setNewSkillInput('');
     },
@@ -951,14 +881,18 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   );
 
   const handleRemoveOfferedSkill = useCallback(
-    (skill: string) => {
+    async (skill: string) => {
       const updated = offeredSkills.filter((item) => item !== skill);
       setOfferedSkills(updated);
-      fetch('/api/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ offeredSkills: updated }),
-      }).catch(() => {});
+      try {
+        await fetch('/api/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ offeredSkills: updated }),
+        });
+      } catch {
+        // Keep local state
+      }
     },
     [offeredSkills]
   );
@@ -966,19 +900,35 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const handleAuthSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      if (authMode === 'signup' && authFullName.trim()) {
-        setProfileFullName(authFullName.trim());
-      }
-      setIsAuthenticated(true);
-      pushToast(`Signed in as ${authFullName.trim() || profileFullName}.`);
+      refreshDatabaseState();
       router.push('/dashboard');
     },
-    [authMode, authFullName, profileFullName, router, pushToast]
+    [refreshDatabaseState, router]
   );
 
-  const handleLogout = useCallback(() => {
-    fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // ignore
+    }
+    // Cleanly wipe all user state from client memory
     setIsAuthenticated(false);
+    setCurrentUserId('');
+    setProfileFullName('');
+    setProfileUsername('');
+    setProfileUniversity('');
+    setProfileBio('');
+    setProfileAvailability('Weekends & Evenings');
+    setOfferedSkills([]);
+    setAvailableCredits(0);
+    setReservedCredits(0);
+    setEarnedLifetime(0);
+    setSpentLifetime(0);
+    setCompletedExchanges(0);
+    setTransactions([]);
+    setRooms([]);
+    setActiveRoomId('');
     pushToast('Logged out of student workspace.');
     router.push('/login');
   }, [router, pushToast]);
