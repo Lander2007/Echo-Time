@@ -114,6 +114,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <Link
             href="/login"
+            data-cursor="DEMO"
+            className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-[#D93829]/50 bg-[#D93829]/10 text-[#D93829] font-swiss-mono text-[10px] font-bold uppercase tracking-[0.08em] hover:bg-[#D93829] hover:text-[#F5F2F3] transition-all"
+            title="Instant 1-Click Competition Judge Evaluation Mode"
+          >
+            ⚖️ Judge Demo
+          </Link>
+
+          <Link
+            href="/login"
             data-cursor="LOGIN"
             className="hidden sm:inline-block px-3 py-1.5 rounded text-ink font-swiss-mono text-[10.5px] font-semibold hover:text-accent transition-colors"
           >

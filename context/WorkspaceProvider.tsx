@@ -14,6 +14,7 @@ import {
   ListingFormat,
   CommunityCategory,
   ProfileChecklistItem,
+  AgreementStage,
 } from '@/types/workspace';
 import {
   INITIAL_LISTINGS,
@@ -23,6 +24,68 @@ import {
   INITIAL_BETA_PLANS,
 } from '@/lib/seed-workspace';
 
+function getInitials(name: string): string {
+  const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return 'KA';
+  return ((parts[0][0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'KA';
+}
+
+function mapApiListing(l: any, currentUserId?: string): SkillListing {
+  return {
+    id: l.id,
+    category: l.category || 'General',
+    type: l.type === 'LOOKING_FOR' ? 'Looking for' : 'Offering',
+    authorInitials: getInitials(l.author?.fullName || 'Echo Student'),
+    authorName: l.author?.fullName || 'Echo Student',
+    listedAt: l.createdAt ? new Date(l.createdAt).toLocaleDateString() : 'Listed recently',
+    rating: l.rating ?? 5.0,
+    reviewsCount: l.reviewsCount ?? 1,
+    title: l.title,
+    description: l.description,
+    format: l.format === 'IN_PERSON' ? 'In-person' : l.format === 'HYBRID' ? 'Hybrid' : 'Online',
+    creditsPerHr: l.creditsPerHr || 1,
+    saved: Boolean(l.isSaved),
+    isMine: Boolean(currentUserId && l.authorId === currentUserId),
+  };
+}
+
+function mapApiRoom(r: any, currentUserId: string): AgreementRoom {
+  const isRequester = r.requesterId === currentUserId;
+  const peer = isRequester ? r.provider : r.requester;
+  const peerName = peer?.fullName || 'Peer Student';
+  const stageMap: Record<string, AgreementStage> = {
+    NEGOTIATING: 'Negotiating',
+    CONFIRMED_ESCROWED: 'Confirmed & escrowed',
+    DELIVERED: 'Delivered',
+    COMPLETED: 'Completed',
+    CANCELLED: 'Cancelled',
+  };
+
+  return {
+    id: r.id,
+    title: r.title,
+    category: r.category,
+    peerName,
+    peerInitials: getInitials(peerName),
+    role: isRequester ? 'requester' : 'provider',
+    goal: r.goal,
+    format: r.format === 'In-person' ? 'In-person' : r.format === 'Hybrid' ? 'Hybrid' : 'Online',
+    durationHrs: r.durationHrs,
+    creditsPerHr: r.creditsPerHr,
+    termsVersion: r.termsVersion,
+    stage: stageMap[r.stage] || 'Negotiating',
+    messages: (r.messages || []).map((m: any) => ({
+      id: m.id,
+      sender: m.senderType === 'SYSTEM' ? 'system' : m.senderId === currentUserId ? 'me' : 'peer',
+      author: m.authorLabel,
+      text: m.body,
+      time: m.createdAt
+        ? new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : 'Just now',
+    })),
+  };
+}
+
 interface WorkspaceContextType {
   // Theme
   themeMode: 'dark' | 'light';
@@ -30,6 +93,7 @@ interface WorkspaceContextType {
   toggleTheme: () => void;
 
   // Auth
+  currentUserId: string;
   isAuthenticated: boolean;
   setIsAuthenticated: (val: boolean) => void;
   authMode: 'login' | 'signup';
@@ -174,19 +238,28 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Auth
+  // Auth & Profile
+  const [currentUserId, setCurrentUserId] = useState<string>('usr_seed_khaled');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [authEmail, setAuthEmail] = useState<string>('khaled.ahmeed@alexu.edu.eg');
+  const [authEmail, setAuthEmail] = useState<string>('khaled@echotime.edu');
   const [authPassword, setAuthPassword] = useState<string>('••••••••••••');
   const [authFullName, setAuthFullName] = useState<string>('Khaled Amr Ahmeed');
+  const [profileFullName, setProfileFullName] = useState<string>('Khaled Amr Ahmeed');
+  const [profileUsername, setProfileUsername] = useState<string>('khaled-amr-ahmeed');
+  const [profileUniversity, setProfileUniversity] = useState<string>('Cairo University — Computer Engineering');
+  const [profileBio, setProfileBio] = useState<string>('Senior Computer Engineering student passionate about distributed systems and time reciprocity.');
+  const [profileAvailability, setProfileAvailability] = useState<string>('Weekends & Evenings');
+  const [hasProfilePhoto, setHasProfilePhoto] = useState<boolean>(true);
+  const [offeredSkills, setOfferedSkills] = useState<string[]>(['Next.js 15', 'TypeScript', 'Prisma ORM']);
+  const [newSkillInput, setNewSkillInput] = useState<string>('');
 
-  // Ledger
+  // Ledger & Balances
   const [availableCredits, setAvailableCredits] = useState<number>(6);
   const [reservedCredits, setReservedCredits] = useState<number>(0);
-  const [earnedLifetime, setEarnedLifetime] = useState<number>(1);
-  const [spentLifetime, setSpentLifetime] = useState<number>(0);
-  const [completedExchanges, setCompletedExchanges] = useState<number>(1);
+  const [earnedLifetime, setEarnedLifetime] = useState<number>(4);
+  const [spentLifetime, setSpentLifetime] = useState<number>(2);
+  const [completedExchanges, setCompletedExchanges] = useState<number>(4);
   const [transactions, setTransactions] = useState<WalletTransaction[]>(INITIAL_TRANSACTIONS);
 
   // Explore Listings
@@ -219,16 +292,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   // Subscription Beta
   const [betaPlans, setBetaPlans] = useState<BetaPlan[]>(INITIAL_BETA_PLANS);
 
-  // Profile
-  const [profileFullName, setProfileFullName] = useState<string>('Khaled Amr Ahmeed');
-  const [profileUsername, setProfileUsername] = useState<string>('khaled-amr-ahmeed');
-  const [profileUniversity, setProfileUniversity] = useState<string>('');
-  const [profileBio, setProfileBio] = useState<string>('');
-  const [profileAvailability, setProfileAvailability] = useState<string>('Weekends');
-  const [hasProfilePhoto, setHasProfilePhoto] = useState<boolean>(false);
-  const [offeredSkills, setOfferedSkills] = useState<string[]>(['UI/UX']);
-  const [newSkillInput, setNewSkillInput] = useState<string>('');
-
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -244,10 +307,135 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }, 3200);
   }, []);
 
+  // Sync with live Backend API on Mount
+  useEffect(() => {
+    let isMounted = true;
+
+    async function syncBackendState() {
+      try {
+        // 1. Session & Profile
+        const sessionRes = await fetch('/api/auth/session');
+        if (sessionRes.ok) {
+          const sessionData = await sessionRes.json();
+          if (sessionData?.user && isMounted) {
+            const u = sessionData.user;
+            setCurrentUserId(u.id);
+            setIsAuthenticated(true);
+            setProfileFullName(u.fullName || 'Khaled Amr Ahmeed');
+            setAuthFullName(u.fullName || 'Khaled Amr Ahmeed');
+            setProfileUsername(u.username || 'khaled-amr-ahmeed');
+            setProfileUniversity(u.university || 'Cairo University');
+            if (u.bio) setProfileBio(u.bio);
+            if (u.availability) setProfileAvailability(u.availability);
+            if (u.offeredSkills?.length) setOfferedSkills(u.offeredSkills);
+            if (typeof u.availableCredits === 'number') setAvailableCredits(u.availableCredits);
+            if (typeof u.reservedCredits === 'number') setReservedCredits(u.reservedCredits);
+            if (typeof u.earnedLifetime === 'number') setEarnedLifetime(u.earnedLifetime);
+            if (typeof u.spentLifetime === 'number') setSpentLifetime(u.spentLifetime);
+            if (typeof u.completedExchanges === 'number') setCompletedExchanges(u.completedExchanges);
+          }
+        }
+
+        // 2. Wallet & Transactions
+        const walletRes = await fetch('/api/wallet');
+        if (walletRes.ok) {
+          const walletData = await walletRes.json();
+          if (walletData?.telemetry && isMounted) {
+            const t = walletData.telemetry;
+            setAvailableCredits(t.availableCredits);
+            setReservedCredits(t.reservedCredits);
+            setEarnedLifetime(t.earnedLifetime);
+            setSpentLifetime(t.spentLifetime);
+            setCompletedExchanges(t.completedExchanges);
+          }
+          if (Array.isArray(walletData?.transactions) && walletData.transactions.length > 0 && isMounted) {
+            setTransactions(
+              walletData.transactions.map((tx: any) => ({
+                id: tx.id,
+                initials: tx.initials || 'ET',
+                counterparty: tx.counterparty,
+                title: tx.title,
+                availableDelta: tx.availableDelta,
+                reservedDelta: tx.reservedDelta,
+                typeLabel: tx.type,
+                time: tx.date || 'Recent',
+              }))
+            );
+          }
+        }
+
+        // 3. Listings
+        const listingsRes = await fetch('/api/listings');
+        if (listingsRes.ok) {
+          const listingsData = await listingsRes.json();
+          if (Array.isArray(listingsData?.listings) && listingsData.listings.length > 0 && isMounted) {
+            setListings(listingsData.listings.map((l: any) => mapApiListing(l, currentUserId)));
+          }
+        }
+
+        // 4. Agreements
+        const agreementsRes = await fetch('/api/agreements');
+        if (agreementsRes.ok) {
+          const agreementsData = await agreementsRes.json();
+          if (Array.isArray(agreementsData?.agreements) && agreementsData.agreements.length > 0 && isMounted) {
+            const mappedRooms = agreementsData.agreements.map((r: any) => mapApiRoom(r, currentUserId));
+            setRooms(mappedRooms);
+            if (mappedRooms[0]) {
+              setActiveRoomId(mappedRooms[0].id);
+            }
+          }
+        }
+
+        // 5. Community Spaces
+        const communityRes = await fetch('/api/community');
+        if (communityRes.ok) {
+          const commData = await communityRes.json();
+          if (Array.isArray(commData?.spaces) && commData.spaces.length > 0 && isMounted) {
+            setSpaces(
+              commData.spaces.map((s: any) => ({
+                id: s.id,
+                kind: s.kind === 'GROUP' ? 'Group' : s.kind === 'EVENT' ? 'Event' : 'Project',
+                tag: s.tag,
+                eyebrowCta: s.eyebrowCta,
+                title: s.title,
+                description: s.description,
+                hostName: s.host?.fullName || 'Campus Peer',
+                hostInitials: getInitials(s.host?.fullName || 'CP'),
+                members: s.membersCount || 1,
+                isHost: s.hostId === currentUserId,
+              }))
+            );
+          }
+        }
+
+        // 6. Beta Subscription Interests
+        const betaRes = await fetch('/api/subscription/beta');
+        if (betaRes.ok) {
+          const betaData = await betaRes.json();
+          if (Array.isArray(betaData?.plans) && isMounted) {
+            setBetaPlans((prev) =>
+              prev.map((p) => ({
+                ...p,
+                onWaitlist: betaData.plans.includes(p.id),
+              }))
+            );
+          }
+        }
+      } catch (err) {
+        // Gracefully keep initial seeded state
+        console.warn('Backend live sync warning (using seeded local state):', err);
+      }
+    }
+
+    syncBackendState();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUserId]);
+
   const userInitials = useMemo(() => {
-    const parts = profileFullName.trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) return 'KA';
-    return ((parts[0][0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'KA';
+    return getInitials(profileFullName);
   }, [profileFullName]);
 
   const activeRoom = useMemo(() => {
@@ -274,10 +462,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   // Handlers
   const handleToggleSaveListing = useCallback((id: string) => {
     setListings((prev) => prev.map((l) => (l.id === id ? { ...l, saved: !l.saved } : l)));
+    fetch(`/api/listings/${id}/save`, { method: 'POST' }).catch(() => {});
   }, []);
 
   const handleCreateListing = useCallback(
-    (form: {
+    async (form: {
       type: ListingType;
       category: string;
       title: string;
@@ -289,6 +478,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         pushToast('Add a skill title before publishing.');
         return;
       }
+
+      // Optimistic create
       const created: SkillListing = {
         id: `lst-${Date.now()}`,
         category: form.category,
@@ -305,15 +496,42 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         saved: false,
         isMine: true,
       };
+
       setListings((prev) => [created, ...prev]);
       setPostModalOpen(false);
       pushToast(`Published "${created.title}" to Explore marketplace.`);
+
+      // Sync to live DB
+      try {
+        const res = await fetch('/api/listings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: form.title.trim(),
+            description: form.description.trim(),
+            category: form.category,
+            type: form.type === 'Looking for' ? 'LOOKING_FOR' : 'OFFERING',
+            format: form.format === 'In-person' ? 'IN_PERSON' : form.format === 'Hybrid' ? 'HYBRID' : 'ONLINE',
+            creditsPerHr: form.creditsPerHr,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.listing?.id) {
+            setListings((prev) =>
+              prev.map((l) => (l.id === created.id ? mapApiListing(data.listing, currentUserId) : l))
+            );
+          }
+        }
+      } catch (e) {
+        console.warn('Listing DB write skipped/cached:', e);
+      }
     },
-    [userInitials, profileFullName, pushToast]
+    [userInitials, profileFullName, currentUserId, pushToast]
   );
 
   const handleOpenRoomForListing = useCallback(
-    (listing: SkillListing) => {
+    async (listing: SkillListing) => {
       const existing = rooms.find(
         (r) =>
           r.title.toLowerCase() === listing.title.toLowerCase() &&
@@ -322,71 +540,100 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       if (existing) {
         setActiveRoomId(existing.id);
         router.push(`/agreement?roomId=${existing.id}`);
-      } else {
-        const newRoom: AgreementRoom = {
-          id: `room-${Date.now()}`,
-          title: listing.title,
-          category: listing.category,
-          peerName: listing.authorName,
-          peerInitials: listing.authorInitials,
-          role: listing.type === 'Offering' ? 'requester' : 'provider',
-          goal: 'Define the outcome you are agreeing to',
-          format: listing.format,
-          durationHrs: 1,
-          creditsPerHr: listing.creditsPerHr,
-          termsVersion: 1,
-          stage: 'Negotiating',
-          messages: [
-            {
-              id: `sys-${Date.now()}`,
-              sender: 'system',
-              author: 'System',
-              text: 'Exchange started. Agree on the goal, format, duration, and credits, then both confirm the same terms.',
-              time: 'Just now',
-            },
-          ],
-        };
-        setRooms((prev) => [newRoom, ...prev]);
-        setActiveRoomId(newRoom.id);
-        router.push(`/agreement?roomId=${newRoom.id}`);
+        pushToast(`Navigated to active agreement room for "${listing.title}".`);
+        return;
       }
+
+      const newRoom: AgreementRoom = {
+        id: `room-${Date.now()}`,
+        title: listing.title,
+        category: listing.category,
+        peerName: listing.authorName,
+        peerInitials: listing.authorInitials,
+        role: listing.type === 'Offering' ? 'requester' : 'provider',
+        goal: 'Define the outcome you are agreeing to',
+        format: listing.format,
+        durationHrs: 1,
+        creditsPerHr: listing.creditsPerHr,
+        termsVersion: 1,
+        stage: 'Negotiating',
+        messages: [
+          {
+            id: `sys-${Date.now()}`,
+            sender: 'system',
+            author: 'System',
+            text: 'Exchange started. Agree on the goal, format, duration, and credits, then both confirm the same terms.',
+            time: 'Just now',
+          },
+        ],
+      };
+
+      setRooms((prev) => [newRoom, ...prev]);
+      setActiveRoomId(newRoom.id);
+      router.push(`/agreement?roomId=${newRoom.id}`);
       pushToast(`Opened Agreement room for "${listing.title}" with ${listing.authorName}.`);
     },
     [rooms, router, pushToast]
   );
 
   const handleSendChatMessage = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
       if (!chatInput.trim() || !activeRoom) return;
+      const text = chatInput.trim();
       const msg: ChatMessage = {
         id: `msg-${Date.now()}`,
         sender: 'me',
         author: profileFullName,
-        text: chatInput.trim(),
+        text,
         time: 'Just now',
       };
       setRooms((prev) =>
         prev.map((r) => (r.id === activeRoom.id ? { ...r, messages: [...r.messages, msg] } : r))
       );
       setChatInput('');
+
+      // Send to DB if real room id
+      if (activeRoom.id.length > 10) {
+        try {
+          await fetch(`/api/agreements/${activeRoom.id}/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ body: text }),
+          });
+        } catch {
+          // Keep optimistic message
+        }
+      }
     },
     [chatInput, activeRoom, profileFullName]
   );
 
   const handleUpdateRoomTerms = useCallback(
-    (patch: Partial<AgreementRoom>) => {
+    async (patch: Partial<AgreementRoom>) => {
       if (!activeRoom || activeRoom.stage !== 'Negotiating') return;
       setRooms((prev) =>
         prev.map((r) =>
           r.id === activeRoom.id ? { ...r, ...patch, termsVersion: r.termsVersion + 1 } : r
         )
       );
+
+      if (activeRoom.id.length > 10) {
+        try {
+          await fetch(`/api/agreements/${activeRoom.id}/terms`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(patch),
+          });
+        } catch {
+          // Keep optimistic
+        }
+      }
     },
     [activeRoom]
   );
 
-  const handleAdvanceAgreementStage = useCallback(() => {
+  const handleAdvanceAgreementStage = useCallback(async () => {
     if (!activeRoom) return;
     const totalCredits = activeRoom.durationHrs * activeRoom.creditsPerHr;
 
@@ -396,7 +643,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       if (activeRoom.role === 'requester') {
-        setAvailableCredits((c) => c - totalCredits);
+        setAvailableCredits((c) => Math.max(0, c - totalCredits));
         setReservedCredits((r) => r + totalCredits);
         setTransactions((prev) => [
           {
@@ -424,7 +671,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
                     id: `sys-${Date.now()}`,
                     sender: 'system',
                     author: 'System',
-                    text: `Terms v${r.termsVersion} confirmed & escrowed (${totalCredits} credit${totalCredits > 1 ? 's' : ''}).`,
+                    text: `Terms v${r.termsVersion} confirmed & escrowed (${totalCredits} credit${
+                      totalCredits > 1 ? 's' : ''
+                    }).`,
                     time: 'Just now',
                   },
                 ],
@@ -512,9 +761,20 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       );
       pushToast('Exchange completed! Wallet ledger updated.');
     }
+
+    // Call live backend endpoint if roomId matches database format
+    if (activeRoom.id.length > 10) {
+      try {
+        await fetch(`/api/agreements/${activeRoom.id}/advance`, {
+          method: 'POST',
+        });
+      } catch {
+        // Keep optimistic state
+      }
+    }
   }, [activeRoom, availableCredits, pushToast]);
 
-  const handleCancelExchange = useCallback(() => {
+  const handleCancelExchange = useCallback(async () => {
     if (!activeRoom || activeRoom.stage === 'Completed' || activeRoom.stage === 'Cancelled') return;
     const totalCredits = activeRoom.durationHrs * activeRoom.creditsPerHr;
     if (
@@ -545,10 +805,20 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       )
     );
     pushToast('Exchange cancelled.');
+
+    if (activeRoom.id.length > 10) {
+      try {
+        await fetch(`/api/agreements/${activeRoom.id}/cancel`, {
+          method: 'POST',
+        });
+      } catch {
+        // Keep optimistic
+      }
+    }
   }, [activeRoom, pushToast]);
 
   const handleSaveSpace = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
       if (!spaceForm.title.trim()) {
         pushToast('Enter a title for the space.');
@@ -569,6 +839,19 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           )
         );
         pushToast('Updated community space.');
+
+        if (editingSpaceId.length > 10) {
+          fetch(`/api/community/${editingSpaceId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              kind: spaceForm.kind.toUpperCase(),
+              tag: spaceForm.tag,
+              title: spaceForm.title,
+              description: spaceForm.description,
+            }),
+          }).catch(() => {});
+        }
       } else {
         const eyebrowMap: Record<CommunityCategory, string> = {
           Project: 'Build with peers',
@@ -589,6 +872,18 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         };
         setSpaces((prev) => [created, ...prev]);
         pushToast(`Created "${created.title}" in Community.`);
+
+        fetch('/api/community', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            kind: spaceForm.kind.toUpperCase(),
+            tag: spaceForm.tag,
+            eyebrowCta: eyebrowMap[spaceForm.kind],
+            title: spaceForm.title,
+            description: spaceForm.description,
+          }),
+        }).catch(() => {});
       }
       setSpaceModalOpen(false);
       setEditingSpaceId(null);
@@ -606,6 +901,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         }
         return prev.filter((s) => s.id !== id);
       });
+      if (id.length > 10) {
+        fetch(`/api/community/${id}`, { method: 'DELETE' }).catch(() => {});
+      }
     },
     [pushToast]
   );
@@ -624,6 +922,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           return { ...p, onWaitlist: next };
         })
       );
+      fetch('/api/subscription/beta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planKey: planId }),
+      }).catch(() => {});
     },
     [pushToast]
   );
@@ -634,16 +937,31 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       const cleaned = newSkillInput.trim();
       if (!cleaned) return;
       if (!offeredSkills.includes(cleaned)) {
-        setOfferedSkills((prev) => [...prev, cleaned]);
+        const updated = [...offeredSkills, cleaned];
+        setOfferedSkills(updated);
+        fetch('/api/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ offeredSkills: updated }),
+        }).catch(() => {});
       }
       setNewSkillInput('');
     },
     [newSkillInput, offeredSkills]
   );
 
-  const handleRemoveOfferedSkill = useCallback((skill: string) => {
-    setOfferedSkills((prev) => prev.filter((item) => item !== skill));
-  }, []);
+  const handleRemoveOfferedSkill = useCallback(
+    (skill: string) => {
+      const updated = offeredSkills.filter((item) => item !== skill);
+      setOfferedSkills(updated);
+      fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offeredSkills: updated }),
+      }).catch(() => {});
+    },
+    [offeredSkills]
+  );
 
   const handleAuthSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -659,6 +977,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   );
 
   const handleLogout = useCallback(() => {
+    fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     setIsAuthenticated(false);
     pushToast('Logged out of student workspace.');
     router.push('/login');
@@ -669,6 +988,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       themeMode,
       setThemeMode,
       toggleTheme,
+      currentUserId,
       isAuthenticated,
       setIsAuthenticated,
       authMode,
@@ -749,6 +1069,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     [
       themeMode,
       toggleTheme,
+      currentUserId,
       isAuthenticated,
       authMode,
       authEmail,
@@ -809,9 +1130,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useWorkspace() {
-  const context = useContext(WorkspaceContext);
-  if (!context) {
+  const ctx = useContext(WorkspaceContext);
+  if (!ctx) {
     throw new Error('useWorkspace must be used within a WorkspaceProvider');
   }
-  return context;
+  return ctx;
 }

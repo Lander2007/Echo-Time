@@ -85,7 +85,30 @@ export default function ProfilePage() {
 
           <button
             type="button"
-            onClick={() => pushToast('Profile changes saved.')}
+            onClick={async () => {
+              try {
+                const res = await fetch('/api/profile', {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    fullName: profileFullName,
+                    username: profileUsername,
+                    university: profileUniversity,
+                    bio: profileBio,
+                    availability: profileAvailability,
+                    offeredSkills,
+                    avatarActive: hasProfilePhoto,
+                  }),
+                });
+                if (res.ok) {
+                  pushToast('Profile changes saved to database.');
+                } else {
+                  pushToast('Profile changes saved locally.');
+                }
+              } catch {
+                pushToast('Profile changes saved locally.');
+              }
+            }}
             className="px-4 py-2.5 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-[11px] font-bold uppercase tracking-[0.11em] hover:brightness-95 shrink-0"
           >
             Save changes

@@ -18,6 +18,8 @@ export function TopNavbar() {
     notifOpen,
     setNotifOpen,
     handleLogout,
+    authEmail,
+    profileFullName,
   } = useWorkspace();
 
   const isHomeActive =
@@ -115,6 +117,15 @@ export function TopNavbar() {
                 </button>
               </div>
             </div>
+          )}
+
+          {(authEmail.includes('khaled') || profileFullName.includes('Khaled')) && (
+            <span
+              className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-[#D93829]/15 border border-[#D93829]/40 text-[#D93829] font-et-mono text-[10px] font-bold tracking-[0.08em] uppercase"
+              title="Signed in via 1-Click Competition Judge Demo Mode"
+            >
+              ⚖️ Judge Demo
+            </span>
           )}
 
           <button
