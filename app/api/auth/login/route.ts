@@ -67,20 +67,11 @@ export async function POST(req: NextRequest) {
     return res;
   } catch (error: any) {
     console.error('Login error:', error);
-    const msg = String(error?.message || '');
-    let userError = 'An unexpected database error occurred during login.';
-    if (
-      msg.includes('localhost') ||
-      msg.includes('127.0.0.1') ||
-      msg.includes('P1001') ||
-      msg.includes("Can't reach database server")
-    ) {
-      userError =
-        'Database unreachable: DATABASE_URL is pointing to localhost or is invalid in Vercel. Please set a cloud PostgreSQL URL (e.g. Neon.tech) in Vercel Environment Variables.';
-    } else if (msg.includes('does not exist') || msg.includes('P2021')) {
-      userError =
-        'Database tables not found: Please run "npx prisma db push" to create tables in your cloud database.';
-    }
-    return NextResponse.json({ error: userError }, { status: 500 });
+    const msg = String(error?.message || error?.toString() || 'Unknown error');
+    const code = error?.code ? ` [${error.code}]` : '';
+    return NextResponse.json(
+      { error: `Database error${code}: ${msg.replace(/npg_[a-zA-Z0-9]+/g, 'npg_***')}` },
+      { status: 500 }
+    );
   }
 }
