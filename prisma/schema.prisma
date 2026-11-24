@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum PlanTier {
+  STUDENT_FREE
+  PRO
+  CAMPUS_ENTERPRISE
+}
+
+enum ListingType {
+  OFFERING
+  LOOKING_FOR
+}
+
+enum ListingFormat {
+  ONLINE
+  IN_PERSON
+  HYBRID
+}
+
+enum ListingStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum AgreementStage {
+  NEGOTIATING
+  CONFIRMED_ESCROWED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+}
+
+enum MessageSenderType {
+  SYSTEM
+  ME
+  PEER
+}
+
+enum CommunityKind {
+  PROJECT
+  GROUP
+  EVENT
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  fullName           String
+  username           String   @unique
+  email              String   @unique
+  passwordHash       String
+  university         String   @default("Accredited University")
+  bio                String?
+  availability       String?  @default("Available for sessions")
+  avatarActive       Boolean  @default(true)
+  planTier           PlanTier @default(STUDENT_FREE)
+  streakDays         Int      @default(3)
+  availableCredits   Float    @default(5.0)
+  reservedCredits    Float    @default(0.0)
+  earnedLifetime     Float    @default(0.0)
+  spentLifetime      Float    @default(0.0)
+  completedExchanges Int      @default(0)
+  offeredSkills      String[] @default([])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  listings            SkillListing[]
+  savedListings       SavedListing[]
+  requestedAgreements AgreementRoom[]     @relation("RequestedAgreements")
+  providedAgreements  AgreementRoom[]     @relation("ProvidedAgreements")
+  messages            AgreementMessage[]
+  transactions        WalletTransaction[]
+  hostedCommunities   CommunitySpace[]
+  betaInterests       BetaInterest[]
+
+  @@index([email])
+  @@index([username])
+}
+
+model SkillListing {
+  id           String        @id @default(cuid())
+  authorId     String
+  author       User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category     String
+  type         ListingType   @default(OFFERING)
+  title        String
+  description  String
+  format       ListingFormat @default(ONLINE)
+  creditsPerHr Int           @default(1)
+  status       ListingStatus @default(ACTIVE)
+  rating       Float         @default(5.0)
+  reviewsCount Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  savedBy    SavedListing[]
+  agreements AgreementRoom[]
+
+  @@index([authorId])
+  @@index([category])
+  @@index([status])
+}
+
+model SavedListing {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   SkillListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+  @@index([userId])
+}
+
+model AgreementRoom {
+  id           String         @id @default(cuid())
+  listingId    String?
+  listing      SkillListing?  @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  requesterId  String
+  requester    User           @relation("RequestedAgreements", fields: [requesterId], references: [id], onDelete: Cascade)
+  providerId   String
+  provider     User           @relation("ProvidedAgreements", fields: [providerId], references: [id], onDelete: Cascade)
+  title        String
+  category     String
+  goal         String
+  format       String         @default("Online")
+  durationHrs  Int            @default(1)
+  creditsPerHr Int            @default(1)
+  termsVersion Int            @default(1)
+  stage        AgreementStage @default(NEGOTIATING)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  messages     AgreementMessage[]
+  transactions WalletTransaction[]
+
+  @@index([requesterId])
+  @@index([providerId])
+  @@index([stage])
+}
+
+model AgreementMessage {
+  id          String            @id @default(cuid())
+  roomId      String
+  room        AgreementRoom     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  senderId    String?
+  sender      User?             @relation(fields: [senderId], references: [id], onDelete: SetNull)
+  senderType  MessageSenderType @default(ME)
+  authorLabel String
+  body        String
+  createdAt   DateTime          @default(now())
+
+  @@index([roomId])
+}
+
+model WalletTransaction {
+  id                   String         @id @default(cuid())
+  userId               String
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  counterpartyInitials String
+  counterpartyName     String
+  title                String
+  availableDelta       Float
+  reservedDelta        Float
+  typeLabel            String
+  roomId               String?
+  room                 AgreementRoom? @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  createdAt            DateTime       @default(now())
+
+  @@index([userId])
+}
+
+model CommunitySpace {
+  id           String        @id @default(cuid())
+  hostId       String
+  host         User          @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  kind         CommunityKind @default(PROJECT)
+  tag          String
+  eyebrowCta   String
+  title        String
+  description  String
+  membersCount Int           @default(1)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([hostId])
+  @@index([kind])
+}
+
+model BetaInterest {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planKey   String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, planKey])
+  @@index([userId])
+}
