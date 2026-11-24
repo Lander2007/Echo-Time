@@ -36,6 +36,32 @@
     --grid-line: rgba(245, 242, 243, 0.075);
   }
 
+  /* In Imperial Blue World, ensure any white/light surface card resets to high-contrast dark ink */
+  .theme-light .bg-surface,
+  .theme-light .patchboard-chassis {
+    --ink: #0B1026;
+    --muted: #565C73;
+    --accent: #021F94;
+    --accent-text: #021F94;
+    --accent-ink: #F5F2F3;
+    --border: rgba(2, 31, 148, 0.16);
+    --border-strong: rgba(2, 31, 148, 0.28);
+    color: #0B1026;
+  }
+  .theme-light input.bg-surface,
+  .theme-light select.bg-surface {
+    color: #0B1026 !important;
+    background-color: #FFFFFF !important;
+    border-color: rgba(2, 31, 148, 0.28) !important;
+  }
+  .theme-light input.bg-surface::placeholder {
+    color: #565C73 !important;
+  }
+  .theme-light select.bg-surface option {
+    color: #0B1026;
+    background-color: #FFFFFF;
+  }
+
   html {
     scroll-behavior: auto;
     background-color: #F5F2F3;
@@ -657,13 +683,14 @@
     pointer-events: auto;
   }
 
-  /* Act III — Braun / Swiss Campus Skill Patchboard */
+  /* Braun / Swiss Campus Skill Patchboard */
   .patchboard-chassis {
     position: relative;
     background-color: #F5F2F3;
-    border: 1.5px solid rgba(245, 242, 243, 0.35);
+    border: 1.5px solid rgba(2, 31, 148, 0.28);
     border-radius: 4px;
-    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.18);
+    color: #0B1026;
   }
   .patch-jack-btn {
     position: relative;
@@ -677,13 +704,16 @@
     transition: border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease;
   }
   .patch-jack-btn:hover { border-color: #021F94; }
+  .patch-jack-btn .jack-sub { color: #565C73; }
+  .patch-jack-btn .text-accent { color: #021F94; }
   .patch-jack-btn.is-patched {
-    background-color: #021F94;
-    color: #F5F2F3;
-    border-color: #021F94;
+    background-color: #021F94 !important;
+    color: #F5F2F3 !important;
+    border-color: #021F94 !important;
   }
-  .patch-jack-btn.is-patched .jack-sub { color: #B9C8FF; }
-  .patch-jack-btn.is-patched .text-accent { color: #F5F2F3; }
+  .patch-jack-btn.is-patched .font-swiss-sans { color: #F5F2F3 !important; }
+  .patch-jack-btn.is-patched .jack-sub { color: #B9C8FF !important; }
+  .patch-jack-btn.is-patched .text-accent { color: #F5F2F3 !important; }
   .jack-socket {
     width: 22px;
     height: 22px;
@@ -722,13 +752,16 @@
     color: #0B1026;
     transition: border-color 0.22s ease, background-color 0.22s ease;
   }
+  .patch-target-card .jack-sub { color: #565C73; }
+  .patch-target-card .text-accent { color: #021F94; }
   .patch-target-card.is-patched {
-    border-color: #021F94;
-    background-color: #021F94;
-    color: #F5F2F3;
+    border-color: #021F94 !important;
+    background-color: #021F94 !important;
+    color: #F5F2F3 !important;
   }
-  .patch-target-card.is-patched .jack-sub { color: #B9C8FF; }
-  .patch-target-card.is-patched .text-accent { color: #F5F2F3; }
+  .patch-target-card.is-patched .font-swiss-sans { color: #F5F2F3 !important; }
+  .patch-target-card.is-patched .jack-sub { color: #B9C8FF !important; }
+  .patch-target-card.is-patched .text-accent { color: #F5F2F3 !important; }
   @keyframes signalPacket {
     from { stroke-dashoffset: 64; }
     to { stroke-dashoffset: 0; }
@@ -985,18 +1018,23 @@
     text-align: left;
     padding: 18px 20px;
     border-radius: 4px;
-    border: 1.5px solid rgba(2, 31, 148, 0.18);
+    border: 1.5px solid rgba(2, 31, 148, 0.22);
     background-color: #FFFFFF;
     color: #0B1026;
     transition: border-color 0.22s ease, background-color 0.22s ease, transform 0.16s ease;
   }
   .stress-key-btn:hover { border-color: #021F94; }
+  .stress-key-btn .text-ink { color: #0B1026; }
+  .stress-key-btn .text-muted { color: #565C73; }
   .stress-key-btn.is-active {
-    border-color: #021F94;
-    background-color: #021F94;
-    color: #F5F2F3;
+    border-color: #021F94 !important;
+    background-color: #021F94 !important;
+    color: #F5F2F3 !important;
     box-shadow: 0 0 0 1px #021F94;
   }
+  .stress-key-btn.is-active .text-ink { color: #F5F2F3 !important; }
+  .stress-key-btn.is-active .text-muted { color: #B9C8FF !important; }
+  .stress-key-btn.is-active .text-accent { color: #F5F2F3 !important; }
   .stress-led {
     width: 9px;
     height: 9px;
@@ -1131,6 +1169,32 @@
     --border: rgba(245, 242, 243, 0.20);
     --border-strong: rgba(245, 242, 243, 0.42);
     --grid-line: rgba(245, 242, 243, 0.075);
+  }
+
+  /* In Imperial Blue World, ensure any white/light surface card resets to high-contrast dark ink */
+  .theme-light .bg-surface,
+  .theme-light .patchboard-chassis {
+    --ink: #0B1026;
+    --muted: #565C73;
+    --accent: #021F94;
+    --accent-text: #021F94;
+    --accent-ink: #F5F2F3;
+    --border: rgba(2, 31, 148, 0.16);
+    --border-strong: rgba(2, 31, 148, 0.28);
+    color: #0B1026;
+  }
+  .theme-light input.bg-surface,
+  .theme-light select.bg-surface {
+    color: #0B1026 !important;
+    background-color: #FFFFFF !important;
+    border-color: rgba(2, 31, 148, 0.28) !important;
+  }
+  .theme-light input.bg-surface::placeholder {
+    color: #565C73 !important;
+  }
+  .theme-light select.bg-surface option {
+    color: #0B1026;
+    background-color: #FFFFFF;
   }
 
   .et-app-light {

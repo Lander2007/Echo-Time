@@ -72,9 +72,9 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
 
                   {/* LEFT COLUMN: YOU OFFER */}
                   <div className="lg:col-span-4 flex flex-col justify-between gap-3 relative z-20">
-                    <div className="font-swiss-mono text-[10px] uppercase tracking-[0.15em] text-muted mb-1 flex items-center justify-between">
+                    <div className="font-swiss-mono text-[10px] uppercase tracking-[0.15em] text-[#565C73] mb-1 flex items-center justify-between">
                       <span>INPUT &middot; SKILL YOU OFFER</span>
-                      <span className="text-accent font-semibold">+1.00 ECHO</span>
+                      <span className="text-[#021F94] font-semibold">+1.00 ECHO</span>
                     </div>
 
                     {CIRCUITS.map((c, idx) => (
@@ -97,7 +97,7 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                           <div className="font-swiss-sans font-extrabold text-base mt-0.5">
                             {c.inTitle}
                           </div>
-                          <div className="jack-sub font-swiss-mono text-[10.5px] text-muted mt-0.5">
+                          <div className="jack-sub font-swiss-mono text-[10.5px] mt-0.5">
                             {c.inSub}
                           </div>
                         </div>
@@ -108,37 +108,37 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
 
                   {/* CENTER COLUMN: ROUTING READOUT & CAPSTONE GUILD BUS */}
                   <div className="lg:col-span-4 flex flex-col justify-between gap-4 relative z-20 lg:px-4">
-                    <div className="rounded border border-strong bg-surface p-5 flex-1 flex flex-col justify-between">
+                    <div className="rounded border border-[#021F94]/25 bg-white p-5 flex-1 flex flex-col justify-between text-[#0B1026]">
                       <div>
-                        <div className="flex items-center justify-between font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-muted pb-3 border-b border-theme">
-                          <span>{CANONICAL_CONTENT.solution.exampleCard.title}</span>
-                          <span className="text-accent font-semibold tabular">{CANONICAL_CONTENT.solution.exampleCard.rateValue}</span>
+                        <div className="flex items-center justify-between font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-[#565C73] pb-3 border-b border-[#021F94]/15">
+                          <span className="font-semibold text-[#021F94]">{CANONICAL_CONTENT.solution.exampleCard.title}</span>
+                          <span className="text-[#021F94] font-bold tabular">{CANONICAL_CONTENT.solution.exampleCard.rateValue}</span>
                         </div>
-                        <div className="mt-4 font-swiss-sans font-extrabold text-xl tracking-tight text-ink">
+                        <div className="mt-4 font-swiss-sans font-extrabold text-xl tracking-tight text-[#0B1026]">
                           {CANONICAL_CONTENT.solution.exampleCard.goalLabel}: {CANONICAL_CONTENT.solution.exampleCard.goalValue}
                         </div>
-                        <p className="mt-2 text-xs sm:text-sm text-muted leading-relaxed">
+                        <p className="mt-2 text-xs sm:text-sm text-[#565C73] leading-relaxed">
                           {CANONICAL_CONTENT.solution.description}
                         </p>
                         <div className="mt-3">
                           <a
                             href="#act-marketplace"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-accent text-accent-ink font-swiss-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-[10px] font-semibold uppercase tracking-[0.1em] hover:bg-[#032BCB] transition-colors"
                           >
                             {CANONICAL_CONTENT.solution.cta} &rarr;
                           </a>
                         </div>
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-theme flex flex-wrap items-center gap-1.5 font-swiss-mono text-[10px] uppercase">
+                      <div className="mt-4 pt-3 border-t border-[#021F94]/15 flex flex-wrap items-center gap-1.5 font-swiss-mono text-[10px] uppercase">
                         <span className="px-2 py-1 rounded-sm bg-[#061354] text-[#F5F2F3]">
                           {CANONICAL_CONTENT.solution.exampleCard.formatValue}
                         </span>
-                        <span className="text-accent font-bold">&rarr;</span>
-                        <span className="px-2 py-1 rounded-sm bg-accent text-accent-ink font-semibold">
+                        <span className="text-[#021F94] font-bold">&rarr;</span>
+                        <span className="px-2 py-1 rounded-sm bg-[#021F94] text-[#F5F2F3] font-semibold">
                           {CANONICAL_CONTENT.solution.exampleCard.durationValue}
                         </span>
-                        <span className="text-accent font-bold">&rarr;</span>
+                        <span className="text-[#021F94] font-bold">&rarr;</span>
                         <span className="px-2 py-1 rounded-sm bg-[#021F94] border border-[#061354] text-[#F5F2F3] font-semibold">
                           {CANONICAL_CONTENT.solution.exampleCard.totalValue}
                         </span>
@@ -193,9 +193,9 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
 
                   {/* RIGHT COLUMN: YOU UNLOCK */}
                   <div className="lg:col-span-4 flex flex-col justify-between gap-3 relative z-20">
-                    <div className="font-swiss-mono text-[10px] uppercase tracking-[0.15em] text-muted mb-1 flex items-center justify-between">
+                    <div className="font-swiss-mono text-[10px] uppercase tracking-[0.15em] text-[#565C73] mb-1 flex items-center justify-between">
                       <span>OUTPUT &middot; SKILL YOU UNLOCK</span>
-                      <span className="text-ink font-semibold">-1.00 ECHO</span>
+                      <span className="text-[#0B1026] font-semibold">-1.00 ECHO</span>
                     </div>
 
                     {CIRCUITS.map((c, idx) => (
@@ -213,7 +213,7 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                           <div className="font-swiss-sans font-extrabold text-base mt-0.5">
                             {c.outTitle}
                           </div>
-                          <div className="jack-sub font-swiss-mono text-[10.5px] text-muted mt-0.5">
+                          <div className="jack-sub font-swiss-mono text-[10.5px] mt-0.5">
                             {c.outSub}
                           </div>
                         </div>

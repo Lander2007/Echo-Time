@@ -1563,12 +1563,13 @@ export default function EchoTimeLandingPage() {
             handleOpenAgreementRoom={handleOpenAgreementRoom}
             getAudio={getAudio}
           />
+        </div>
 
-          <div
-            ref={vaultChamberRef}
-            id="dark-vault-chamber"
-            className="theme-dark swiss-grid-dark vault-chamber-shell"
-          >
+        <div
+          ref={vaultChamberRef}
+          id="dark-vault-chamber"
+          className="theme-dark swiss-grid-dark vault-chamber-shell"
+        >
             <VaultMarqueeBridge
               bridgeBandRef={bridgeBandRef}
               marqueeTopRef={marqueeTopRef}
@@ -1632,7 +1633,6 @@ export default function EchoTimeLandingPage() {
               getAudio={getAudio}
             />
           </div>
-        </div>
       </main>
 
       <AgreementDrawer

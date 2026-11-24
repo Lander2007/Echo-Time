@@ -70,16 +70,16 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                   {CANONICAL_CONTENT.howItWorks.steps.map((st) => (
                     <div
                       key={st.step}
-                      className="p-5 rounded border border-strong bg-surface flex flex-col justify-between"
+                      className="p-5 rounded border border-[#021F94]/25 bg-white flex flex-col justify-between"
                     >
                       <div>
-                        <div className="font-swiss-mono text-sm font-bold text-accent mb-2">
+                        <div className="font-swiss-mono text-sm font-bold text-[#021F94] mb-2">
                           {st.step}
                         </div>
-                        <h3 className="font-swiss-sans font-bold text-base text-ink mb-2">
+                        <h3 className="font-swiss-sans font-bold text-base text-[#0B1026] mb-2">
                           {st.title}
                         </h3>
-                        <p className="font-swiss-sans text-xs text-muted leading-relaxed">
+                        <p className="font-swiss-sans text-xs text-[#565C73] leading-relaxed">
                           {st.description}
                         </p>
                       </div>
@@ -104,21 +104,21 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                   </div>
 
                   {/* Live Demo Wallet Telemetry (Warm Bone Card on Acid Lime) */}
-                  <div className="inline-flex items-center gap-5 px-5 py-3 rounded border border-strong bg-surface">
+                  <div className="inline-flex items-center gap-5 px-5 py-3 rounded border border-[#021F94]/25 bg-white">
                     <div>
-                      <div className="font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-muted">
+                      <div className="font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-[#565C73]">
                         {CANONICAL_CONTENT.discover.wallet.labels[0]}
                       </div>
-                      <div className="font-swiss-mono font-semibold text-xl tabular text-ink">
+                      <div className="font-swiss-mono font-semibold text-xl tabular text-[#0B1026]">
                         {walletAvailable.toFixed(2)} ECHO
                       </div>
                     </div>
-                    <div className="h-8 w-px" style={{ backgroundColor: 'var(--border-strong)' }} />
+                    <div className="h-8 w-px bg-[#021F94]/20" />
                     <div>
-                      <div className="font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-muted">
+                      <div className="font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-[#565C73]">
                         {CANONICAL_CONTENT.discover.wallet.labels[1]}
                       </div>
-                      <div className="font-swiss-mono font-semibold text-xl tabular text-accent">
+                      <div className="font-swiss-mono font-semibold text-xl tabular text-[#021F94]">
                         {walletLocked.toFixed(2)} ECHO
                       </div>
                     </div>
@@ -159,10 +159,10 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Filter board: Next.js, Rhino, SQL..."
                       aria-label="Search student listings"
-                      className="w-full pl-9 pr-4 py-2 rounded border border-strong bg-surface text-sm text-ink placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+                      className="w-full pl-9 pr-4 py-2 rounded border border-[#021F94]/25 bg-white text-sm text-[#0B1026] placeholder:text-[#565C73] focus:outline-none focus:border-[#021F94] transition-colors"
                     />
                     <svg
-                      className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                      className="w-4 h-4 text-[#565C73] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
                       viewBox="0 0 20 20"
                       fill="none"
                       stroke="currentColor"
@@ -180,7 +180,7 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                       window.requestAnimationFrame(() => triggerFlapScramble());
                     }}
                     aria-label="Sort listings"
-                    className="px-4 py-2 rounded border border-strong bg-surface hover:border-accent font-swiss-mono text-[11px] uppercase tracking-[0.09em] text-ink focus:outline-none focus:border-accent transition-colors"
+                    className="px-4 py-2 rounded border border-[#021F94]/25 bg-white hover:border-[#021F94] font-swiss-mono text-[11px] uppercase tracking-[0.09em] text-[#0B1026] focus:outline-none focus:border-[#021F94] transition-colors"
                   >
                     <option value="rating">Sort: Highest Rating</option>
                     <option value="hours-asc">Sort: Shortest Session</option>

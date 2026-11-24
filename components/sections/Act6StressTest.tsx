@@ -113,17 +113,25 @@ export const Act6StressTest: React.FC<Act6StressTestProps> = ({
                 }}
                 className={`stress-key-btn text-left p-4 sm:p-5 rounded border transition-all ${
                   stressIdx === idx
-                    ? 'border-accent bg-surface is-active'
-                    : 'border-strong bg-surface/60 hover:border-accent'
+                    ? 'border-[#021F94] bg-[#021F94] text-[#F5F2F3] is-active shadow-[0_0_0_1px_#021F94]'
+                    : 'border-[#021F94]/20 bg-white hover:border-[#021F94] text-[#0B1026]'
                 }`}
               >
-                <div className="flex items-center justify-between font-swiss-mono text-[10px] uppercase tracking-[0.15em] text-muted">
-                  <span className="font-bold text-ink">{p.name}</span>
-                  <span className="px-2 py-0.5 rounded-sm bg-accent/20 text-accent font-semibold">
+                <div className="flex items-center justify-between font-swiss-mono text-[10px] uppercase tracking-[0.15em]">
+                  <span className={`font-bold ${stressIdx === idx ? 'text-[#F5F2F3]' : 'text-[#0B1026]'}`}>
+                    {p.name}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-sm font-semibold ${
+                      stressIdx === idx
+                        ? 'bg-[#F5F2F3]/20 text-[#F5F2F3]'
+                        : 'bg-[#021F94]/10 text-[#021F94]'
+                    }`}
+                  >
                     {p.badge}
                   </span>
                 </div>
-                <p className="mt-2 text-xs text-muted leading-relaxed">
+                <p className={`mt-2 text-xs leading-relaxed ${stressIdx === idx ? 'text-[#B9C8FF]' : 'text-[#565C73]'}`}>
                   {p.desc}
                 </p>
               </button>
