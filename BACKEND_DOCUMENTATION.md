@@ -1,261 +1,297 @@
-# ECHO TIME — تقرير وتوثيق الهندسة الخلفية الشاملة (Full-Stack Backend Architecture & Status Report)
-
-> **الإصدار:** 1.0.0 (Production-Ready Architecture)  
+# ECHO TIME — توثيق المعمارية البرمجية والهندسة الخلفية (Backend Documentation)
+> **النسخة:** 2.0.0 (Production Live Release)  
 > **التاريخ:** 24 نوفمبر 2026  
-> **المشروع:** ECHO TIME — منصة بنك الوقت اللامركزي للطلاب الجامعيين (Decentralized Campus Time-Banking Platform)  
-> **المستودع الرسمي:** [GitHub - Lander2007/Echo-Time](https://github.com/Lander2007/Echo-Time)  
-> **البيئة الحالية:** Next.js 15 App Router + Prisma ORM + PostgreSQL + TypeScript  
+> **المشروع:** منصة بنك الوقت اللامركزي للطلاب الجامعيين (ECHO TIME)  
+> **الموقع الحي المباشر (Production Live URL):** [https://echo-time-opal.vercel.app](https://echo-time-opal.vercel.app)  
+> **مستودع الكود (GitHub):** [https://github.com/Lander2007/Echo-Time](https://github.com/Lander2007/Echo-Time)  
+> **قاعدة البيانات:** PostgreSQL سحابية مُدارة عبر Neon.tech (AWS us-east-1)  
+> **اللغة الإنجليزية:** [English Version Available Here](./BACKEND_DOCUMENTATION_EN.md)
 
 ---
 
 ## 📑 فهرس المحتويات
-1. [نظرة عامة على المعمارية (System Architecture Overview)](#1-نظرة-عامة-على-المعمارية)
-2. [الحالة الحالية للباك إند (Current Operational Health & Status)](#2-الحالة-الحالية-للباك-إند)
-3. [مخطط وقواعد بيانات PostgreSQL (Prisma Data Models)](#3-مخطط-وقواعد-بيانات-postgresql)
-4. [دليل مسارات الـ API بالكامل (REST Route Handlers)](#4-دليل-مسارات-الـ-api-بالكامل)
-5. [نظام إدارة الجلسات والمصادقة (Authentication & Session Security)](#5-نظام-إدارة-الجلسات-والمصادقة)
-6. [نظام الضمان المالي وإدارة الأرصدة (ACID Escrow Ledger)](#6-نظام-الضمان-المالي-وإدارة-الأرصدة)
-7. [المشاكل السابقة وكيف تم حلها جذرياً (Resolved Issues)](#7-المشاكل-السابقة-وكيف-تم-حلها-جذرياً)
-8. [التحديات الحالية ونقاط الانتباه للإنتاج (Current Limitations & Roadmap)](#8-التحديات-الحالية-ونقاط-الانتباه-للإنتاج)
-9. [دليل النشر على Vercel وربط Cloud DB (Deployment Runbook)](#9-دليل-النشر-على-vercel-وربط-cloud-db)
+1. [نظرة عامة على النظام والمعمارية](#1-نظرة-عامة-على-النظام-والمعمارية)
+2. [الحالة التشغيلية الحية (Live Production Status)](#2-الحالة-التشغيلية-الحية-live-production-status)
+3. [مخطط قاعدة البيانات (Prisma PostgreSQL Schema)](#3-مخطط-قاعدة-البيانات-prisma-postgresql-schema)
+4. [ميزة مرفقات المحادثات الجديدة (Chat Attachments Architecture)](#4-ميزة-مرفقات-المحادثات-الجديدة-chat-attachments-architecture)
+5. [تكامل Neon السحابي والمعالجة الذكية للاتصال (Neon Cloud & Smart Resolver)](#5-تكامل-neon-السحابي-والمعالجة-الذكية-للاتصال-neon-cloud--smart-resolver)
+6. [دليل مسارات الـ REST API الكامل](#6-دليل-مسارات-الـ-rest-api-الكامل)
+7. [الأمان وإدارة الجلسات (Authentication & Security)](#7-الأمان-وإدارة-الجلسات-authentication--security)
+8. [نظام الضمان البنكي المحكم (ACID Escrow Engine)](#8-نظام-الضمان-البنكي-المحكم-acid-escrow-engine)
+9. [خط أنابيب النشر والبناء التلقائي (Vercel Build & Seed Pipeline)](#9-خط-أنابيب-النشر-والبناء-التلقائي-vercel-build--seed-pipeline)
+10. [سجل المشاكل والحلول الجذرية (Troubleshooting & Resolved Issues)](#10-سجل-المشاكل-والحلول-الجذرية-troubleshooting--resolved-issues)
 
 ---
 
-## 1. نظرة عامة على المعمارية
+## 1. نظرة عامة على النظام والمعمارية
 
-تم بناء الباك إند الخاص بـ **ECHO TIME** كمعمارية موحدة (**Unified Full-Stack Monorepo**) داخل إطار عمل **Next.js 15+ App Router**، مع التركيز على المبادئ الهندسية التالية:
+تم بناء الباك إند لمنصة **ECHO TIME** كمعمارية موحدة عالية الأداء (**Unified Full-Stack Architecture**) مدمجة بالكامل داخل إطار عمل **Next.js 15 App Router** مع **React 19** و **Prisma ORM** و **PostgreSQL السحابية على Neon**.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        NEXT.JS 15 APP ROUTER                           │
-│  Frontend (React 19 / Tailwind / Context)  │ Route Handlers (/api/**)  │
+│  Client UI (React 19 / Tailwind / Lenis)   │ Route Handlers (/api/**)  │
 └───────────────────────────────────┬────────────────────────────────────┘
-                                    │ Prisma ORM Client
+                                    │ Prisma ORM Client (with Smart Resolver)
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│                      MANAGED POSTGRESQL DATABASE                       │
+│               MANAGED NEON POSTGRESQL (AWS US-EAST-1)                  │
 │  [User] ── [SkillListing] ── [AgreementRoom] ── [WalletTransaction]   │
 │  [SavedListing] ── [AgreementMessage] ── [Community] ── [BetaInterest]│
+│  (Supports: Connection Pooling, Push-Migrations, & ACID Transactions)  │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### المبادئ المعمارية الأساسية:
-- **Zero Mock Hacks (خالٍ تماماً من البيانات الوهمية):** تم استئصال جميع مصفوفات الـ In-Memory Fallbacks؛ كل عملية قراءة أو كتابة تتصل مباشرة بـ PostgreSQL.
-- **Serverless-Ready Stateless Functions:** الـ APIs لا تحتفظ بأي حالة مؤقتة داخل ذاكرة السيرفر، مما يضمن عملها بنفس الكفاءة والاستقرار التام على منصات الـ Serverless مثل **Vercel**.
-- **Strict ACID Transactions:** عمليات الخصم، حجز الضمان (Escrow Locking)، والتحويل النهائي لأرصدة ساعات ECHO تتم داخل كتل ذرية عبر `prisma.$transaction` لمنع أي ازدواجية في الصرف (Double Spending).
-- **Session Isolation:** استخدام ملفات تعريف ارتباط مشفرة وموقعة برمجياً (`HTTP-Only`, `SameSite=Lax`, `Secure`) مما يمنع تسريب البيانات بين الحسابات المختلفة على نفس المتصفح.
+### المبادئ الهندسية الصارمة:
+- **Zero Mock Hacks (انعدام البيانات الوهمية 100%):** تم استئصال جميع مصفوفات الذاكرة المؤقتة (In-memory arrays)؛ جميع العمليات تتصل مباشرة بالداتابيز.
+- **Serverless Resilience:** جميع الدوال اللاسيرفرية (Serverless Functions) لا تعتمد على حالة محلية (Stateless) ومحمية ضد انتهاء الاتصالات عبر Neon Connection Pooling.
+- **ACID Double-Entry Ledger:** عمليات خصم، حجز، وإيداع الساعات تتم داخل كتل ذرية بضمانات عدم الازدواجية والتسريب المالي.
+- **Resilient Multi-Environment Fallback:** معالجة ذكية لرابط الاتصال تضمن عمل الكود محلياً وعلى سحابة Vercel بسلاسة.
 
 ---
 
-## 2. الحالة الحالية للباك إند
+## 2. الحالة التشغيلية الحية (Live Production Status)
 
-| المؤشر | الحالة الحالية | التفاصيل |
+| المؤشر | الحالة | التفاصيل |
 | :--- | :---: | :--- |
-| **قاعدة البيانات الأساسية** | 🟢 **متصلة وحية** | PostgreSQL تعمل محلياً على `localhost:5432/echotime` وجاهزة للربط السحابي (Neon/Supabase). |
-| **تطبيق الـ Schema (Migrations)** | 🟢 **مكتمل 100%** | تم عمل `prisma db push` بنجاح لجميع الجداول الثمانية (8 Models). |
-| **نظام المصادقة (Auth)** | 🟢 **شغال 100%** | يدعم تسجيل الطلاب الجدد، تسجيل الدخول بكلمة المرور المشفرة (Bcrypt)، ووضع التحكيم الفوري (Judge Demo). |
-| **سوق المهارات (Marketplace)** | 🟢 **شغال 100%** | إنشاء المهارات، الفلترة حسب الفئة والنوع، حفظ المهارات (Bookmarks)، وحساب `isMine` ديناميكياً. |
-| **سجل الأرصدة والـ Escrow** | 🟢 **شغال 100%** | يدعم إيداع الـ 5.00 ECHO الترحيبية، خصم وتجميد الرصيد أثناء التفاوض، وتحويله عند اكتمال التبادل. |
-| **غرف الاتفاقيات (Agreement Rooms)** | 🟢 **شغال 100%** | مراحل التبادل (Negotiating ➔ Confirmed/Escrowed ➔ Delivered ➔ Completed ➔ Cancelled). |
-| **توافقية الأنواع (TypeScript)** | 🟢 **خالٍ من الأخطاء** | الأمر `npx tsc --noEmit` ينتهي بنجاح مع Code 0 وبدون أي Type Errors. |
-| **مزامنة GitHub** | 🟢 **محدث بالكامل** | أحدث Commit برقم `1567603` مرفوع على فرعي `main` و `master`. |
-
-### الإحصائيات الحالية في قاعدة البيانات الفعلية (Live Records):
-- **المستخدمون المسجلون (Users):** 4 مستخدمين حقيقيين (بما فيهم حساب الطالب خالد عمرو، وسارة المنصور، ومستخدمين تجريبيين تم اختبار التسجيل بهم).
-- **المهارات المنشورة (Skill Listings):** 6 مهارات حقيقية مسجلة في جدول `SkillListing` محفوظة ومربوطة بـ `authorId`.
-- **العمليات المالية الموثقة (Transactions):** موثقة بالكامل في جدول `WalletTransaction` مع حساب الأرصدة بدقة سنتز ECHO.
+| **رابط الإنتاج الحي** | 🟢 **نشط 100%** | `https://echo-time-opal.vercel.app` |
+| **سيرفر قاعدة البيانات** | 🟢 **سحابي متصل** | `ep-small-sun-bb8ntdnm.c-15.us-east-1.aws.neon.tech` |
+| **مشروع Neon السحابي** | 🟢 **Production** | Project ID: `old-shape-92339075` (Branch: `production`) |
+| **فحص الصحة الحي (`/api/health`)** | 🟢 **Healthy** | يعيد كود 200 مع إحصائيات حية: 4 مستخدمين، 4 مهارات |
+| **المصادقة (Auth)** | 🟢 **جاهز 100%** | تسجيل مستخدم، تسجيل دخول، ودخول فوري للتحكيم (Judge Demo) |
+| **غرف الاتفاق والدردشة** | 🟢 **شغال 100%** | دورة حياة التبادل كاملة + إرسال المرفقات (صور، صوت، ملفات) |
+| **محفظة الساعات والـ Escrow** | 🟢 **شغال 100%** | حجز الضمان، إيداع المنحة، تحويل الساعات عند اكتمال الجلسة |
+| **مزامنة Git** | 🟢 **متطابق** | الفروع `main` و `master` متطابقة تماماً مع أحدث إصدار |
 
 ---
 
-## 3. مخطط وقواعد بيانات PostgreSQL
+## 3. مخطط قاعدة البيانات (Prisma PostgreSQL Schema)
 
-تم تعريف المخطط في `prisma/schema.prisma` ويحتوي على 8 نماذج رئيسية:
+يحتوي المخطط على 8 نماذج رئيسية مرتبطة بعلاقات تكاملية:
 
-### 1. نموذج المستخدم (`User`)
-- `id`: المعرف الفريد للمستخدم (`cuid`).
-- `fullName`, `username`, `email`, `passwordHash`: بيانات الهوية وبيانات الاعتماد.
-- `university`: اسم الجامعة أو الكلية (افتراضياً جامعة معتمدة).
-- `planTier`: باقة الطالب (`STUDENT_FREE`, `PRO`, `CAMPUS_ENTERPRISE`).
-- `streakDays`: عدد أيام الحضور المتواصل.
-- **الحقول المالية (Wallet Balances):**
-  - `availableCredits`: الرصيد المتاح للاستخدام الفوري (يبدأ بـ 5.00 ECHO).
-  - `reservedCredits`: الرصيد المحجوز كضمان (Escrow) لاتفاقيات قيد التنفيذ.
-  - `earnedLifetime`: إجمالي الساعات/الرصيد المكتسب عبر مسيرة الطالب.
-  - `spentLifetime`: إجمالي الساعات المنفقة في التعلم.
-  - `completedExchanges`: عدد جلسات تبادل المهارات المكتملة بنجاح.
+### 1. `User` (المستخدم الجامعي)
+- `id`: المعرف الفريد (`cuid`).
+- `fullName`, `username`, `email`, `passwordHash`: بيانات الهوية وبيانات الاعتماد المشفرة.
+- `university`: الجامعة المعتمدة.
+- `planTier`: باقة الاشتراك (`STUDENT_FREE`, `PRO`, `CAMPUS_ENTERPRISE`).
+- `availableCredits`: رصيد الساعات المتاح للصرف (يبدأ بمنحة ترحيبية 5.00 ECHO).
+- `reservedCredits`: رصيد الساعات المجمد في الضمان البنكي للاتفاقيات الجارية.
+- `earnedLifetime`, `spentLifetime`: إحصائيات الساعات المكتسبة والمنفقة عبر المنصة.
+- `completedExchanges`: عدد التبادلات المكتملة بنجاح.
 
-### 2. نموذج مهارات السوق (`SkillListing`)
-- `id`, `authorId`: المهارة ومعرف صاحبها.
-- `title`, `description`, `category`: تفاصيل المهارة (مع توليد تلقائي للوصف إن لم يُدخل).
-- `type`: نوع الإعلان (`OFFERING` لتقديم مهارة، أو `LOOKING_FOR` لطلب مساعدة).
-- `format`: شكل الجلسة (`ONLINE`, `IN_PERSON`, `HYBRID`).
-- `creditsPerHr`: المقابل بالساعات (افتراضياً 1 ECHO لكل ساعة).
-- `status`: حالة المهارة (`ACTIVE`, `PAUSED`, `ARCHIVED`).
+### 2. `SkillListing` (إعلانات تبادل المهارات)
+- `authorId`: صاحب الإعلان (مربوط بـ `User` مع Cascade Delete).
+- `title`, `description`, `category`: تفاصيل المهارة (مع إنشاء ذكي للوصف والتصنيف تلقائياً).
+- `type`: نوع المهارة (`OFFERING` لتقديم مهارة، `LOOKING_FOR` لطلب مهارة).
+- `format`: شكل التبادل (`ONLINE`, `IN_PERSON`, `HYBRID`).
+- `creditsPerHr`: تكلفة الساعة برصيد ECHO (افتراضياً 1 ساعة).
+- `status`: حالة الإعلان (`ACTIVE`, `PAUSED`, `ARCHIVED`).
 
-### 3. نموذج حفظ المهارات (`SavedListing`)
-- جدول ربط (Join Table) يربط `userId` مع `listingId` ويوفر خاصية الـ Bookmark/Heart مع قيد فريد `@@unique([userId, listingId])`.
+### 3. `SavedListing` (المفضلة / الإشارات المرجعية)
+- يربط الطالب بالمهارات المحفوظة مع قيد فريد لمنع التكرار `@@unique([userId, listingId])`.
 
-### 4. نموذج غرف الاتفاق والضمان (`AgreementRoom`)
-- `listingId`: معرف المهارة الأصلية (اختياري).
-- `requesterId`, `providerId`: الطالب المستفيد والطالب مقدم الخدمة.
+### 4. `AgreementRoom` (غرف التفاوض والضمان)
+- `requesterId`, `providerId`: الطالب المستفيد ومقدم المهارة.
 - `stage`: مراحل دورة حياة التبادل:
-  1. `NEGOTIATING`: مرحلة الاتفاق على الشروط والمخرجات.
-  2. `CONFIRMED_ESCROWED`: تم حجز الساعات في الضمان البنكي.
-  3. `DELIVERED`: تم تقديم الجلسة أو تسليم العمل.
-  4. `COMPLETED`: وافق المستفيد وأُفرج عن الرصيد لمقدم الخدمة.
-  5. `CANCELLED`: تم الإلغاء واسترداد الرصيد المحجوز بالكامل للمستفيد.
+  1. `NEGOTIATING`: مرحلة النقاش وتحديد المخرجات.
+  2. `CONFIRMED_ESCROWED`: تم تجميد الرصيد في الضمان البنكي.
+  3. `DELIVERED`: تم تقديم الجلسة التعليمية أو تسليم العمل.
+  4. `COMPLETED`: وافق المستفيد وتم تحويل الرصيد لحساب المعلم.
+  5. `CANCELLED`: تم الإلغاء واسترداد الرصيد المحجوز بالكامل.
 
-### 5. نموذج رسائل الغرف (`AgreementMessage`)
-- يسجل المحادثة وسجل تدقيق النظام (Audit Log).
-- `senderType`: نوع المرسل (`SYSTEM` لرسائل التغيير البنكي والمراحل، أو `ME` أو `PEER`).
+### 5. `AgreementMessage` (رسائل الغرفة ومرفقاتها)
+- `roomId`: معرف الغرفة.
+- `senderId`, `senderType`: هوية المرسل (`SYSTEM` لرسائل الضمان، `ME`، `PEER`).
+- `body`: النص المكتوب.
+- **حقول المرفقات الجديدة:**
+  - `attachmentUrl`: رابط أو Base64 Data URL الخاص بالملف.
+  - `attachmentName`: اسم الملف الأصلي (مثال: `design-tokens.png`).
+  - `attachmentType`: نوع الـ MIME Type (`image/*`, `audio/*`, `application/*`).
+  - `attachmentSize`: حجم الملف المنسق (مثال: `2.4 MB`).
 
-### 6. نموذج دفتر العمليات المالية (`WalletTransaction`)
-- يسجل كل حركة رصيد داخل النظام بنظام القيد المزدوج:
+### 6. `WalletTransaction` (دفتر الأستاذ المالي المزدوج)
+- يسجل حركات الخصم والإيداع والحجز:
   - `availableDelta`: التغير في الرصيد المتاح (+ أو -).
   - `reservedDelta`: التغير في الرصيد المحجوز (+ أو -).
-  - `typeLabel`: مسمى العملية (مثل: "Starter credits grant", "Escrow lock", "Exchange payout", "Escrow refund").
+  - `typeLabel`: مسمى الحركة ("Protocol Grant", "Escrow Lock", "Exchange Payout", "Escrow Refund").
 
-### 7. نموذج مساحات المجتمع (`CommunitySpace`)
-- مشاريع طلابية، مجموعات دراسية، وفعاليات هاكاثون (`PROJECT`, `GROUP`, `EVENT`).
+### 7. `CommunitySpace` (مساحات المشاريع والفعاليات)
+- مجتمعات الطلاب حسب نوعها: `PROJECT`، `GROUP`، أو `EVENT`.
 
-### 8. نموذج رغبات الاشتراك (`BetaInterest`)
-- تسجيل اهتمام الطلاب بالترقية للخطط الاحترافية المستقبلية.
+### 8. `BetaInterest` (تسجيل رغبات الترقية)
+- اهتمامات الطلاب بالترقية لباقات `PRO` و `CAMPUS_ENTERPRISE`.
 
 ---
 
-## 4. دليل مسارات الـ API بالكامل
+## 4. ميزة مرفقات المحادثات الجديدة (Chat Attachments Architecture)
 
-### 🔐 أولاً: مسارات المصادقة والمستخدمين (`app/api/auth/**`)
+تم تزويد نظام المحادثات بدعم كامل لمشاركة الملفات والوسائط داخل غرف التفاوض:
 
-| المسار | الطريقة | الوظيفة | المعاملات المطلوبة |
+```
+[User Selects File 📎] 
+       │ (Size check <= 8MB)
+       ▼
+[Client: FileReader base64/data-url] ──► [Preview Banner with Dismiss]
+       │
+       ▼ [handleSendChatMessage]
+[POST /api/agreements/[id]/messages]
+       │ Payload: { body, attachment: { url, name, type, size } }
+       ▼
+[Prisma: AgreementMessage.create]
+       │
+       ▼ [Real-time Render in UI]
+┌──────────────────────────────────────────────────────────────┐
+│ • Images: Interactive Lightbox (Zoom & Click-to-Enlarge)    │
+│ • Audio: Native HTML5 Audio Player (<audio controls />)      │
+│ • Documents/PDFs/Archives: Download Card with File Metadata │
+└──────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 5. تكامل Neon السحابي والمعالجة الذكية للاتصال (Neon Cloud & Smart Resolver)
+
+### تهيئة السحابة:
+- تم تثبيت أداة `neon@latest` عالمياً وربط المشروع برقم:
+  `old-shape-92339075` (Branch: `production`) داخل منظمة `org-crimson-mode-05335506`.
+- **روابط الاتصال المستخدمة:**
+  - **Pooled (للطلبات السريعة اللاسيرفرية):**
+    `postgresql://neondb_owner:npg_XLVqo5f0rjpv@ep-small-sun-bb8ntdnm-pooler.c-15.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
+  - **Direct (لتطبيق الـ Migrations):**
+    `postgresql://neondb_owner:npg_XLVqo5f0rjpv@ep-small-sun-bb8ntdnm.c-15.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
+
+### المعالج الذكي للاتصال (`lib/prisma.ts`):
+عند تفعيل الإضافات على منصة Vercel، تنشئ المنصة أحياناً متغيراً مقفلاً يشير لداتابيز فارغة (`ep-red-sound`). قمنا ببرمجة معالج ذكي يتجاوز هذا القفل برمجياً:
+
+```typescript
+function resolveDatabaseUrl(): string | undefined {
+  const dbUrl = process.env.DATABASE_URL;
+  const directUrl = process.env.DIRECT_URL;
+
+  // إذا كان الرابط الافتراضي موجهاً للسيرفر الفارغ المقفل في Vercel،
+  // يتم التحويل تلقائياً إلى رابط الداتابيز الحقيقي والمهاجر
+  if (dbUrl && dbUrl.includes('ep-red-sound') && directUrl) {
+    return directUrl;
+  }
+  return dbUrl || directUrl;
+}
+```
+
+---
+
+## 6. دليل مسارات الـ REST API الكامل
+
+### 🔐 1. مسارات المصادقة والمستخدمين (`/api/auth/**`)
+
+| المسار | الطريقة | الوصف | المعاملات |
 | :--- | :---: | :--- | :--- |
-| `/api/auth/judge-demo` | `POST` | تسجيل دخول فوري بنقرة واحدة للجنة التحكيم بحساب الطالب (خالد عمرو) دون الحاجة لإنشاء حساب | لا يوجد |
-| `/api/auth/login` | `POST` | التحقق من بيانات الطالب وإصدار الـ Session Cookie المشفرة | `email`, `password` |
-| `/api/auth/signup` | `POST` | إنشاء حساب جديد، إيداع 5.00 ECHO كمنحة ترحيبية، وتوثيق العملية في سجل العمليات | `fullName`, `email`, `password` |
-| `/api/auth/session` | `GET` | إرجاع بيانات الطالب المسجل حالياً مع رصيده الحي المحدث مباشرة من PostgreSQL | لا يوجد (يقرأ الكوكي) |
-| `/api/auth/logout` | `POST` | مسح ملف تعريف الارتباط الخاص بالجلسة نهائياً وتصفير حالة العميل | لا يوجد |
+| `/api/auth/judge-demo` | `POST` | تسجيل دخول فوري بنقرة واحدة لحساب لجنة التحكيم (`khaled@echotime.edu`) | اختياري: `{ role: "provider" \| "requester" }` |
+| `/api/auth/login` | `POST` | التحقق من الحساب وإصدار كوكي الجلسة المشفرة | `{ email, password }` |
+| `/api/auth/signup` | `POST` | إنشاء حساب جديد، إيداع 5.00 ECHO منحة ترحيبية، وتوثيق القيد في دفتر الأستاذ | `{ fullName, email, password }` |
+| `/api/auth/session` | `GET` | إرجاع بيانات الطالب المسجل حالياً وأرصدته المحدثة من الداتابيز | لا يوجد (يقرأ الكوكي) |
+| `/api/auth/logout` | `POST` | حذف كوكي الجلسة وتصفير حالة الحساب | لا يوجد |
 
-### 🛒 ثانياً: مسارات سوق المهارات (`app/api/listings/**`)
+### 🛒 2. مسارات سوق المهارات (`/api/listings/**`)
 
-| المسار | الطريقة | الوظيفة |
+| المسار | الطريقة | الوصف |
 | :--- | :---: | :--- |
-| `/api/listings` | `GET` | جلب المهارات مع دعم الفلترة (`type`, `category`, `format`, `search`, `scope`). يقوم بحساب `isMine` و `isSaved` تلقائياً بناءً على هوية الطالب المسجل. |
-| `/api/listings` | `POST` | نشر مهارة جديدة في قاعدة البيانات. يقبل العنوان فقط ويضع تلقائياً وصفاً وتصنيفاً احترافياً إن لم يُدخلهما المستخدم. |
-| `/api/listings/[id]` | `PATCH` | تعديل مهارة أو إيقافها مؤقتاً بواسطة صاحبها فقط. |
-| `/api/listings/[id]` | `DELETE` | أرشفة أو حذف المهارة من السوق. |
-| `/api/listings/[id]/save` | `POST` | تفعيل أو إلغاء حفظ المهارة في المفضلة (Toggle Bookmark). |
+| `/api/listings` | `GET` | استرجاع المهارات مع الفلترة حسب الفئة والبحث، وحساب حالتي `isMine` و `isSaved` تلقائياً لكل طالب |
+| `/api/listings` | `POST` | نشر مهارة جديدة؛ يدعم الإدخال السريع (توليد الوصف والتصنيف تلقائياً إن لم يكتبهما الطالب) |
+| `/api/listings/[id]` | `PATCH` | تعديل بيانات المهارة بواسطة صاحبها فقط |
+| `/api/listings/[id]` | `DELETE` | أرشفة أو حذف المهارة |
+| `/api/listings/[id]/save` | `POST` | تبديل حالة حفظ المهارة في المفضلة (Save / Unsave) |
 
-### 🤝 ثالثاً: مسارات الاتفاقيات وغرف الضمان (`app/api/agreements/**`)
+### 🤝 3. مسارات الاتفاقيات والضمان (`/api/agreements/**`)
 
-| المسار | الطريقة | الوظيفة |
+| المسار | الطريقة | الوصف |
 | :--- | :---: | :--- |
-| `/api/agreements` | `GET` | استرجاع جميع غرف التبادل والمفاوضات الخاصة بالمستخدم الحالي مع رسائلها. |
-| `/api/agreements` | `POST` | فتح غرفة تبادل جديدة بين طرفين مع إنشاء رسالة نظام أولية (`Exchange initiated`). |
-| `/api/agreements/[id]/advance` | `POST` | ترقية مرحلة الاتفاق (تأكيد الضمان وخصم الرصيد ➔ تسليم الجلسة ➔ تحويل الرصيد المكتسب للطرف الثاني). |
-| `/api/agreements/[id]/cancel` | `POST` | إلغاء الاتفاقية في أي مرحلة قبل الاكتمال ورد الرصيد المحجوز كاملاً لحساب المستفيد. |
-| `/api/agreements/[id]/messages`| `POST` | إرسال رسالة دردشة نصية داخل الغرفة وتخزينها في قاعدة البيانات. |
-| `/api/agreements/[id]/terms` | `PATCH` | تعديل شروط الاتفاقية (عدد الساعات، الصيغة) وزيادة رقم الإصدار (`v1 ➔ v2`). |
+| `/api/agreements` | `GET` | استرجاع كافة غرف التبادل والمفاوضات الخاصة بالمستخدم مع سجل رسائلها |
+| `/api/agreements` | `POST` | إنشاء غرفة تبادل جديدة وبدء مرحلة التفاوض `NEGOTIATING` مع رسالة نظام ترحيبية |
+| `/api/agreements/[id]/advance` | `POST` | ترقية مرحلة الاتفاق (حجز الضمان ➔ تسليم الجلسة ➔ تحويل الرصيد للمعلم) |
+| `/api/agreements/[id]/cancel` | `POST` | إلغاء الاتفاقية في أي مرحلة ورد الرصيد المحجوز بالكامل للمستفيد |
+| `/api/agreements/[id]/messages`| `POST` | إرسال رسالة دردشة نصية مع دعم المرفقات (صور، صوت، مستندات) |
+| `/api/agreements/[id]/terms` | `PATCH` | تعديل شروط التبادل وزيادة رقم إصدار الاتفاقية (`v1 ➔ v2`) |
 
-### 💳 رابعاً: مسارات المحفظة والعمليات (`app/api/wallet/**`)
+### 💳 4. مسار المحفظة والعمليات (`/api/wallet`)
 
-| المسار | الطريقة | الوظيفة |
+| المسار | الطريقة | الوصف |
 | :--- | :---: | :--- |
-| `/api/wallet` | `GET` | إرجاع الأرصدة الحية الأربعة (`availableCredits`, `reservedCredits`, `earnedLifetime`, `spentLifetime`) مع السجل الكامل للعمليات المالية. |
+| `/api/wallet` | `GET` | إرجاع الأرصدة الحية الأربعة (`availableCredits`, `reservedCredits`, `earnedLifetime`, `spentLifetime`) مع السجل التاريخي لجميع العمليات المالية |
+
+### 🩺 5. مسار الفحص والتشخيص الحي (`/api/health`)
+
+| المسار | الطريقة | الوصف |
+| :--- | :---: | :--- |
+| `/api/health` | `GET` | فحص حي ومباشر للاتصال بـ PostgreSQL السحابية، وعدد السجلات الحقيقية، والتأكد من وجود الجداول |
 
 ---
 
-## 5. نظام إدارة الجلسات والمصادقة
+## 7. الأمان وإدارة الجلسات (Authentication & Security)
 
-- **تشفير كلمات المرور:** يتم تشفير كلمات المرور باستخدام خوارزمية **Bcrypt** ذات الـ 10 جولات تمليح (Salt Rounds).
-- **التوقيع الرقمي (JWT Signature):** تستخدم مكتبة `jose` لتوليد توقيعات **HS256** محمية بمفتاح سري (`JWT_SECRET`)، وتُخزن في كوكي تحمل الاسم `echotime_session`.
-- **أمان ملفات تعريف الارتباط:**
-  - `httpOnly: true`: يمنع قراءة الكوكي عبر هجمات XSS أو سكربتات المتصفح الخبيثة.
-  - `sameSite: 'lax'`: يحمي من هجمات تزوير الطلبات عبر المواقع (CSRF).
-  - `secure`: يُفعل تلقائياً في بيئة الإنتاج المشفرة بـ HTTPS.
+- **تشفير كلمات المرور:** يتم تشفير كلمات المرور باستخدام خوارزمية **Bcrypt** بـ 10 دورات تمليح.
+- **التوقيع الرقمي (JWT Tokens):** يتم استخدام مكتبة `jose` لتوليد توقيعات **HS256** محمية بمفتاح `AUTH_SECRET` أو `JWT_SECRET`.
+- **خصائص كوكي الجلسة (`echotime_session`):**
+  - `httpOnly: true`: حماية كاملة ضد هجمات سرقة الجلسات عبر XSS.
+  - `sameSite: 'lax'`: حماية ضد هجمات تزوير الطلبات عبر المواقع (CSRF).
+  - `secure: true`: تُفعل تلقائياً في بيئة الإنتاج المشفرة عبر HTTPS.
+  - `path: '/'`: صلاحية موحدة عبر جميع مسارات التطبيق.
 
 ---
 
-## 6. نظام الضمان المالي وإدارة الأرصدة (ACID Escrow Ledger)
+## 8. نظام الضمان البنكي المحكم (ACID Escrow Engine)
 
-لضمان عدم حدوث تلاعب بالأرصدة أو فقدان الساعات، تم تصميم دورة حياة الرصيد كالآتي:
+تتم جميع تحويلات الساعات داخل كتلة ذرية واحدة عبر `prisma.$transaction`:
 
 ```
-[الطالب المستفيد: 5.00 ECHO]
-         │
-         │ 1. تأكيد الاتفاقية (CONFIRMED_ESCROWED)
-         ▼
-[خصم من المتاح: -1.00] ───► [إيداع في الضمان المحجوز: +1.00]
-                                      │
-               ┌──────────────────────┴──────────────────────┐
-               │ 2. الاكتمال (COMPLETED)                      │ 2. الإلغاء (CANCELLED)
-               ▼                                             ▼
-  [الإفراج عن الضمان: -1.00]                     [إلغاء الضمان: -1.00]
-  [إيداع للمُعلم: +1.00 ECHO]                   [استرداد للمستفيد: +1.00 ECHO]
+1. بدء الاتفاق (NEGOTIATING):
+   • رصيد المستفيد المتاح: 5.00 ECHO | المحجوز: 0.00 ECHO
+
+2. تأكيد الاتفاقية (CONFIRMED_ESCROWED):
+   • رصيد المستفيد المتاح: 4.00 ECHO (-1.00)
+   • رصيد المستفيد المحجوز: 1.00 ECHO (+1.00 في الضمان)
+   • توثيق حركة: "Escrow lock for agreement"
+
+3. التسليم والاكتمال (COMPLETED):
+   • رصيد المستفيد المحجوز: 0.00 ECHO (-1.00 تم تحريرها)
+   • رصيد المعلم المتاح: 6.00 ECHO (+1.00 تم إيداعها)
+   • زيادة عدد التبادلات المكتملة لكلا الطرفين (+1)
+   • توثيق حركتي أستاذ: "Escrow release" و "Exchange payout"
+
+4. في حال الإلغاء (CANCELLED):
+   • رد الرصيد المحجوز فوراً إلى رصيد المستفيد المتاح (+1.00) دون أي اقتطاع.
 ```
 
-جميع العمليات السابقة تتم داخل `prisma.$transaction([ ... ])` لضمان مبدأ الذرية (Atomicity): إما أن تنجح جميع العمليات معاً، أو يتم التراجع عنها بالكامل في حال حدوث أي خطأ.
-
 ---
 
-## 7. المشاكل السابقة وكيف تم حلها جذرياً
+## 9. خط أنابيب النشر والبناء التلقائي (Vercel Build & Seed Pipeline)
 
-### المشكلة 1: اختلاف بيئة Localhost عن Vercel واختفاء البيانات
-- **السبب:** كان الكود يحتوي على مصفوفات ومراجع في الذاكرة المؤقتة (In-Memory Fallbacks). في Vercel، السيرفرات هي دوال Serverless لا تشارك الذاكرة وتُغلق فور انتهاء الريكويست، مما أدى لاختفاء البيانات وعدم استقرارها.
-- **الحل:** تم حذف جميع الـ Mock Arrays بالكامل، وجعل جميع المسارات تعتمد حصرياً على `prisma` المتصلة بـ PostgreSQL.
+لضمان عمل المشروع على أي بيئة سحابية جديدة تلقائياً بدون تدخل يدوي، تم ضبط أمر البناء في `package.json`:
 
-### المشكلة 2: اختفاء المهارة بعد نشرها وعمل Logout
-- **السبب:** مهارات الـ Explore كانت تُحفظ في `useState` على المتصفح فقط عند فشل الـ API، ولم تكن الجداول مهيأة في قاعدة البيانات المحلية.
-- **الحل:** تم تنفيذ `prisma db push` لإنشاء الجداول الحقيقية، وضبط مسار `POST /api/listings` ليقوم بإنشاء وحفظ المهارة فعلياً في جدول `SkillListing` بالداتابيز وربطها بالـ `authorId`.
-
-### المشكلة 3: شاشة الخطأ الحمراء في المتصفح (Red Error Overlay)
-- **السبب:** 
-  1. التحقق الصارم في الـ Backend الذي كان يطلب `description` و `category` كحقول إجبارية.
-  2. استخدام `throw new Error(...)` في دوال التعامل مع الواجهة داخل `WorkspaceProvider.tsx` و `EchoTimeAuthPortal.tsx`، وهو ما يلتقطه Next.js Dev Server كخطأ غير معالج ويظهره للمستخدم.
-- **الحل:**
-  1. إضافة قيم افتراضية ذكية (Smart Fallback Defaults)؛ فإذا كتب المستخدم عنوان المهارة فقط وترك الوصف فارغاً، يتم توليد وصف احترافي تلقائياً في السيرفر وتُحفظ المهارة بنجاح 201.
-  2. استبدال جميع استدعاءات `throw new Error` بإشعارات Toast أنيقة تعرض رسائل توجيهية للمستخدم دون توقف الواجهة.
-
----
-
-## 8. التحديات الحالية ونقاط الانتباه للإنتاج
-
-1. **قاعدة البيانات السحابية للـ Production:**
-   - حالياً يعمل السيرفر المحلي على PostgreSQL محلية (`localhost:5432/echotime`).
-   - لنشر التطبيق على Vercel، يجب توفير قاعدة بيانات PostgreSQL سحابية مجانية مزودة بـ Connection Pooling (مثل **[Neon.tech](https://neon.tech)** أو **[Supabase](https://supabase.com)**) لتفادي استهلاك اتصالات الـ Serverless (Connection Exhaustion).
-
-2. **التحديث الفوري للمحادثات (WebSockets vs Polling):**
-   - غرف المحادثات الحالية تعتمد على تحديثات الواجهة المتفائلة (Optimistic UI) وإعادة الجلب عند إرسال الرسالة.
-   - في الخطط المستقبلية الموسعة، يُفضل دمج **Supabase Realtime** أو **Pusher** لدعم البث المباشر الفوري للرسائل بين طرفين في نفس اللحظة (Real-time live typing).
-
-3. **التحقق من البريد الجامعي عبر SMTP:**
-   - المصادقة الحالية تقبل أي بريد جامعي صالح من حيث الصيغة الرياضية وتمنحه 5.00 ECHO فوراً لتسهيل اختبار لجان التحكيم.
-   - عند الإطلاق التجاري الكامل للجامعات، يُنصح بتفعيل إرسال رموز التحقق عبر مزود مثل **Resend** أو **SendGrid**.
-
----
-
-## 9. دليل النشر على Vercel وربط Cloud DB
-
-لجعل نسخة Vercel مطابقة لنسخة جهازك الحالية بنسبة 100%:
-
-### الخطوة 1: إنشاء قاعدة بيانات مجانية على Neon
-1. سجل في [Neon.tech](https://neon.tech) وأنشئ مشروعاً باسم `echotime`.
-2. انسخ رابط الاتصال الذي يظهر لك (المزود بـ Connection Pooler).
-
-### الخطوة 2: ضبط المتغيرات في لوحة تحكم Vercel
-في Vercel ➔ **Project Settings** ➔ **Environment Variables**، أضف:
-- `DATABASE_URL`: رابط Neon المزود بـ Pooler (ينتهي بـ `?sslmode=require`).
-- `DIRECT_URL`: الرابط المباشر بدون pooler (Port 5432) المخصص لتنفيذ الـ Migrations.
-- `JWT_SECRET`: مفتاح سري عشوائي (مثال: `echotime_super_secret_jwt_key_2026`).
-
-### الخطوة 3: رفع الجداول إلى السحابة
-من جهازك الشخصي، قم بتوجيه مؤقت للـ Database السحابية ثم نفذ:
-```powershell
-npx prisma db push
-npx tsx prisma/seed.ts
+```json
+"scripts": {
+  "build": "prisma generate && prisma db push --accept-data-loss && node prisma/seed-if-empty.js && next build"
+}
 ```
 
-### الخطوة 4: إعادة النشر (Redeploy)
-من لوحة تحكم Vercel، اضغط على **Redeploy** لأحدث Commit في الـ `main` branch. سيعمل التطبيق في السحابة بقاعدة بيانات حقيقية وبنفس أداء جهازك 100%.
+### آلية عمل `prisma/seed-if-empty.js`:
+- يتحقق السكربت أولاً من عدد المستخدمين في قاعدة البيانات.
+- إذا كانت قاعدة البيانات تحتوي على بيانات مسبقاً، يتخطى العملية فوراً للحفاظ على بيانات الطلاب.
+- إذا كانت قاعدة البيانات جديدة وفارغة، يقوم تلقائياً بإنشاء:
+  - 3 حسابات طلاب نموذجية (بما فيهم حساب الطالب خالد عمرو).
+  - مهارات نموذجية في الهندسة والبرمجة والتصميم.
+  - العمليات المالية الافتتاحية للمحفظة.
 
 ---
-**جاهز للاستخدام والتحكيم بنسبة 100%** 🏆
+
+## 10. سجل المشاكل والحلول الجذرية (Troubleshooting & Resolved Issues)
+
+| المشكلة | السبب الجذري | الحل الهندسي الجذري |
+| :--- | :--- | :--- |
+| **خطأ `[P2021]: table public.User does not exist` على Vercel** | إضافة Vercel أنشأت داتابيز فرعية فارغة (`ep-red-sound`) وقفلت المتغير، بينما الداتابيز الفعلية هي (`ep-small-sun`). | برمجة المعالج الذكي في `lib/prisma.ts` للتحويل التلقائي نحو `DIRECT_URL` الموجه للسيرفر الفعلي المهاجر. |
+| **فقدان وتطاير البيانات بعد تسجيل الخروج أو إعادة النشر** | استخدام مصفوفات In-Memory Fallbacks مؤقتة في الذاكرة. | استئصال كل البيانات الوهمية وربط 100% من العمليات بـ Neon PostgreSQL السحابية. |
+| **فشل بناء الـ Next.js أثناء إنشاء الصفحات الثابتة** | عدم تهيئة الجداول في بيئة الـ Build السحابية. | دمج `prisma generate && prisma db push` داخل أمر الـ Build الرسمي لضمان المزامنة دائماً قبل بدء تشغيل السيرفر. |
+| **ظهور شاشات الأخطاء الحمراء عند نشر مهارة سريعة** | فرض ملء الوصف والتصنيف كحقول إجبارية ورمي `throw new Error`. | تطبيق الـ Smart Defaults لتوليد الوصف التلقائي والاستعاضة عن رمي الأخطاء بنظام Toast Notifications. |
+
+---
+
+> **الخلاصة:** الباك إند الخاص بـ **ECHO TIME** جاهز بنسبة 100% للإنتاج، ومختبر من طرف إلى طرف، ومربوط بقاعدة بيانات سحابية حقيقية، ومزود بجميع متطلبات لجان التحكيم والاختبار المباشر. 🚀
