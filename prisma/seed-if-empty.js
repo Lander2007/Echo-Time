@@ -1,5 +1,16 @@
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+
+function resolveDatabaseUrl() {
+  const dbUrl = process.env.DATABASE_URL;
+  const directUrl = process.env.DIRECT_URL;
+  if (dbUrl && dbUrl.includes('ep-red-sound') && directUrl) {
+    return directUrl;
+  }
+  return dbUrl || directUrl;
+}
+
+const activeUrl = resolveDatabaseUrl();
+const prisma = new PrismaClient(activeUrl ? { datasources: { db: { url: activeUrl } } } : undefined);
 
 async function main() {
   try {

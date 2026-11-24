@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 export async function GET() {
-  const rawDbUrl = process.env.DATABASE_URL || '';
+  const dbUrl = process.env.DATABASE_URL;
+  const directUrl = process.env.DIRECT_URL;
+  const rawDbUrl = (dbUrl && dbUrl.includes('ep-red-sound') && directUrl) ? directUrl : (dbUrl || directUrl || '');
   const isLocalhost = rawDbUrl.includes('localhost') || rawDbUrl.includes('127.0.0.1');
   const isConfigured = Boolean(rawDbUrl);
 
