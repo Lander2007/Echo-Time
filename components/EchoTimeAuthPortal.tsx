@@ -71,15 +71,15 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to authenticate Judge Demo');
+        pushToast(data?.error || 'Failed to authenticate Judge Demo');
+        return;
       }
       pushToast(`⚖️ Welcome Judge! Authenticated as ${data.user.fullName} (${data.user.email})`);
       window.setTimeout(() => {
         router.push('/dashboard');
       }, 400);
     } catch (err: any) {
-      console.error(err);
-      pushToast(err.message || 'Error signing in to Judge Demo');
+      pushToast(err?.message || 'Error signing in to Judge Demo');
     } finally {
       setJudgeLoading(false);
     }
@@ -100,14 +100,15 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Invalid email or password');
+        pushToast(data?.error || 'Invalid email or password');
+        return;
       }
       pushToast(`Signed in as ${data.user.fullName} — entering Student Workspace.`);
       window.setTimeout(() => {
         router.push('/dashboard');
       }, 400);
     } catch (err: any) {
-      pushToast(err.message || 'Login failed. Please verify credentials.');
+      pushToast(err?.message || 'Login failed. Please verify credentials.');
     } finally {
       setSubmitting(false);
     }
@@ -133,14 +134,15 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Registration failed');
+        pushToast(data?.error || 'Registration failed');
+        return;
       }
       pushToast(`Ledger created for ${data.user.fullName} (+5.00 ECHO starter grant minted in database).`);
       window.setTimeout(() => {
         router.push('/dashboard');
       }, 400);
     } catch (err: any) {
-      pushToast(err.message || 'Sign up failed.');
+      pushToast(err?.message || 'Sign up failed.');
     } finally {
       setSubmitting(false);
     }

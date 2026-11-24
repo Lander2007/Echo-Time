@@ -6,7 +6,7 @@ import { ListingType, ListingFormat } from '@/types/workspace';
 import { EXPLORE_CATEGORIES } from '@/lib/seed-workspace';
 
 export function PostListingModal() {
-  const { postModalOpen, setPostModalOpen, handleCreateListing } = useWorkspace();
+  const { postModalOpen, setPostModalOpen, handleCreateListing, pushToast } = useWorkspace();
 
   const [form, setForm] = useState({
     type: 'Offering' as ListingType,
@@ -21,6 +21,10 @@ export function PostListingModal() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.title.trim()) {
+      pushToast('Please enter a skill title before publishing.');
+      return;
+    }
     handleCreateListing(form);
     setForm({
       type: 'Offering',
@@ -117,6 +121,7 @@ export function PostListingModal() {
             </label>
             <input
               type="text"
+              required
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               placeholder="e.g., Next.js App Router mentoring"

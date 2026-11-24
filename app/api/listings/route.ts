@@ -120,31 +120,38 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { title, description, category, type, format, creditsPerHr } = body;
 
-    if (!title || !description || !category) {
+    if (!title || !String(title).trim()) {
       return NextResponse.json(
-        { error: 'Title, description, and category are required.' },
+        { error: 'Skill title is required.' },
         { status: 400 }
       );
     }
 
+    const cleanTitle = String(title).trim();
+    const cleanCategory = category && String(category).trim() ? String(category).trim() : 'Programming';
+    const cleanDescription =
+      description && String(description).trim()
+        ? String(description).trim()
+        : `1-on-1 collaborative exchange covering ${cleanTitle} on ECHO TIME.`;
+
     const parsedType =
-      type === 'Requests' || type === 'Looking for'
+      type === 'Requests' || type === 'Looking for' || type === 'LOOKING_FOR'
         ? ListingType.LOOKING_FOR
         : ListingType.OFFERING;
 
     const parsedFormat =
-      format === 'In-person'
+      format === 'In-person' || format === 'IN_PERSON'
         ? ListingFormat.IN_PERSON
-        : format === 'Hybrid'
+        : format === 'Hybrid' || format === 'HYBRID'
         ? ListingFormat.HYBRID
         : ListingFormat.ONLINE;
 
     const listing = await prisma.skillListing.create({
       data: {
         authorId: user.id,
-        title: title.trim(),
-        description: description.trim(),
-        category: category.trim(),
+        title: cleanTitle,
+        description: cleanDescription,
+        category: cleanCategory,
         type: parsedType,
         format: parsedFormat,
         creditsPerHr: Number(creditsPerHr) || 1,

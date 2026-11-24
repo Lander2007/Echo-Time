@@ -482,28 +482,33 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       format: ListingFormat;
       creditsPerHr: number;
     }) => {
-      if (!form.title.trim()) {
-        pushToast('Add a skill title before publishing.');
+      const cleanTitle = form.title?.trim();
+      if (!cleanTitle) {
+        pushToast('Please add a skill title before publishing.');
         return;
       }
+
+      const cleanCategory = form.category?.trim() || 'Programming';
+      const cleanDescription = form.description?.trim() || `1-on-1 collaborative exchange covering ${cleanTitle}.`;
 
       try {
         const res = await fetch('/api/listings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: form.title.trim(),
-            description: form.description.trim(),
-            category: form.category,
+            title: cleanTitle,
+            description: cleanDescription,
+            category: cleanCategory,
             type: form.type === 'Looking for' ? 'LOOKING_FOR' : 'OFFERING',
             format: form.format === 'In-person' ? 'IN_PERSON' : form.format === 'Hybrid' ? 'HYBRID' : 'ONLINE',
-            creditsPerHr: form.creditsPerHr,
+            creditsPerHr: form.creditsPerHr || 1,
           }),
         });
 
         const data = await res.json();
         if (!res.ok) {
-          throw new Error(data.error || 'Failed to publish skill');
+          pushToast(data.error || 'Failed to publish skill');
+          return;
         }
 
         if (data?.listing) {
@@ -513,8 +518,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           pushToast(`Published "${mapped.title}" to Explore marketplace.`);
         }
       } catch (err: any) {
-        console.error('Publish error:', err);
-        pushToast(err.message || 'Error publishing skill to database.');
+        pushToast(err?.message || 'Error publishing skill to database.');
       }
     },
     [currentUserId, pushToast]
@@ -557,10 +561,10 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           router.push(`/agreement?roomId=${mapped.id}`);
           pushToast(`Opened Agreement room for "${listing.title}" with ${listing.authorName}.`);
         } else {
-          throw new Error(data.error || 'Failed to open agreement room');
+          pushToast(data?.error || 'Failed to open agreement room');
         }
       } catch (err: any) {
-        pushToast(err.message || 'Error creating agreement room in database.');
+        pushToast(err?.message || 'Error creating agreement room in database.');
       }
     },
     [rooms, currentUserId, router, pushToast]
@@ -654,7 +658,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to advance agreement');
+        pushToast(data.error || 'Failed to advance agreement');
+        return;
       }
 
       if (data?.agreement) {
@@ -704,7 +709,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to cancel agreement');
+        pushToast(data.error || 'Failed to cancel agreement');
+        return;
       }
 
       if (data?.agreement) {
