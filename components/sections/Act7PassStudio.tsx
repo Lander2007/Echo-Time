@@ -1,51 +1,45 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { PASS_PRESETS } from '@/data/echoData';
 import { TactileAudioEngine } from '@/lib/audio';
 import { CANONICAL_CONTENT } from '@/data/content';
 import { BrandLogo } from '@/components/BrandLogo';
 
 interface Act7PassStudioProps {
-  studentName: string;
-  setStudentName: React.Dispatch<React.SetStateAction<string>>;
-  university: string;
-  setUniversity: React.Dispatch<React.SetStateAction<string>>;
-  primaryCraft: string;
-  setPrimaryCraft: React.Dispatch<React.SetStateAction<string>>;
+  studentName?: string;
+  setStudentName?: React.Dispatch<React.SetStateAction<string>>;
+  university?: string;
+  setUniversity?: React.Dispatch<React.SetStateAction<string>>;
+  primaryCraft?: string;
+  setPrimaryCraft?: React.Dispatch<React.SetStateAction<string>>;
   sealStampKey: number;
   passCardRef: React.RefObject<HTMLDivElement | null>;
   passSpecularRef: React.RefObject<HTMLDivElement | null>;
   passCanvasRef: React.RefObject<HTMLCanvasElement | null>;
   handlePassCardMove: (e: React.MouseEvent<HTMLDivElement>) => void;
   handlePassCardLeave: () => void;
-  handleMintPass: (e: React.FormEvent) => void;
+  handleMintPass?: (e: React.FormEvent) => void;
   passSerial: string;
   getAudio: () => TactileAudioEngine;
 }
 
 export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
-  studentName,
-  setStudentName,
-  university,
-  setUniversity,
-  primaryCraft,
-  setPrimaryCraft,
+  studentName = 'Maya Chen',
+  university = 'UC Berkeley — Computer Science',
+  primaryCraft = 'Next.js & TypeScript Audits',
   sealStampKey,
   passCardRef,
   passSpecularRef,
   passCanvasRef,
   handlePassCardMove,
   handlePassCardLeave,
-  handleMintPass,
   passSerial,
   getAudio,
 }) => {
-  const displayStudentName = studentName.trim() || 'Founding Student';
-  const displayUniversity = university.trim() || 'Accredited .edu Campus';
-  const displayCraft = primaryCraft.trim() || 'System Contributor';
+  const displayStudentName = studentName?.trim() || 'Maya Chen';
+  const displayUniversity = university?.trim() || 'UC Berkeley — Computer Science';
+  const displayCraft = primaryCraft?.trim() || 'Next.js & TypeScript Audits';
 
   const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(0);
-  const [activeTab, setActiveTab] = useState<'create' | 'welcome'>('create');
 
   const toggleFaq = (idx: number) => {
     getAudio().click();
@@ -131,194 +125,54 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
             <p className="mt-4 text-sm sm:text-base text-muted leading-relaxed">
               {CANONICAL_CONTENT.cta.description}
             </p>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setActiveTab('create')}
-                className={`px-5 py-2.5 rounded font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                  activeTab === 'create'
-                    ? 'bg-accent text-accent-ink'
-                    : 'border border-strong text-ink hover:border-accent'
-                }`}
-              >
-                {CANONICAL_CONTENT.cta.primaryBtn}
-              </button>
-              <a
-                href="#act-marketplace"
-                className="px-5 py-2.5 rounded border border-strong bg-surface text-ink font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] hover:border-accent transition-colors"
-              >
-                {CANONICAL_CONTENT.cta.secondaryBtn}
-              </a>
-            </div>
           </div>
 
-          {/* Split Studio: Controls + 3D Metallic Swiss Pass */}
+          {/* Split Studio: Overview & CTA + 3D Metallic Swiss Pass */}
           <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-            {/* Left: Account Form / Welcome State */}
-            <div className="lg:col-span-5">
-              {activeTab === 'create' ? (
-                <>
-                  <div className="mb-6">
-                    <div className="font-swiss-mono text-[10px] uppercase tracking-[0.16em] text-muted mb-2.5">
-                      {CANONICAL_CONTENT.cta.signupCard.subtitle}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {PASS_PRESETS.map((preset) => (
-                        <button
-                          key={preset.label}
-                          type="button"
-                          data-cursor="FILL"
-                          onClick={() => {
-                            setStudentName(preset.name);
-                            setUniversity(preset.uni);
-                            setPrimaryCraft(preset.craft);
-                            getAudio().click();
-                          }}
-                          className="px-3 py-1.5 rounded-sm border border-theme hover:border-accent font-swiss-mono text-[10px] uppercase tracking-[0.1em] text-ink transition-colors"
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <form onSubmit={handleMintPass} className="space-y-4" noValidate>
-                    <div>
-                      <label
-                        htmlFor="input-student-name"
-                        className="block font-swiss-mono text-[10px] uppercase tracking-[0.16em] text-muted mb-1.5"
-                      >
-                        {CANONICAL_CONTENT.cta.signupCard.fields[0]}
-                      </label>
-                      <input
-                        id="input-student-name"
-                        type="text"
-                        maxLength={28}
-                        value={studentName}
-                        onChange={(e) => setStudentName(e.target.value)}
-                        className="w-full px-4 py-3 rounded border border-theme bg-surface text-ink font-swiss-sans font-semibold text-sm focus:outline-none focus:border-accent transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="input-email"
-                        className="block font-swiss-mono text-[10px] uppercase tracking-[0.16em] text-muted mb-1.5"
-                      >
-                        {CANONICAL_CONTENT.cta.signupCard.fields[1]}
-                      </label>
-                      <input
-                        id="input-email"
-                        type="email"
-                        placeholder="student@university.edu"
-                        className="w-full px-4 py-3 rounded border border-theme bg-surface text-ink font-swiss-sans font-semibold text-sm focus:outline-none focus:border-accent transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="input-university"
-                        className="block font-swiss-mono text-[10px] uppercase tracking-[0.16em] text-muted mb-1.5"
-                      >
-                        UNIVERSITY / MAJOR
-                      </label>
-                      <input
-                        id="input-university"
-                        type="text"
-                        maxLength={38}
-                        value={university}
-                        onChange={(e) => setUniversity(e.target.value)}
-                        className="w-full px-4 py-3 rounded border border-theme bg-surface text-ink font-swiss-sans font-semibold text-sm focus:outline-none focus:border-accent transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="input-craft"
-                        className="block font-swiss-mono text-[10px] uppercase tracking-[0.16em] text-muted mb-1.5"
-                      >
-                        PRIMARY SKILL
-                      </label>
-                      <input
-                        id="input-craft"
-                        type="text"
-                        maxLength={30}
-                        value={primaryCraft}
-                        onChange={(e) => setPrimaryCraft(e.target.value)}
-                        className="w-full px-4 py-3 rounded border border-theme bg-surface text-ink font-swiss-sans font-semibold text-sm focus:outline-none focus:border-accent transition-colors"
-                      />
-                    </div>
-
-                    <div className="pt-2">
-                      <button
-                        type="submit"
-                        data-cursor="MINT"
-                        className="magnetic btn-roll w-full py-4 rounded bg-accent text-accent-ink border border-[#021F94] font-swiss-mono text-xs font-semibold uppercase tracking-[0.16em]"
-                      >
-                        <span className="btn-roll-inner">
-                          <span className="btn-roll-text">{CANONICAL_CONTENT.cta.signupCard.submit} &rarr;</span>
-                          <span className="btn-roll-text-clone" aria-hidden="true">
-                            {CANONICAL_CONTENT.cta.signupCard.submit} &rarr;
-                          </span>
-                        </span>
-                      </button>
-                    </div>
-                  </form>
-                </>
-              ) : (
-                /* Welcome State Preview */
-                <div className="p-6 rounded border border-strong bg-surface space-y-6">
-                  <div>
-                    <h3 className="font-swiss-sans font-black text-2xl text-ink">
-                      {CANONICAL_CONTENT.cta.welcomeState.title}
-                    </h3>
-                    <p className="font-swiss-sans text-sm text-muted mt-1">
-                      {CANONICAL_CONTENT.cta.welcomeState.subtitle}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 font-swiss-mono">
-                    <div className="p-3.5 rounded bg-theme border border-strong">
-                      <div className="text-[10px] text-muted uppercase">{CANONICAL_CONTENT.cta.welcomeState.stats[0]}</div>
-                      <div className="text-xl font-bold text-accent mt-1">5.00 ECHO</div>
-                    </div>
-                    <div className="p-3.5 rounded bg-theme border border-strong">
-                      <div className="text-[10px] text-muted uppercase">{CANONICAL_CONTENT.cta.welcomeState.stats[1]}</div>
-                      <div className="text-xl font-bold text-ink mt-1">0</div>
-                    </div>
-                    <div className="p-3.5 rounded bg-theme border border-strong">
-                      <div className="text-[10px] text-muted uppercase">{CANONICAL_CONTENT.cta.welcomeState.stats[2]}</div>
-                      <div className="text-xl font-bold text-ink mt-1">5.00 ★</div>
-                    </div>
-                    <div className="p-3.5 rounded bg-theme border border-strong">
-                      <div className="text-[10px] text-muted uppercase">{CANONICAL_CONTENT.cta.welcomeState.stats[3]}</div>
-                      <div className="text-xl font-bold text-ink mt-1">12</div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-2">
-                    <a
-                      href="#act-marketplace"
-                      className="flex-1 py-3 text-center rounded bg-accent text-accent-ink font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em]"
-                    >
-                      {CANONICAL_CONTENT.cta.welcomeState.actions[0]}
-                    </a>
-                    <a
-                      href="#act-escrow"
-                      className="flex-1 py-3 text-center rounded border border-strong text-ink font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em]"
-                    >
-                      {CANONICAL_CONTENT.cta.welcomeState.actions[1]}
-                    </a>
-                  </div>
-
-                  <Link
-                    href="/dashboard"
-                    className="w-full py-3 text-center rounded bg-accent text-accent-ink font-swiss-mono text-[11px] font-bold uppercase tracking-[0.12em] block hover:brightness-95 transition-all mt-2"
-                  >
-                    Enter Student Workspace →
-                  </Link>
+            {/* Left: Account Overview & Primary Action */}
+            <div className="lg:col-span-5 space-y-6">
+              <div>
+                <div className="font-swiss-mono text-[10.5px] uppercase tracking-[0.16em] text-[#021F94] font-semibold mb-2">
+                  OFFICIAL STUDENT CREDENTIAL
                 </div>
-              )}
+                <h3 className="font-swiss-sans font-black uppercase tracking-tight text-3xl sm:text-4xl text-[#0B1026] leading-tight">
+                  Instant Access &middot; 5.00 ECHO Seed Grant
+                </h3>
+                <p className="mt-3 font-swiss-sans text-sm text-[#565C73] leading-relaxed">
+                  Join verified university students exchanging skills, collaborating on real projects, and growing portfolios with zero monetary cost.
+                </p>
+              </div>
+
+              <div className="space-y-3 font-swiss-mono text-xs">
+                <div className="flex items-center gap-3 p-3.5 rounded bg-white border border-[#021F94]/18 text-[#0B1026]">
+                  <span className="w-2 h-2 rounded-full bg-[#021F94]" />
+                  <span>1.00 HR = 1.00 ECHO Reciprocal Parity</span>
+                </div>
+                <div className="flex items-center gap-3 p-3.5 rounded bg-white border border-[#021F94]/18 text-[#0B1026]">
+                  <span className="w-2 h-2 rounded-full bg-[#021F94]" />
+                  <span>No credit card required &middot; Student email verification</span>
+                </div>
+                <div className="flex items-center gap-3 p-3.5 rounded bg-white border border-[#021F94]/18 text-[#0B1026]">
+                  <span className="w-2 h-2 rounded-full bg-[#021F94]" />
+                  <span>Interactive Time Bank Pass issued upon registration</span>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-wrap items-center gap-4">
+                <Link
+                  href="/login?mode=signup"
+                  data-cursor="SIGNUP"
+                  className="px-8 py-4 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-xs font-semibold uppercase tracking-[0.16em] hover:bg-[#032BCB] transition-colors inline-flex items-center gap-2 shadow-lg shadow-[#021F94]/15"
+                >
+                  Create your free account &rarr;
+                </Link>
+                <a
+                  href="#act-marketplace"
+                  className="px-6 py-4 rounded border border-[#021F94]/25 bg-white text-[#0B1026] font-swiss-mono text-xs font-semibold uppercase tracking-[0.14em] hover:border-[#021F94] transition-colors"
+                >
+                  Keep exploring
+                </a>
+              </div>
             </div>
 
             {/* Right: 3D Tilting Charcoal, Bone, Acid Lime & Cobalt Pass */}
