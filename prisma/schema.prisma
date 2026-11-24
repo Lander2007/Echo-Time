@@ -149,15 +149,19 @@ model AgreementRoom {
 }
 
 model AgreementMessage {
-  id          String            @id @default(cuid())
-  roomId      String
-  room        AgreementRoom     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  senderId    String?
-  sender      User?             @relation(fields: [senderId], references: [id], onDelete: SetNull)
-  senderType  MessageSenderType @default(ME)
-  authorLabel String
-  body        String
-  createdAt   DateTime          @default(now())
+  id             String            @id @default(cuid())
+  roomId         String
+  room           AgreementRoom     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  senderId       String?
+  sender         User?             @relation(fields: [senderId], references: [id], onDelete: SetNull)
+  senderType     MessageSenderType @default(ME)
+  authorLabel    String
+  body           String
+  attachmentUrl  String?
+  attachmentName String?
+  attachmentType String?
+  attachmentSize String?
+  createdAt      DateTime          @default(now())
 
   @@index([roomId])
 }

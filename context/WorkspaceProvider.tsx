@@ -6,6 +6,7 @@ import {
   SkillListing,
   AgreementRoom,
   ChatMessage,
+  ChatAttachment,
   WalletTransaction,
   CommunitySpace,
   BetaPlan,
@@ -78,6 +79,14 @@ function mapApiRoom(r: any, currentUserId: string): AgreementRoom {
       sender: m.senderType === 'SYSTEM' ? 'system' : m.senderId === currentUserId ? 'me' : 'peer',
       author: m.authorLabel,
       text: m.body,
+      attachment: m.attachmentUrl
+        ? {
+            url: m.attachmentUrl,
+            name: m.attachmentName || 'Attachment',
+            type: (m.attachmentType as 'image' | 'audio' | 'file') || 'file',
+            size: m.attachmentSize || '',
+          }
+        : undefined,
       time: m.createdAt
         ? new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         : 'Just now',
@@ -137,9 +146,11 @@ interface WorkspaceContextType {
   setRoomSwitcherOpen: React.Dispatch<React.SetStateAction<boolean>>;
   chatInput: string;
   setChatInput: (val: string) => void;
+  chatAttachment: ChatAttachment | null;
+  setChatAttachment: React.Dispatch<React.SetStateAction<ChatAttachment | null>>;
   editingGoal: boolean;
   setEditingGoal: (val: boolean) => void;
-  handleSendChatMessage: (e: React.FormEvent) => void;
+  handleSendChatMessage: (e?: React.FormEvent, overrideAttachment?: ChatAttachment | null) => void;
   handleUpdateRoomTerms: (patch: Partial<AgreementRoom>) => void;
   handleAdvanceAgreementStage: () => void;
   handleCancelExchange: () => void;
@@ -270,6 +281,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [activeRoomId, setActiveRoomId] = useState<string>('');
   const [roomSwitcherOpen, setRoomSwitcherOpen] = useState<boolean>(false);
   const [chatInput, setChatInput] = useState<string>('');
+  const [chatAttachment, setChatAttachment] = useState<ChatAttachment | null>(null);
   const [editingGoal, setEditingGoal] = useState<boolean>(false);
 
   // Community
@@ -571,18 +583,22 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   );
 
   const handleSendChatMessage = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!chatInput.trim() || !activeRoom) return;
+    async (e?: React.FormEvent, overrideAttachment?: ChatAttachment | null) => {
+      if (e) e.preventDefault();
+      const att = overrideAttachment !== undefined ? overrideAttachment : chatAttachment;
       const text = chatInput.trim();
+      if ((!text && !att) || !activeRoom) return;
+
       setChatInput('');
+      setChatAttachment(null);
 
       const tempId = `msg-${Date.now()}`;
       const msg: ChatMessage = {
         id: tempId,
         sender: 'me',
         author: profileFullName,
-        text,
+        text: text || (att ? `Shared attachment: ${att.name}` : ''),
+        attachment: att || undefined,
         time: 'Just now',
       };
 
@@ -594,7 +610,13 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         const res = await fetch(`/api/agreements/${activeRoom.id}/messages`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ body: text }),
+          body: JSON.stringify({
+            body: text,
+            attachmentUrl: att?.url || null,
+            attachmentName: att?.name || null,
+            attachmentType: att?.type || null,
+            attachmentSize: att?.size || null,
+          }),
         });
         if (res.ok) {
           const data = await res.json();
@@ -605,7 +627,20 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
                   ? {
                       ...r,
                       messages: r.messages.map((m) =>
-                        m.id === tempId ? { ...m, id: data.message.id } : m
+                        m.id === tempId
+                          ? {
+                              ...m,
+                              id: data.message.id,
+                              attachment: data.message.attachmentUrl
+                                ? {
+                                    url: data.message.attachmentUrl,
+                                    name: data.message.attachmentName || 'Attachment',
+                                    type: (data.message.attachmentType as 'image' | 'audio' | 'file') || 'file',
+                                    size: data.message.attachmentSize || '',
+                                  }
+                                : m.attachment,
+                            }
+                          : m
                       ),
                     }
                   : r
@@ -617,7 +652,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         console.error('Failed to persist chat message:', err);
       }
     },
-    [chatInput, activeRoom, profileFullName]
+    [chatInput, chatAttachment, activeRoom, profileFullName]
   );
 
   const handleUpdateRoomTerms = useCallback(
@@ -976,6 +1011,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setRoomSwitcherOpen,
       chatInput,
       setChatInput,
+      chatAttachment,
+      setChatAttachment,
       editingGoal,
       setEditingGoal,
       handleSendChatMessage,
@@ -1048,6 +1085,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       activeRoom,
       roomSwitcherOpen,
       chatInput,
+      chatAttachment,
       editingGoal,
       handleSendChatMessage,
       handleUpdateRoomTerms,

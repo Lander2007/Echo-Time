@@ -26,9 +26,11 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { body } = await req.json();
-    if (!body || !body.trim()) {
-      return NextResponse.json({ error: 'Message body cannot be empty' }, { status: 400 });
+    const { body, attachmentUrl, attachmentName, attachmentType, attachmentSize } = await req.json();
+    const cleanBody = (body && String(body).trim()) || '';
+
+    if (!cleanBody && !attachmentUrl) {
+      return NextResponse.json({ error: 'Message text or attachment is required' }, { status: 400 });
     }
 
     const message = await prisma.agreementMessage.create({
@@ -37,7 +39,11 @@ export async function POST(
         senderId: user.id,
         senderType: MessageSenderType.ME,
         authorLabel: user.fullName,
-        body: body.trim(),
+        body: cleanBody || (attachmentName ? `Shared attachment: ${attachmentName}` : 'Attachment'),
+        attachmentUrl: attachmentUrl || null,
+        attachmentName: attachmentName || null,
+        attachmentType: attachmentType || null,
+        attachmentSize: attachmentSize || null,
       },
     });
 

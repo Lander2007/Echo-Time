@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, Suspense } from 'react';
+import React, { useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceProvider';
 import { IconShield, IconClock, IconLock } from '@/components/workspace/Icons';
@@ -10,6 +10,7 @@ import { AgreementStage } from '@/types/workspace';
 function AgreementContent() {
   const searchParams = useSearchParams();
   const roomIdParam = searchParams.get('roomId');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     rooms,
@@ -20,6 +21,8 @@ function AgreementContent() {
     setRoomSwitcherOpen,
     chatInput,
     setChatInput,
+    chatAttachment,
+    setChatAttachment,
     editingGoal,
     setEditingGoal,
     handleSendChatMessage,
@@ -28,6 +31,42 @@ function AgreementContent() {
     handleCancelExchange,
     pushToast,
   } = useWorkspace();
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      pushToast('File is too large (maximum 10MB).');
+      e.target.value = '';
+      return;
+    }
+
+    const type: 'image' | 'audio' | 'file' = file.type.startsWith('image/')
+      ? 'image'
+      : file.type.startsWith('audio/')
+      ? 'audio'
+      : 'file';
+
+    const size =
+      file.size > 1024 * 1024
+        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+        : `${(file.size / 1024).toFixed(0)} KB`;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = reader.result as string;
+      setChatAttachment({
+        name: file.name,
+        url,
+        type,
+        size,
+      });
+      pushToast(`Attached ${file.name} (${size})`);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   useEffect(() => {
     if (roomIdParam && rooms.some((r) => r.id === roomIdParam)) {
@@ -178,7 +217,67 @@ function AgreementContent() {
                     <div className="font-et-mono text-[9.5px] uppercase opacity-75 mb-1">
                       {m.author} &middot; {m.time}
                     </div>
-                    <div>{m.text}</div>
+                    {m.text && <div className="break-words">{m.text}</div>}
+
+                    {/* Attached Image / Audio / File Render */}
+                    {m.attachment && (
+                      <div className="mt-2.5 pt-2 border-t border-black/15 dark:border-white/15 space-y-1.5">
+                        {m.attachment.type === 'image' && (
+                          <div className="rounded overflow-hidden border border-black/15 dark:border-white/15 max-w-sm">
+                            <a
+                              href={m.attachment.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Click to view full image"
+                            >
+                              <img
+                                src={m.attachment.url}
+                                alt={m.attachment.name}
+                                className="max-h-60 w-auto object-contain bg-black/5 hover:opacity-95 transition-opacity cursor-pointer"
+                              />
+                            </a>
+                            <div className="px-2 py-1 text-[10px] font-et-mono opacity-80 flex items-center justify-between">
+                              <span className="truncate">{m.attachment.name}</span>
+                              {m.attachment.size && (
+                                <span className="tabular shrink-0 ml-2">{m.attachment.size}</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {m.attachment.type === 'audio' && (
+                          <div className="rounded-sm p-2 bg-black/5 dark:bg-white/5 border border-black/15 dark:border-white/15 space-y-1 min-w-[240px]">
+                            <div className="flex items-center gap-2 text-xs font-et-mono">
+                              <span>🎵</span>
+                              <span className="font-semibold truncate max-w-[180px]">{m.attachment.name}</span>
+                              {m.attachment.size && (
+                                <span className="opacity-75 text-[10px] ml-auto tabular">
+                                  {m.attachment.size}
+                                </span>
+                              )}
+                            </div>
+                            <audio controls src={m.attachment.url} className="w-full h-8 mt-1" />
+                          </div>
+                        )}
+
+                        {m.attachment.type === 'file' && (
+                          <a
+                            href={m.attachment.url}
+                            download={m.attachment.name}
+                            className="inline-flex items-center gap-2.5 px-3 py-2 rounded-sm border border-black/15 dark:border-white/15 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-xs font-et-mono transition-colors"
+                          >
+                            <span className="text-base">📄</span>
+                            <div className="flex flex-col text-left">
+                              <span className="font-semibold truncate max-w-[180px]">{m.attachment.name}</span>
+                              {m.attachment.size && (
+                                <span className="text-[10px] opacity-75 tabular">{m.attachment.size}</span>
+                              )}
+                            </div>
+                            <span className="ml-2 text-xs font-bold uppercase underline">Save ↓</span>
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -188,22 +287,71 @@ function AgreementContent() {
           {/* Message Composer */}
           <form
             onSubmit={handleSendChatMessage}
-            className="p-4 border-t border-[var(--border)] bg-[var(--bg)]/50 space-y-2"
+            className="p-4 border-t border-[var(--border)] bg-[var(--bg)]/50 space-y-2.5"
           >
+            {/* Attachment preview if user selected a file */}
+            {chatAttachment && (
+              <div className="flex items-center justify-between gap-3 p-2.5 rounded-sm bg-[var(--bg-subtle)] border border-[var(--lime)]/50 et-animate-in">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  {chatAttachment.type === 'image' && (
+                    <img
+                      src={chatAttachment.url}
+                      alt={chatAttachment.name}
+                      className="w-10 h-10 object-cover rounded-sm border border-[var(--border)] shrink-0"
+                    />
+                  )}
+                  {chatAttachment.type === 'audio' && (
+                    <div className="w-10 h-10 rounded-sm bg-[var(--lime)]/10 text-[var(--lime)] flex items-center justify-center font-et-mono text-lg shrink-0">
+                      🎵
+                    </div>
+                  )}
+                  {chatAttachment.type === 'file' && (
+                    <div className="w-10 h-10 rounded-sm bg-[var(--cobalt)]/10 text-[var(--cobalt)] flex items-center justify-center font-et-mono text-lg shrink-0">
+                      📄
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold truncate text-[var(--ink)]">
+                      {chatAttachment.name}
+                    </div>
+                    <div className="font-et-mono text-[10px] text-[var(--muted)]">
+                      {chatAttachment.type.toUpperCase()} &middot; {chatAttachment.size}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setChatAttachment(null)}
+                  className="px-2 py-1 text-xs font-et-mono text-[var(--muted)] hover:text-red-500 transition-colors"
+                  title="Remove attachment"
+                >
+                  ✕ Remove
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center gap-2.5">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                accept="image/*,audio/*,.pdf,.zip,.doc,.docx,.txt"
+                className="hidden"
+              />
               <button
                 type="button"
-                onClick={() => pushToast('Attachment ready (up to 10MB per file).')}
-                title="Attach deliverable file"
-                className="w-10 h-10 rounded-sm border border-[var(--border-strong)] hover:border-[var(--lime)] flex items-center justify-center font-et-mono text-sm text-[var(--muted)] hover:text-[var(--ink)] shrink-0"
+                onClick={() => fileInputRef.current?.click()}
+                title="Attach file (image, audio, document)"
+                className="w-10 h-10 rounded-sm border border-[var(--border-strong)] hover:border-[var(--lime)] flex items-center justify-center font-et-mono text-base text-[var(--muted)] hover:text-[var(--ink)] shrink-0 transition-colors"
               >
-                +
+                📎
               </button>
               <input
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Discuss details or negotiate..."
+                placeholder={chatAttachment ? `Add caption for ${chatAttachment.name}...` : 'Discuss details or negotiate...'}
                 className="flex-1 px-4 py-2.5 rounded-sm border border-[var(--border-strong)] bg-[var(--bg)] text-sm text-[var(--ink)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--lime)]"
               />
               <button
@@ -213,8 +361,9 @@ function AgreementContent() {
                 Send →
               </button>
             </div>
-            <div className="font-et-mono text-[10px] text-[var(--muted)]">
-              Up to 10MB per file &middot; 5 files &middot; 25MB per message
+            <div className="flex items-center justify-between font-et-mono text-[10px] text-[var(--muted)]">
+              <span>Supports images, audio notes, deliverables & documents</span>
+              <span>Max 10MB per file</span>
             </div>
           </form>
         </div>

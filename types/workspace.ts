@@ -23,12 +23,20 @@ export interface SkillListing {
   isMine?: boolean;
 }
 
+export interface ChatAttachment {
+  url: string;
+  name: string;
+  type: 'image' | 'audio' | 'file';
+  size?: string;
+}
+
 export interface ChatMessage {
   id: string;
   sender: 'system' | 'me' | 'peer';
   author: string;
   text: string;
   time: string;
+  attachment?: ChatAttachment;
 }
 
 export interface AgreementRoom {
