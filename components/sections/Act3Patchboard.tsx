@@ -94,10 +94,10 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                           <div className="font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-accent font-semibold">
                             {c.inTag}
                           </div>
-                          <div className="font-swiss-sans font-extrabold text-base mt-0.5">
+                          <div className="font-swiss-sans font-extrabold text-base mt-0.5 text-[#0B1026]">
                             {c.inTitle}
                           </div>
-                          <div className="jack-sub font-swiss-mono text-[10.5px] mt-0.5">
+                          <div className="jack-sub font-swiss-mono text-[10.5px] mt-0.5 text-[#565C73]">
                             {c.inSub}
                           </div>
                         </div>
@@ -210,10 +210,10 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                           <div className="font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] text-accent font-semibold">
                             {c.outTag}
                           </div>
-                          <div className="font-swiss-sans font-extrabold text-base mt-0.5">
+                          <div className="font-swiss-sans font-extrabold text-base mt-0.5 text-[#0B1026]">
                             {c.outTitle}
                           </div>
-                          <div className="jack-sub font-swiss-mono text-[10.5px] mt-0.5">
+                          <div className="jack-sub font-swiss-mono text-[10.5px] mt-0.5 text-[#565C73]">
                             {c.outSub}
                           </div>
                         </div>

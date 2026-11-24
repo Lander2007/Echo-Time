@@ -73,23 +73,23 @@ export const Act6StressTest: React.FC<Act6StressTestProps> = ({
           {CANONICAL_CONTENT.grow.features.map((feat) => (
             <div
               key={feat.badge}
-              className="p-6 sm:p-8 rounded border border-strong bg-surface flex flex-col justify-between"
+              className="p-6 sm:p-8 rounded border border-[#021F94]/22 bg-white flex flex-col justify-between"
             >
               <div>
                 <span className="inline-block px-2.5 py-1 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-[9.5px] uppercase tracking-[0.14em] font-semibold mb-4">
                   {feat.badge}
                 </span>
-                <h3 className="font-swiss-sans font-bold text-2xl text-ink mb-2">
+                <h3 className="font-swiss-sans font-bold text-2xl text-[#0B1026] mb-2">
                   {feat.title}
                 </h3>
-                <p className="font-swiss-sans text-sm text-muted leading-relaxed">
+                <p className="font-swiss-sans text-sm text-[#565C73] leading-relaxed">
                   {feat.description}
                 </p>
               </div>
               <div className="mt-6">
                 <a
                   href="#act-pass"
-                  className="inline-flex items-center gap-2 font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-accent hover:underline"
+                  className="inline-flex items-center gap-2 font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#021F94] hover:underline"
                 >
                   {feat.cta} &rarr;
                 </a>
@@ -131,7 +131,7 @@ export const Act6StressTest: React.FC<Act6StressTestProps> = ({
                     {p.badge}
                   </span>
                 </div>
-                <p className={`mt-2 text-xs leading-relaxed ${stressIdx === idx ? 'text-[#B9C8FF]' : 'text-[#565C73]'}`}>
+                <p className={`mt-2 text-xs leading-relaxed ${stressIdx === idx ? 'text-[#F5F2F3]' : 'text-[#565C73]'}`}>
                   {p.desc}
                 </p>
               </button>
@@ -139,38 +139,38 @@ export const Act6StressTest: React.FC<Act6StressTestProps> = ({
           </div>
 
           {/* Active Plan Detail Inspector */}
-          <div className="lg:col-span-7 rounded border border-strong bg-surface p-6 sm:p-8 flex flex-col justify-between gap-6">
+          <div className="lg:col-span-7 rounded border border-[#021F94]/22 bg-white p-6 sm:p-8 flex flex-col justify-between gap-6">
             <div>
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-theme font-swiss-mono text-[10.5px] uppercase tracking-[0.14em]">
-                <span className="text-ink font-semibold text-base">{activePlan.name} Plan</span>
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#021F94]/16 font-swiss-mono text-[10.5px] uppercase tracking-[0.14em]">
+                <span className="text-[#0B1026] font-semibold text-base">{activePlan.name} Plan</span>
                 <span className="px-2.5 py-0.5 rounded-sm bg-[#021F94] text-[#F5F2F3] font-semibold">
                   {activePlan.badge}
                 </span>
               </div>
-              <p className="mt-4 font-swiss-sans text-sm text-ink leading-relaxed">
+              <p className="mt-4 font-swiss-sans text-sm text-[#0B1026] leading-relaxed">
                 {activePlan.desc}
               </p>
 
               <div className="mt-6 space-y-3">
-                <div className="font-swiss-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+                <div className="font-swiss-mono text-[10px] uppercase tracking-[0.14em] text-[#565C73]">
                   Included Capabilities
                 </div>
                 {activePlan.features.map((feature, fIdx) => (
-                  <div key={fIdx} className="flex items-center gap-3 p-3 rounded bg-theme border border-strong">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-                    <span className="font-swiss-mono text-xs text-ink">{feature}</span>
+                  <div key={fIdx} className="flex items-center gap-3 p-3 rounded bg-[#F5F2F3] border border-[#021F94]/16">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#021F94]" />
+                    <span className="font-swiss-mono text-xs text-[#0B1026]">{feature}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="pt-4 border-t border-theme flex flex-wrap items-center justify-between gap-3">
-              <span className="font-swiss-mono text-[10.5px] text-muted">
+            <div className="pt-4 border-t border-[#021F94]/16 flex flex-wrap items-center justify-between gap-3">
+              <span className="font-swiss-mono text-[10.5px] text-[#565C73]">
                 {activePlan.badge === 'Free plan' ? 'Instant access with student email' : 'Join the waitlist to receive updates'}
               </span>
               <a
                 href="#act-pass"
-                className="px-5 py-2.5 rounded bg-accent text-accent-ink font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] hover:bg-[#032BCB] transition-colors"
+                className="px-5 py-2.5 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] hover:bg-[#032BCB] transition-colors"
               >
                 {activePlan.badge === 'Free plan' ? 'Start free' : 'Join waitlist'}
               </a>
