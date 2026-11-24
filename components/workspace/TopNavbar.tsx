@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceProvider';
 import { IconBell, IconSunMoon } from './Icons';
+import { BrandLogo } from '@/components/BrandLogo';
 
 export function TopNavbar() {
   const pathname = usePathname();
@@ -40,15 +41,7 @@ export function TopNavbar() {
           href="/dashboard"
           className="flex items-center gap-2.5 shrink-0 focus:outline-none group"
         >
-          <span className="w-6 h-6 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] border border-[var(--border-strong)] inline-flex items-center justify-center transition-transform duration-300 group-hover:rotate-90">
-            <span className="et-swiss-cross" />
-          </span>
-          <span className="font-black uppercase tracking-[-0.04em] text-base leading-none">
-            Echo{' '}
-            <span className="font-et-mono font-semibold text-xs tracking-[0.08em] text-[var(--lime)]">
-              Time
-            </span>
-          </span>
+          <BrandLogo surface={themeMode === 'dark' ? 'blue' : 'light'} size="sm" />
         </Link>
 
         {/* Center: Top Navigation Bar */}

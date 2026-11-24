@@ -1,4 +1,5 @@
 import React from 'react';
+import { BrandLogo } from '@/components/BrandLogo';
 
 interface PreloaderProps {
   preloaderRef: React.RefObject<HTMLDivElement | null>;
@@ -17,7 +18,10 @@ export const Preloader: React.FC<PreloaderProps> = ({
           className="flex items-center justify-between font-swiss-mono text-[10px] uppercase tracking-[0.2em]"
           style={{ color: '#565C73' }}
         >
-          <span>ECHO TIME &middot; SWISS GRID LEDGER</span>
+          <div className="flex items-center gap-2.5">
+            <BrandLogo surface="light" variant="mark" size="md" />
+            <span>ECHO TIME &middot; SWISS GRID LEDGER</span>
+          </div>
           <span style={{ color: '#021F94' }}>SYS. 1.00 HR = 1.00 ECHO</span>
         </div>
         <div className="my-auto max-w-2xl">

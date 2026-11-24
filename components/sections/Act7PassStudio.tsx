@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { PASS_PRESETS } from '@/data/echoData';
 import { TactileAudioEngine } from '@/lib/audio';
 import { CANONICAL_CONTENT } from '@/data/content';
+import { BrandLogo } from '@/components/BrandLogo';
 
 interface Act7PassStudioProps {
   studentName: string;
@@ -415,23 +416,7 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
                     </div>
                   </div>
 
-                  <svg className="w-11 h-8 shrink-0" viewBox="0 0 48 34" fill="none">
-                    <rect
-                      x="1"
-                      y="1"
-                      width="46"
-                      height="32"
-                      rx="3"
-                      fill="rgba(2, 31, 148, 0.28)"
-                      stroke="#F5F2F3"
-                      strokeWidth="1.4"
-                    />
-                    <path
-                      d="M1 12H16M32 12H47M1 22H16M32 22H47M16 1V33M32 1V33"
-                      stroke="#D93829"
-                      strokeWidth="1.1"
-                    />
-                  </svg>
+                  <BrandLogo surface="blue" variant="mark" size="sm" className="shrink-0" />
                 </div>
 
                 {/* Pass Holder Details */}

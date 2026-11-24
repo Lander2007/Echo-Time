@@ -43,9 +43,6 @@ export const metadata: Metadata = {
     'Student portfolio',
   ],
   authors: [{ name: 'Echo Time' }],
-  icons: {
-    icon: '/icon.svg',
-  },
   openGraph: {
     title: 'Echo Time – Your Time. Your Opportunities.',
     description:

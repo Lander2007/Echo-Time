@@ -295,23 +295,6 @@
     background-color: rgba(2, 31, 148, 0.90);
     border-bottom-color: rgba(245, 242, 243, 0.20);
   }
-  .swiss-cross {
-    position: relative;
-    display: block;
-    width: 10px;
-    height: 10px;
-  }
-  .swiss-cross::before,
-  .swiss-cross::after {
-    content: "";
-    position: absolute;
-    background-color: currentColor;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-  }
-  .swiss-cross::before { width: 10px; height: 2.5px; }
-  .swiss-cross::after { width: 2.5px; height: 10px; }
 
   .nav-pill-container {
     position: relative;
@@ -1247,24 +1230,6 @@
     box-shadow: 0 14px 32px rgba(2, 31, 148, 0.12);
   }
 
-  .et-swiss-cross {
-    position: relative;
-    display: block;
-    width: 10px;
-    height: 10px;
-  }
-  .et-swiss-cross::before,
-  .et-swiss-cross::after {
-    content: "";
-    position: absolute;
-    background-color: currentColor;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-  }
-  .et-swiss-cross::before { width: 10px; height: 2.5px; }
-  .et-swiss-cross::after { width: 2.5px; height: 10px; }
-
   .et-tick-tl, .et-tick-tr, .et-tick-bl, .et-tick-br {
     position: absolute;
     width: 8px;
@@ -1297,8 +1262,28 @@
   }
 
 /* ============================================================================
-   ECHO TIME — IMPERIAL BLUE SWEEPING CURVED CURTAIN AUTH SYSTEM
+   ECHO TIME — PARITY HOURGLASS SIGNATURE 180° MECHANICAL FLIP
    ============================================================================ */
+.et-logo-hourglass {
+  transform-origin: 32px 32px;
+  transition: transform 0.62s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.et-logo-root:hover .et-logo-hourglass,
+.group:hover .et-logo-hourglass {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .et-logo-hourglass {
+    transition: none;
+  }
+  .et-logo-root:hover .et-logo-hourglass,
+  .group:hover .et-logo-hourglass {
+    transform: none;
+  }
+}
+
 .et-auth-imperial {
   --page-bg: #F5F2F3;
   --card-bg: #FFFFFF;

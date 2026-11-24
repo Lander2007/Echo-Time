@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { CANONICAL_CONTENT } from '@/data/content';
+import { BrandLogo } from '@/components/BrandLogo';
 
 interface NavbarProps {
   chromeTheme: 'dark' | 'light';
@@ -40,15 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           }}
           className="flex items-center gap-2.5 shrink-0 focus:outline-none group"
         >
-          <span className="w-5 h-5 rounded-sm bg-accent text-accent-ink border border-accent inline-flex items-center justify-center transition-transform duration-300 group-hover:rotate-90">
-            <span className="swiss-cross" />
-          </span>
-          <span className="font-swiss-sans font-black tracking-[-0.04em] text-sm sm:text-base uppercase leading-none text-ink">
-            {CANONICAL_CONTENT.nav.brand.split(' ')[0]}{' '}
-            <span className="font-swiss-mono font-medium text-xs tracking-[0.06em] text-accent">
-              {CANONICAL_CONTENT.nav.brand.split(' ')[1] || 'TIME'}
-            </span>
-          </span>
+          <BrandLogo surface={chromeTheme === 'light' ? 'blue' : 'light'} size="sm" />
         </a>
 
         {/* Center: Section Navigation with Physics-Smoothed Sliding Indicator */}

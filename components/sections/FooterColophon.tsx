@@ -1,6 +1,7 @@
 import React from 'react';
 import { TactileAudioEngine } from '@/lib/audio';
 import { CANONICAL_CONTENT } from '@/data/content';
+import { BrandLogo } from '@/components/BrandLogo';
 
 interface FooterColophonProps {
   scrollToTarget: (target: string) => void;
@@ -28,12 +29,7 @@ export const FooterColophon: React.FC<FooterColophonProps> = ({
       <div className="max-w-[1380px] w-full mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-strong">
           <div className="md:col-span-5">
-            <div className="font-swiss-sans font-black uppercase text-xl tracking-[-0.04em] text-ink">
-              {CANONICAL_CONTENT.footer.brand}
-            </div>
-            <div className="mt-1 font-swiss-mono text-sm text-accent font-semibold">
-              {CANONICAL_CONTENT.footer.tagline}
-            </div>
+            <BrandLogo surface="light" size="sm" showTagline={false} />
             <p className="mt-3 font-swiss-sans text-xs text-muted max-w-sm leading-relaxed">
               {CANONICAL_CONTENT.footer.subtitle}
             </p>

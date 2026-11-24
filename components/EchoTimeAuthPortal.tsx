@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { BrandLogo } from '@/components/BrandLogo';
 
 export type AuthMode = 'login' | 'signup';
 
@@ -79,18 +80,7 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
       {/* Top Minimal Swiss Header (Zero Theme Switcher) */}
       <header className="w-full border-b border-[var(--border)] px-5 sm:px-8 h-16 flex items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2.5 group focus:outline-none">
-          <span
-            className="w-6 h-6 rounded-sm inline-flex items-center justify-center transition-transform duration-300 group-hover:rotate-90"
-            style={{ backgroundColor: '#021F94', color: '#F5F2F3' }}
-          >
-            <span className="et-swiss-cross" />
-          </span>
-          <span className="font-black uppercase tracking-[-0.04em] text-base leading-none text-[#0B1026]">
-            ECHO{' '}
-            <span className="font-et-mono font-semibold text-xs tracking-[0.08em] text-[#021F94]">
-              TIME
-            </span>
-          </span>
+          <BrandLogo surface="light" size="sm" />
         </Link>
 
         <Link
