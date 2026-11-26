@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useWorkspace } from '@/context/WorkspaceProvider';
 import { ListingType, ListingFormat } from '@/types/workspace';
 import { EXPLORE_CATEGORIES } from '@/lib/seed-workspace';
+import { IconClose, IconArrowRight } from './Icons';
 
 export function PostListingModal() {
   const { postModalOpen, setPostModalOpen, handleCreateListing, pushToast } = useWorkspace();
@@ -53,10 +54,11 @@ export function PostListingModal() {
           </div>
           <button
             type="button"
+            aria-label="Close modal"
             onClick={() => setPostModalOpen(false)}
-            className="w-8 h-8 rounded-sm border border-[var(--border)] font-et-mono"
+            className="w-8 h-8 rounded-sm border border-[var(--border)] hover:border-[var(--border-strong)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
           >
-            &times;
+            <IconClose className="w-4 h-4" />
           </button>
         </div>
 
@@ -144,9 +146,10 @@ export function PostListingModal() {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em]"
+            className="group w-full py-3 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em] inline-flex items-center justify-center gap-2 hover:brightness-95 transition-all"
           >
-            Publish listing →
+            <span>Publish listing</span>
+            <IconArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
         </form>
       </div>

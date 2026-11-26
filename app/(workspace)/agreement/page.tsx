@@ -3,7 +3,16 @@
 import React, { useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceProvider';
-import { IconShield, IconClock, IconLock } from '@/components/workspace/Icons';
+import {
+  IconShield,
+  IconClock,
+  IconLock,
+  IconPaperclip,
+  IconSend,
+  IconCheck,
+  IconClose,
+  IconArrowRight,
+} from '@/components/workspace/Icons';
 import { MobileArchitecturalDrawer } from '@/components/mobile/MobileArchitecturalDrawer';
 import { AGREEMENT_STEPS } from '@/lib/seed-workspace';
 import { AgreementStage } from '@/types/workspace';
@@ -259,16 +268,20 @@ function AgreementContent() {
               {chatAttachment && (
                 <div className="p-2 bg-white border border-[#021F94]/30 rounded-[2px] flex items-center justify-between gap-2 text-xs">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-mono text-xs font-bold text-[#021F94]">📎 ATTACHED:</span>
+                    <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-[#021F94] shrink-0">
+                      <IconPaperclip className="w-3.5 h-3.5" />
+                      <span>ATTACHED:</span>
+                    </span>
                     <span className="font-sans font-bold truncate text-[#0B1026]">{chatAttachment.name}</span>
                     <span className="font-mono text-[10px] text-[#565C73] tabular">({chatAttachment.size})</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setChatAttachment(null)}
-                    className="font-mono text-[10px] text-[#D93829] font-bold uppercase hover:underline shrink-0"
+                    className="inline-flex items-center gap-1 font-mono text-[10px] text-[#D93829] font-bold uppercase hover:underline shrink-0"
                   >
-                    REMOVE ×
+                    <span>REMOVE</span>
+                    <IconClose className="w-3 h-3" />
                   </button>
                 </div>
               )}
@@ -285,9 +298,10 @@ function AgreementContent() {
                   type="button"
                   onClick={() => mobileFileInputRef.current?.click()}
                   title="Attach file (<= 8MB)"
-                  className="w-10 h-10 rounded-[2px] border border-[#021F94]/40 bg-white flex items-center justify-center font-mono text-base text-[#021F94] shrink-0 active:opacity-75"
+                  aria-label="Attach file"
+                  className="w-10 h-10 rounded-[2px] border border-[#021F94]/40 bg-white flex items-center justify-center text-[#021F94] shrink-0 active:opacity-75"
                 >
-                  📎
+                  <IconPaperclip className="w-4 h-4" />
                 </button>
                 <input
                   type="text"
@@ -422,7 +436,7 @@ function AgreementContent() {
                               : 'bg-white border border-[#021F94]/30 text-[#565C73]'
                           }`}
                         >
-                          {isDone ? '✓' : step.num}
+                          {isDone ? <IconCheck className="w-3.5 h-3.5" /> : step.num}
                         </span>
                         <span
                           className={`font-mono text-[11px] uppercase ${
@@ -447,13 +461,16 @@ function AgreementContent() {
                   <button
                     type="button"
                     onClick={handleAdvanceAgreementStage}
-                    className="w-full py-3 bg-[#021F94] text-[#F5F2F3] font-mono text-xs font-bold uppercase tracking-wider rounded-[2px] text-center active:opacity-85"
+                    className="group w-full py-3 bg-[#021F94] text-[#F5F2F3] font-mono text-xs font-bold uppercase tracking-wider rounded-[2px] inline-flex items-center justify-center gap-2 active:opacity-85"
                   >
-                    {activeRoom.stage === 'Negotiating'
-                      ? `LOCK ${currentRoomTotal} ECHO IN ESCROW →`
-                      : activeRoom.stage === 'Confirmed & escrowed'
-                      ? 'MARK DELIVERABLE READY →'
-                      : 'SIGN OFF & SETTLE CREDITS →'}
+                    <span>
+                      {activeRoom.stage === 'Negotiating'
+                        ? `LOCK ${currentRoomTotal} ECHO IN ESCROW`
+                        : activeRoom.stage === 'Confirmed & escrowed'
+                        ? 'MARK DELIVERABLE READY'
+                        : 'SIGN OFF & SETTLE CREDITS'}
+                    </span>
+                    <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
                   </button>
                 )}
 
@@ -765,10 +782,11 @@ function AgreementContent() {
                   <button
                     type="button"
                     onClick={() => setChatAttachment(null)}
-                    className="px-2 py-1 text-xs font-et-mono text-[var(--muted)] hover:text-red-500 transition-colors"
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-et-mono text-[var(--muted)] hover:text-red-500 transition-colors"
                     title="Remove attachment"
                   >
-                    ✕ Remove
+                    <IconClose className="w-3 h-3" />
+                    <span>Remove</span>
                   </button>
                 </div>
               )}
@@ -785,9 +803,10 @@ function AgreementContent() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   title="Attach file (image, audio, document)"
-                  className="w-10 h-10 rounded-sm border border-[var(--border-strong)] hover:border-[var(--lime)] flex items-center justify-center font-et-mono text-base text-[var(--muted)] hover:text-[var(--ink)] shrink-0 transition-colors"
+                  aria-label="Attach file"
+                  className="w-10 h-10 rounded-sm border border-[var(--border-strong)] hover:border-[var(--lime)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--ink)] shrink-0 transition-colors"
                 >
-                  📎
+                  <IconPaperclip className="w-4 h-4" />
                 </button>
                 <input
                   type="text"
@@ -798,9 +817,10 @@ function AgreementContent() {
                 />
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all shrink-0"
+                  className="group px-5 py-2.5 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em] inline-flex items-center gap-2 hover:brightness-95 transition-all shrink-0"
                 >
-                  Send →
+                  <span>Send</span>
+                  <IconSend className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </button>
               </div>
               <div className="flex items-center justify-between font-et-mono text-[10px] text-[var(--muted)]">
@@ -948,7 +968,7 @@ function AgreementContent() {
                               }
                         }
                       >
-                        {isDone ? '✓' : step.num}
+                        {isDone ? <IconCheck className="w-3.5 h-3.5" /> : step.num}
                       </span>
                       <span
                         className={
@@ -971,13 +991,16 @@ function AgreementContent() {
                 <button
                   type="button"
                   onClick={handleAdvanceAgreementStage}
-                  className="w-full py-3 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all"
+                  className="group w-full py-3 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em] inline-flex items-center justify-center gap-2 hover:brightness-95 transition-all"
                 >
-                  {activeRoom.stage === 'Negotiating'
-                    ? 'Confirm terms & lock escrow →'
-                    : activeRoom.stage === 'Confirmed & escrowed'
-                    ? 'Mark exchange as delivered →'
-                    : 'Mutual confirm & settle credits →'}
+                  <span>
+                    {activeRoom.stage === 'Negotiating'
+                      ? 'Confirm terms & lock escrow'
+                      : activeRoom.stage === 'Confirmed & escrowed'
+                      ? 'Mark exchange as delivered'
+                      : 'Mutual confirm & settle credits'}
+                  </span>
+                  <IconArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </button>
               )}
 

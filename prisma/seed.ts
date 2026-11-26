@@ -1,4 +1,5 @@
 import { PrismaClient, PlanTier, ListingType, ListingFormat, ListingStatus, AgreementStage, MessageSenderType, CommunityKind } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -15,16 +16,17 @@ async function main() {
   await prisma.communitySpace.deleteMany({});
   await prisma.user.deleteMany({});
 
-  // 2. Demo Seed Password (demo1234password hashed or mock string for demo)
-  // In production, hashed via bcryptjs: "$2a$10$w8uD6hH7bLhL9qVlH..."
-  const demoPasswordHash = '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'; // "demo1234password"
+  // 2. Demo Seed Password hashed properly via bcryptjs
+  const demoPasswordHash = await bcrypt.hash('demo1234password', 10);
 
-  // 3. Create Primary Judge Demo Student: Khaled Amr Ahmeed
+  // 3. Create Primary Seeded Student: Khaled Amr Ahmeed
   const khaled = await prisma.user.create({
     data: {
       fullName: 'Khaled Amr Ahmeed',
       username: 'khaled',
       email: 'khaled@echotime.edu',
+      canonicalEmail: 'khaled@echotime.edu',
+      emailVerified: true,
       passwordHash: demoPasswordHash,
       university: 'Cairo University — Computer Engineering',
       bio: 'Full-stack software engineer & CS senior. Passionate about Next.js, distributed systems, and reciprocal student economies.',
@@ -52,6 +54,8 @@ async function main() {
       fullName: 'Sara Al-Mansoor',
       username: 'sara',
       email: 'sara@echotime.edu',
+      canonicalEmail: 'sara@echotime.edu',
+      emailVerified: true,
       passwordHash: demoPasswordHash,
       university: 'American University in Cairo — Graphic Design',
       bio: 'Design systems lead & UI/UX researcher. I help engineering students turn complex tools into clean editorial interfaces.',
@@ -74,6 +78,8 @@ async function main() {
       fullName: 'Ahmed Taha',
       username: 'ahmed',
       email: 'ahmed@echotime.edu',
+      canonicalEmail: 'ahmed@echotime.edu',
+      emailVerified: true,
       passwordHash: demoPasswordHash,
       university: 'Ain Shams University — Computer Science',
       bio: 'Competitive programmer and Python enthusiast. Specializes in algorithms, data structures, and FastAPI backends.',

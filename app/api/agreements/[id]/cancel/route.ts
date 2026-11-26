@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { ConflictError, toErrorResponse } from '@/lib/validation';
 import { AgreementStage, MessageSenderType } from '@prisma/client';
+
+function getInitials(name: string): string {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'ET'
+  );
+}
 
 export async function POST(
   _req: NextRequest,
@@ -16,9 +29,15 @@ export async function POST(
     const { id } = await params;
     const room = await prisma.agreementRoom.findUnique({
       where: { id },
-      include: {
-        requester: true,
-        provider: true,
+      select: {
+        id: true,
+        title: true,
+        requesterId: true,
+        providerId: true,
+        durationHrs: true,
+        creditsPerHr: true,
+        stage: true,
+        provider: { select: { id: true, fullName: true } },
       },
     });
 
@@ -34,35 +53,59 @@ export async function POST(
       room.stage === AgreementStage.COMPLETED ||
       room.stage === AgreementStage.CANCELLED
     ) {
-      return NextResponse.json(
-        { error: `Cannot cancel an agreement that is already ${room.stage}` },
-        { status: 400 }
-      );
+      throw new ConflictError(`Cannot cancel an agreement that is already ${room.stage}`);
     }
 
     const total = room.durationHrs * room.creditsPerHr;
 
     const result = await prisma.$transaction(async (tx) => {
-      // If escrow was locked, refund reserved back to available
-      if (room.stage === AgreementStage.CONFIRMED_ESCROWED) {
-        await tx.user.update({
-          where: { id: room.requesterId },
+      // Atomically claim escrow-bearing stages first so escrowed funds in CONFIRMED_ESCROWED or DELIVERED
+      // are strictly refunded at most once even under concurrent double-click cancellation.
+      let shouldRefundEscrow = false;
+
+      const escrowedLock = await tx.agreementRoom.updateMany({
+        where: {
+          id: room.id,
+          stage: { in: [AgreementStage.CONFIRMED_ESCROWED, AgreementStage.DELIVERED] },
+        },
+        data: { stage: AgreementStage.CANCELLED },
+      });
+
+      if (escrowedLock.count === 1) {
+        shouldRefundEscrow = true;
+      } else {
+        const negotiatingLock = await tx.agreementRoom.updateMany({
+          where: {
+            id: room.id,
+            stage: AgreementStage.NEGOTIATING,
+          },
+          data: { stage: AgreementStage.CANCELLED },
+        });
+        if (negotiatingLock.count !== 1) {
+          throw new ConflictError('Agreement state has already changed. Please refresh.');
+        }
+      }
+
+      if (shouldRefundEscrow) {
+        const refund = await tx.user.updateMany({
+          where: {
+            id: room.requesterId,
+            reservedCredits: { gte: total },
+          },
           data: {
             availableCredits: { increment: total },
             reservedCredits: { decrement: total },
           },
         });
+        if (refund.count !== 1) {
+          throw new ConflictError('Escrow refund could not be verified. Please refresh.');
+        }
 
         await tx.walletTransaction.create({
           data: {
             userId: room.requesterId,
             roomId: room.id,
-            counterpartyInitials: room.provider.fullName
-              .split(' ')
-              .map((n) => n[0])
-              .join('')
-              .toUpperCase()
-              .slice(0, 2),
+            counterpartyInitials: getInitials(room.provider.fullName),
             counterpartyName: room.provider.fullName,
             title: `Escrow Refund: ${room.title}`,
             availableDelta: total,
@@ -72,12 +115,16 @@ export async function POST(
         });
       }
 
-      const updated = await tx.agreementRoom.update({
+      const updated = await tx.agreementRoom.findUnique({
         where: { id: room.id },
-        data: { stage: AgreementStage.CANCELLED },
+        include: {
+          requester: { select: { id: true, fullName: true, username: true } },
+          provider: { select: { id: true, fullName: true, username: true } },
+          messages: { orderBy: { createdAt: 'asc' } },
+        },
       });
 
-      await tx.agreementMessage.create({
+      const sysMsg = await tx.agreementMessage.create({
         data: {
           roomId: room.id,
           senderType: MessageSenderType.SYSTEM,
@@ -86,7 +133,7 @@ export async function POST(
         },
       });
 
-      return updated;
+      return updated ? { ...updated, messages: [...updated.messages, sysMsg] } : null;
     });
 
     return NextResponse.json({
@@ -94,7 +141,6 @@ export async function POST(
       message: 'Agreement cancelled successfully.',
     });
   } catch (error) {
-    console.error('Failed to cancel agreement:', error);
-    return NextResponse.json({ error: 'Failed to cancel agreement' }, { status: 500 });
+    return toErrorResponse(error, 'Failed to cancel agreement');
   }
 }

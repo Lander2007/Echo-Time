@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 import prisma from './prisma';
 
 const SECRET_KEY = new TextEncoder().encode(
@@ -9,11 +10,87 @@ const SECRET_KEY = new TextEncoder().encode(
 
 export const SESSION_COOKIE_NAME = 'et_session';
 
+/** Syntactically valid 10-round bcrypt hash used to equalize timing on unknown-email logins. */
+export const DUMMY_BCRYPT_HASH =
+  '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW';
+
 export interface SessionPayload {
   userId: string;
   email: string;
   username: string;
   role?: string;
+}
+
+/** Safe User column projection — strictly omits passwordHash, googleId, and canonicalEmail. */
+export const SAFE_USER_SELECT = {
+  id: true,
+  fullName: true,
+  username: true,
+  email: true,
+  emailVerified: true,
+  university: true,
+  bio: true,
+  availability: true,
+  avatarActive: true,
+  avatarUrl: true,
+  authProvider: true,
+  planTier: true,
+  streakDays: true,
+  availableCredits: true,
+  reservedCredits: true,
+  earnedLifetime: true,
+  spentLifetime: true,
+  completedExchanges: true,
+  offeredSkills: true,
+  createdAt: true,
+} as const;
+
+export function serializeSafeUser(user: {
+  id: string;
+  email: string;
+  emailVerified?: boolean;
+  fullName: string;
+  username: string;
+  university: string;
+  avatarUrl: string | null;
+  authProvider: string;
+  availableCredits: number;
+  reservedCredits: number;
+  completedExchanges?: number;
+}) {
+  return {
+    id: user.id,
+    email: user.email,
+    emailVerified: Boolean(user.emailVerified),
+    fullName: user.fullName,
+    username: user.username,
+    university: user.university,
+    avatarUrl: user.avatarUrl ?? null,
+    authProvider: user.authProvider || 'EMAIL',
+    availableCredits: user.availableCredits,
+    reservedCredits: user.reservedCredits,
+    ...(typeof user.completedExchanges === 'number'
+      ? { completedExchanges: user.completedExchanges }
+      : {}),
+  };
+}
+
+export function getSessionCookieOptions(maxAge = 60 * 60 * 24 * 7) {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+    maxAge,
+  };
+}
+
+export function setSessionCookie(response: NextResponse, token: string): void {
+  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
+}
+
+export function clearSessionCookie(response: NextResponse): void {
+  response.cookies.set(SESSION_COOKIE_NAME, '', getSessionCookieOptions(0));
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -52,25 +129,7 @@ export async function getSessionUser() {
 
     const user = await prisma.user.findUnique({
       where: { id: session.userId },
-      select: {
-        id: true,
-        fullName: true,
-        username: true,
-        email: true,
-        university: true,
-        bio: true,
-        availability: true,
-        avatarActive: true,
-        planTier: true,
-        streakDays: true,
-        availableCredits: true,
-        reservedCredits: true,
-        earnedLifetime: true,
-        spentLifetime: true,
-        completedExchanges: true,
-        offeredSkills: true,
-        createdAt: true,
-      },
+      select: SAFE_USER_SELECT,
     });
 
     return user;

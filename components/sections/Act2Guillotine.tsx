@@ -1,6 +1,7 @@
 import React from 'react';
 import { TactileAudioEngine } from '@/lib/audio';
 import { CANONICAL_CONTENT } from '@/data/content';
+import { IconArrowRight } from '@/components/workspace/Icons';
 
 interface Act2GuillotineProps {
   guillotineStageRef: React.RefObject<HTMLDivElement | null>;
@@ -169,7 +170,10 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                     }}
                   >
                     <span>{CANONICAL_CONTENT.problem.title}</span>
-                    <span style={{ color: '#D93829' }}>DRAG BLADE TO REVEAL SOLUTION &rarr;</span>
+                    <span className="inline-flex items-center gap-1.5" style={{ color: '#D93829' }}>
+                      <span>DRAG BLADE TO REVEAL SOLUTION</span>
+                      <IconArrowRight className="w-3.5 h-3.5" />
+                    </span>
                   </div>
                 </div>
 
@@ -216,9 +220,10 @@ export const Act2Guillotine: React.FC<Act2GuillotineProps> = ({
                       <div className="mt-5">
                         <a
                           href="#act-marketplace"
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] hover:bg-[#032BCB] transition-colors"
+                          className="group inline-flex items-center gap-2 px-4 py-2 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] hover:bg-[#032BCB] transition-colors"
                         >
-                          {CANONICAL_CONTENT.solution.cta} &rarr;
+                          <span>{CANONICAL_CONTENT.solution.cta}</span>
+                          <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
                         </a>
                       </div>
                     </div>

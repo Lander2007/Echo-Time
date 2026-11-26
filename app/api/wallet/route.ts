@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { toErrorResponse } from '@/lib/validation';
 
 export async function GET() {
   try {
@@ -55,7 +56,6 @@ export async function GET() {
       })),
     });
   } catch (error) {
-    console.error('Wallet telemetry error:', error);
-    return NextResponse.json({ error: 'Failed to retrieve wallet from database.' }, { status: 500 });
+    return toErrorResponse(error, 'Failed to retrieve wallet from database.');
   }
 }

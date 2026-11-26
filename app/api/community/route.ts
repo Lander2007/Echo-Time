@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import {
+  readJsonBody,
+  sanitizeText,
+  toErrorResponse,
+  ValidationError,
+} from '@/lib/validation';
 import { CommunityKind } from '@prisma/client';
+
+const EYEBROW_BY_KIND: Record<CommunityKind, string> = {
+  PROJECT: 'Build with peers',
+  GROUP: 'Join study circle',
+  EVENT: 'Attend campus session',
+};
 
 export async function GET(req: NextRequest) {
   try {
@@ -9,16 +21,21 @@ export async function GET(req: NextRequest) {
     const kind = searchParams.get('kind');
     const q = searchParams.get('q');
 
-    const where: any = {};
-    if (kind && kind !== 'ALL' && Object.values(CommunityKind).includes(kind as CommunityKind)) {
+    const where: Record<string, unknown> = {};
+    if (
+      kind &&
+      kind !== 'ALL' &&
+      Object.values(CommunityKind).includes(kind as CommunityKind)
+    ) {
       where.kind = kind as CommunityKind;
     }
 
     if (q) {
+      const boundedQ = q.slice(0, 120);
       where.OR = [
-        { title: { contains: q, mode: 'insensitive' } },
-        { description: { contains: q, mode: 'insensitive' } },
-        { tag: { contains: q, mode: 'insensitive' } },
+        { title: { contains: boundedQ, mode: 'insensitive' } },
+        { description: { contains: boundedQ, mode: 'insensitive' } },
+        { tag: { contains: boundedQ, mode: 'insensitive' } },
       ];
     }
 
@@ -39,8 +56,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ spaces });
   } catch (error) {
-    console.error('Failed to fetch community spaces:', error);
-    return NextResponse.json({ error: 'Failed to fetch community spaces' }, { status: 500 });
+    return toErrorResponse(error, 'Failed to fetch community spaces');
   }
 }
 
@@ -51,24 +67,44 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { kind = 'PROJECT', tag, eyebrowCta, title, description } = body;
+    const body = await readJsonBody(req);
 
-    if (!title || !description) {
-      return NextResponse.json(
-        { error: 'Missing required fields: title and description are required' },
-        { status: 400 }
-      );
+    // Strictly allow-list kind, tag, title, description; hostId and membersCount are server-controlled
+    let parsedKind: CommunityKind = CommunityKind.PROJECT;
+    if (body.kind !== undefined) {
+      if (typeof body.kind !== 'string' || !(body.kind.toUpperCase() in CommunityKind)) {
+        throw new ValidationError('Invalid community space kind.');
+      }
+      parsedKind = body.kind.toUpperCase() as CommunityKind;
     }
+
+    const cleanTag = sanitizeText(body.tag, {
+      fieldName: 'Tag',
+      minLen: 1,
+      maxLen: 40,
+      defaultValue: 'tech',
+      collapseNewlines: true,
+    });
+    const cleanTitle = sanitizeText(body.title, {
+      fieldName: 'Title',
+      minLen: 1,
+      maxLen: 120,
+      collapseNewlines: true,
+    });
+    const cleanDescription = sanitizeText(body.description, {
+      fieldName: 'Description',
+      minLen: 1,
+      maxLen: 800,
+    });
 
     const space = await prisma.communitySpace.create({
       data: {
         hostId: user.id,
-        kind: (kind.toUpperCase() in CommunityKind) ? (kind.toUpperCase() as CommunityKind) : CommunityKind.PROJECT,
-        tag: tag || 'Initiative',
-        eyebrowCta: eyebrowCta || 'JOIN INITIATIVE →',
-        title,
-        description,
+        kind: parsedKind,
+        tag: cleanTag,
+        eyebrowCta: EYEBROW_BY_KIND[parsedKind],
+        title: cleanTitle,
+        description: cleanDescription,
         membersCount: 1,
       },
       include: {
@@ -80,7 +116,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ space }, { status: 201 });
   } catch (error) {
-    console.error('Failed to create community space:', error);
-    return NextResponse.json({ error: 'Failed to create community space' }, { status: 500 });
+    return toErrorResponse(error, 'Failed to create community space');
   }
 }

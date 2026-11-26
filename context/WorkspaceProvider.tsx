@@ -18,6 +18,7 @@ import {
   AgreementStage,
 } from '@/types/workspace';
 import { INITIAL_BETA_PLANS } from '@/lib/seed-workspace';
+import { compressAvatarFile } from '@/lib/avatar';
 
 function getInitials(name: string): string {
   const parts = (name || '').trim().split(/\s+/).filter(Boolean);
@@ -196,6 +197,13 @@ interface WorkspaceContextType {
   setProfileAvailability: (val: string) => void;
   hasProfilePhoto: boolean;
   setHasProfilePhoto: React.Dispatch<React.SetStateAction<boolean>>;
+  avatarUrl: string | null;
+  setAvatarUrl: React.Dispatch<React.SetStateAction<string | null>>;
+  authProvider: string;
+  userCreatedAt: string | null;
+  avatarSaving: boolean;
+  handleUploadAvatar: (file: File) => Promise<void>;
+  handleRemoveAvatar: () => Promise<void>;
   offeredSkills: string[];
   setOfferedSkills: React.Dispatch<React.SetStateAction<string[]>>;
   newSkillInput: string;
@@ -260,7 +268,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [profileUniversity, setProfileUniversity] = useState<string>('');
   const [profileBio, setProfileBio] = useState<string>('');
   const [profileAvailability, setProfileAvailability] = useState<string>('Weekends & Evenings');
-  const [hasProfilePhoto, setHasProfilePhoto] = useState<boolean>(true);
+  const [hasProfilePhoto, setHasProfilePhoto] = useState<boolean>(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [authProvider, setAuthProvider] = useState<string>('EMAIL');
+  const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
+  const [avatarSaving, setAvatarSaving] = useState<boolean>(false);
   const [offeredSkills, setOfferedSkills] = useState<string[]>([]);
   const [newSkillInput, setNewSkillInput] = useState<string>('');
 
@@ -318,136 +330,132 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }, 3200);
   }, []);
 
-  // Sync with live PostgreSQL Backend API on Mount & on Route Change
-  const refreshDatabaseState = useCallback(async () => {
+  // Sync with live PostgreSQL Backend API cleanly without triggering dev overlays on transient disconnects
+  const refreshDatabaseState = useCallback(async (signal?: AbortSignal) => {
+    const safeFetchJson = async (url: string) => {
+      try {
+        const res = await fetch(url, { cache: 'no-store', signal });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch {
+        return null;
+      }
+    };
+
     try {
       // 1. Session & Profile
-      const sessionRes = await fetch('/api/auth/session', { cache: 'no-store' });
-      let loggedInUserId = '';
+      const sessionData = await safeFetchJson('/api/auth/session');
+      if (signal?.aborted) return;
 
-      if (sessionRes.ok) {
-        const sessionData = await sessionRes.json();
-        if (sessionData?.user) {
-          const u = sessionData.user;
-          loggedInUserId = u.id;
-          setCurrentUserId(u.id);
-          setIsAuthenticated(true);
-          setProfileFullName(u.fullName || '');
-          setAuthFullName(u.fullName || '');
-          setAuthEmail(u.email || '');
-          setProfileUsername(u.username || '');
-          setProfileUniversity(u.university || '');
-          setProfileBio(u.bio || '');
-          setProfileAvailability(u.availability || 'Weekends & Evenings');
-          setOfferedSkills(Array.isArray(u.offeredSkills) ? u.offeredSkills : []);
-          setAvailableCredits(typeof u.availableCredits === 'number' ? u.availableCredits : 5.0);
-          setReservedCredits(typeof u.reservedCredits === 'number' ? u.reservedCredits : 0.0);
-          setEarnedLifetime(typeof u.earnedLifetime === 'number' ? u.earnedLifetime : 0.0);
-          setSpentLifetime(typeof u.spentLifetime === 'number' ? u.spentLifetime : 0.0);
-          setCompletedExchanges(typeof u.completedExchanges === 'number' ? u.completedExchanges : 0);
-        } else {
-          setIsAuthenticated(false);
-        }
+      let loggedInUserId = '';
+      if (sessionData?.user) {
+        const u = sessionData.user;
+        loggedInUserId = u.id;
+        setCurrentUserId(u.id);
+        setIsAuthenticated(true);
+        setProfileFullName(u.fullName || '');
+        setAuthFullName(u.fullName || '');
+        setAuthEmail(u.email || '');
+        setProfileUsername(u.username || '');
+        setProfileUniversity(u.university || '');
+        setProfileBio(u.bio || '');
+        setProfileAvailability(u.availability || 'Weekends & Evenings');
+        setAvatarUrl(u.avatarUrl ?? null);
+        setAuthProvider(u.authProvider || 'EMAIL');
+        setUserCreatedAt(u.createdAt ? String(u.createdAt) : null);
+        setHasProfilePhoto(Boolean(u.avatarUrl));
+        setOfferedSkills(Array.isArray(u.offeredSkills) ? u.offeredSkills : []);
+        setAvailableCredits(typeof u.availableCredits === 'number' ? u.availableCredits : 5.0);
+        setReservedCredits(typeof u.reservedCredits === 'number' ? u.reservedCredits : 0.0);
+        setEarnedLifetime(typeof u.earnedLifetime === 'number' ? u.earnedLifetime : 0.0);
+        setSpentLifetime(typeof u.spentLifetime === 'number' ? u.spentLifetime : 0.0);
+        setCompletedExchanges(typeof u.completedExchanges === 'number' ? u.completedExchanges : 0);
       } else {
         setIsAuthenticated(false);
       }
 
-      // 2. Wallet & Transactions
-      if (loggedInUserId) {
-        const walletRes = await fetch('/api/wallet', { cache: 'no-store' });
-        if (walletRes.ok) {
-          const walletData = await walletRes.json();
-          if (walletData?.telemetry) {
-            const t = walletData.telemetry;
-            setAvailableCredits(t.availableCredits);
-            setReservedCredits(t.reservedCredits);
-            setEarnedLifetime(t.earnedLifetime);
-            setSpentLifetime(t.spentLifetime);
-            setCompletedExchanges(t.completedExchanges);
-          }
-          if (Array.isArray(walletData?.transactions)) {
-            setTransactions(
-              walletData.transactions.map((tx: any) => ({
-                id: tx.id,
-                initials: tx.initials || 'ET',
-                counterparty: tx.counterparty,
-                title: tx.title,
-                availableDelta: tx.availableDelta,
-                reservedDelta: tx.reservedDelta,
-                typeLabel: tx.type,
-                time: tx.date || 'Recent',
-              }))
-            );
-          }
-        }
+      // 2. Wallet & Transactions + 3. Agreement Rooms + 6. Beta Subscription (authenticated)
+      const [walletData, agreementsData, betaData, listingsData, commData] = await Promise.all([
+        loggedInUserId ? safeFetchJson('/api/wallet') : Promise.resolve(null),
+        loggedInUserId ? safeFetchJson('/api/agreements') : Promise.resolve(null),
+        loggedInUserId ? safeFetchJson('/api/subscription/beta') : Promise.resolve(null),
+        safeFetchJson('/api/listings'),
+        safeFetchJson('/api/community'),
+      ]);
 
-        // 3. Agreement Rooms
-        const agreementsRes = await fetch('/api/agreements', { cache: 'no-store' });
-        if (agreementsRes.ok) {
-          const agreementsData = await agreementsRes.json();
-          if (Array.isArray(agreementsData?.agreements)) {
-            const mappedRooms = agreementsData.agreements.map((r: any) => mapApiRoom(r, loggedInUserId));
-            setRooms(mappedRooms);
-            if (mappedRooms[0] && !activeRoomId) {
-              setActiveRoomId(mappedRooms[0].id);
-            }
-          }
+      if (signal?.aborted) return;
+
+      if (walletData?.telemetry) {
+        const t = walletData.telemetry;
+        setAvailableCredits(t.availableCredits);
+        setReservedCredits(t.reservedCredits);
+        setEarnedLifetime(t.earnedLifetime);
+        setSpentLifetime(t.spentLifetime);
+        setCompletedExchanges(t.completedExchanges);
+      }
+      if (Array.isArray(walletData?.transactions)) {
+        setTransactions(
+          walletData.transactions.map((tx: any) => ({
+            id: tx.id,
+            initials: tx.initials || 'ET',
+            counterparty: tx.counterparty,
+            title: tx.title,
+            availableDelta: tx.availableDelta,
+            reservedDelta: tx.reservedDelta,
+            typeLabel: tx.type,
+            time: tx.date || 'Recent',
+          }))
+        );
+      }
+
+      if (Array.isArray(agreementsData?.agreements)) {
+        const mappedRooms = agreementsData.agreements.map((r: any) => mapApiRoom(r, loggedInUserId));
+        setRooms(mappedRooms);
+        if (mappedRooms[0]) {
+          setActiveRoomId((prev) => prev || mappedRooms[0].id);
         }
       }
 
-      // 4. All Database Listings (Available to everyone)
-      const listingsRes = await fetch('/api/listings', { cache: 'no-store' });
-      if (listingsRes.ok) {
-        const listingsData = await listingsRes.json();
-        if (Array.isArray(listingsData?.listings)) {
-          setListings(listingsData.listings.map((l: any) => mapApiListing(l, loggedInUserId)));
-        }
+      if (Array.isArray(listingsData?.listings)) {
+        setListings(listingsData.listings.map((l: any) => mapApiListing(l, loggedInUserId)));
       }
 
-      // 5. Community Spaces
-      const communityRes = await fetch('/api/community', { cache: 'no-store' });
-      if (communityRes.ok) {
-        const commData = await communityRes.json();
-        if (Array.isArray(commData?.spaces)) {
-          setSpaces(
-            commData.spaces.map((s: any) => ({
-              id: s.id,
-              kind: s.kind === 'GROUP' ? 'Group' : s.kind === 'EVENT' ? 'Event' : 'Project',
-              tag: s.tag,
-              eyebrowCta: s.eyebrowCta,
-              title: s.title,
-              description: s.description,
-              hostName: s.host?.fullName || 'Campus Peer',
-              hostInitials: getInitials(s.host?.fullName || 'CP'),
-              members: s.membersCount || 1,
-              isHost: Boolean(loggedInUserId && s.hostId === loggedInUserId),
-            }))
-          );
-        }
+      if (Array.isArray(commData?.spaces)) {
+        setSpaces(
+          commData.spaces.map((s: any) => ({
+            id: s.id,
+            kind: s.kind === 'GROUP' ? 'Group' : s.kind === 'EVENT' ? 'Event' : 'Project',
+            tag: s.tag,
+            eyebrowCta: s.eyebrowCta,
+            title: s.title,
+            description: s.description,
+            hostName: s.host?.fullName || 'Campus Peer',
+            hostInitials: getInitials(s.host?.fullName || 'CP'),
+            members: s.membersCount || 1,
+            isHost: Boolean(loggedInUserId && s.hostId === loggedInUserId),
+          }))
+        );
       }
 
-      // 6. Beta Subscription
-      if (loggedInUserId) {
-        const betaRes = await fetch('/api/subscription/beta', { cache: 'no-store' });
-        if (betaRes.ok) {
-          const betaData = await betaRes.json();
-          if (Array.isArray(betaData?.plans)) {
-            setBetaPlans((prev) =>
-              prev.map((p) => ({
-                ...p,
-                onWaitlist: betaData.plans.includes(p.id),
-              }))
-            );
-          }
-        }
+      if (Array.isArray(betaData?.plans)) {
+        setBetaPlans((prev) =>
+          prev.map((p) => ({
+            ...p,
+            onWaitlist: betaData.plans.includes(p.id),
+          }))
+        );
       }
     } catch (err) {
-      console.error('Database sync error:', err);
+      if (!signal?.aborted) {
+        console.warn('Database sync skipped:', err);
+      }
     }
-  }, [activeRoomId]);
+  }, []);
 
   useEffect(() => {
-    refreshDatabaseState();
+    const controller = new AbortController();
+    refreshDatabaseState(controller.signal);
+    return () => controller.abort();
   }, [refreshDatabaseState]);
 
   const userInitials = useMemo(() => {
@@ -458,16 +466,16 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     return rooms.find((r) => r.id === activeRoomId) || rooms[0];
   }, [rooms, activeRoomId]);
 
-  // Profile Completion Meter
+  // Profile Completion Meter — "Add a photo" bound strictly to Boolean(avatarUrl)
   const profileChecklist = useMemo<ProfileChecklistItem[]>(
     () => [
-      { id: 'photo', label: 'Add a photo', done: hasProfilePhoto },
+      { id: 'photo', label: 'Add a photo', done: Boolean(avatarUrl) },
       { id: 'bio', label: 'Write a bio', done: profileBio.trim().length >= 8 },
       { id: 'skills', label: 'Offer three skills', done: offeredSkills.length >= 3 },
       { id: 'project', label: 'Add a project', done: spaces.length > 0 },
       { id: 'learn', label: 'Choose a skill to learn', done: true },
     ],
-    [hasProfilePhoto, profileBio, offeredSkills.length, spaces.length]
+    [avatarUrl, profileBio, offeredSkills.length, spaces.length]
   );
 
   const profileCompletionPct = useMemo(() => {
@@ -938,6 +946,57 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     [offeredSkills]
   );
 
+  const handleUploadAvatar = useCallback(
+    async (file: File) => {
+      try {
+        setAvatarSaving(true);
+        const compressed = await compressAvatarFile(file);
+        const res = await fetch('/api/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ avatarUrl: compressed }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          pushToast(data?.error || 'Could not update profile photo.');
+          return;
+        }
+        const savedUrl: string | null = data?.profile?.avatarUrl ?? compressed;
+        setAvatarUrl(savedUrl);
+        setHasProfilePhoto(Boolean(savedUrl));
+        pushToast('PROFILE PHOTO UPDATED');
+      } catch (err: any) {
+        pushToast(err?.message || 'Could not process the selected image.');
+      } finally {
+        setAvatarSaving(false);
+      }
+    },
+    [pushToast]
+  );
+
+  const handleRemoveAvatar = useCallback(async () => {
+    try {
+      setAvatarSaving(true);
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarUrl: null }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        pushToast(data?.error || 'Could not remove profile photo.');
+        return;
+      }
+      setAvatarUrl(null);
+      setHasProfilePhoto(false);
+      pushToast('PROFILE PHOTO REMOVED');
+    } catch {
+      pushToast('Could not remove profile photo.');
+    } finally {
+      setAvatarSaving(false);
+    }
+  }, [pushToast]);
+
   const handleAuthSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -961,6 +1020,10 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     setProfileUniversity('');
     setProfileBio('');
     setProfileAvailability('Weekends & Evenings');
+    setAvatarUrl(null);
+    setAuthProvider('EMAIL');
+    setUserCreatedAt(null);
+    setHasProfilePhoto(false);
     setOfferedSkills([]);
     setAvailableCredits(0);
     setReservedCredits(0);
@@ -1043,6 +1106,13 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setProfileAvailability,
       hasProfilePhoto,
       setHasProfilePhoto,
+      avatarUrl,
+      setAvatarUrl,
+      authProvider,
+      userCreatedAt,
+      avatarSaving,
+      handleUploadAvatar,
+      handleRemoveAvatar,
       offeredSkills,
       setOfferedSkills,
       newSkillInput,
@@ -1106,6 +1176,12 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       profileBio,
       profileAvailability,
       hasProfilePhoto,
+      avatarUrl,
+      authProvider,
+      userCreatedAt,
+      avatarSaving,
+      handleUploadAvatar,
+      handleRemoveAvatar,
       offeredSkills,
       newSkillInput,
       handleAddOfferedSkill,

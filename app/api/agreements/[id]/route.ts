@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { toErrorResponse } from '@/lib/validation';
 
 export async function GET(
   _req: NextRequest,
@@ -22,7 +23,9 @@ export async function GET(
         provider: {
           select: { id: true, fullName: true, username: true, university: true, planTier: true },
         },
-        listing: true,
+        listing: {
+          select: { id: true, title: true, creditsPerHr: true, category: true, format: true },
+        },
         messages: {
           orderBy: { createdAt: 'asc' },
         },
@@ -39,7 +42,6 @@ export async function GET(
 
     return NextResponse.json({ agreement: room });
   } catch (error) {
-    console.error('Failed to fetch agreement room:', error);
-    return NextResponse.json({ error: 'Failed to fetch agreement room' }, { status: 500 });
+    return toErrorResponse(error, 'Failed to fetch agreement room');
   }
 }

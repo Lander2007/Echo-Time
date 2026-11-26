@@ -5,7 +5,7 @@ import { useWorkspace } from '@/context/WorkspaceProvider';
 import { ListingCard } from '@/components/workspace/ListingCard';
 import { MobileListingTicket } from '@/components/mobile/MobileListingTicket';
 import { MobileArchitecturalDrawer } from '@/components/mobile/MobileArchitecturalDrawer';
-import { IconSearch } from '@/components/workspace/Icons';
+import { IconSearch, IconClose } from '@/components/workspace/Icons';
 import { ListingFormat } from '@/types/workspace';
 import { EXPLORE_CATEGORIES } from '@/lib/seed-workspace';
 
@@ -432,9 +432,10 @@ export default function ExplorePage() {
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="font-et-mono text-[10.5px] uppercase tracking-[0.08em] text-[var(--lime)] hover:underline"
+                className="inline-flex items-center gap-1 font-et-mono text-[10.5px] uppercase tracking-[0.08em] text-[var(--lime)] hover:underline"
               >
-                Reset filters &times;
+                <span>Reset filters</span>
+                <IconClose className="w-3 h-3" />
               </button>
             )}
           </div>

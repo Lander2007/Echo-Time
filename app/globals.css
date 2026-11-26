@@ -1329,7 +1329,7 @@
   position: relative;
   width: 100%;
   max-width: 960px;
-  min-height: 580px;
+  min-height: 660px;
   border-radius: 18px;
   background-color: #FFFFFF;
   border: 1.5px solid rgba(2, 31, 148, 0.34);
@@ -1377,7 +1377,8 @@
   top: 0;
   width: 50%;
   height: 100%;
-  padding: 44px 42px;
+  padding: 28px 38px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1471,7 +1472,7 @@
    ============================================================================ */
 @media (max-width: 767px) {
   .et-auth-stage {
-    min-height: 760px;
+    min-height: 880px;
     border-radius: 14px;
   }
 
@@ -1491,7 +1492,8 @@
     right: 0;
     width: 100%;
     height: 68%;
-    padding: 28px 24px;
+    padding: 20px 22px;
+    justify-content: flex-start;
   }
 
   .et-form-login {

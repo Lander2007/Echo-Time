@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceProvider';
 import { HourglassMark } from '@/components/HourglassMark';
-import { IconBell } from '@/components/workspace/Icons';
+import { UserAvatar } from '@/components/UserAvatar';
+import { IconBell, IconArrowRight } from '@/components/workspace/Icons';
 import { MobileArchitecturalDrawer } from './MobileArchitecturalDrawer';
 
 export function MobileTopBar() {
@@ -18,6 +19,8 @@ export function MobileTopBar() {
     notifOpen,
     setNotifOpen,
     userInitials,
+    avatarUrl,
+    profileFullName,
     activeRoom,
   } = useWorkspace();
 
@@ -75,13 +78,16 @@ export function MobileTopBar() {
           <Link
             href="/profile"
             aria-label="Open profile"
-            className={`w-8 h-8 rounded-[2px] font-mono text-[10.5px] font-bold flex items-center justify-center active:opacity-80 transition-colors ${
-              isProfileActive
-                ? 'bg-[#021F94] text-[#F5F2F3] border-2 border-[#D93829]'
-                : 'bg-[#0B1026] text-[#F5F2F3] border border-[#0B1026]'
+            className={`rounded-[2px] active:opacity-80 transition-opacity ${
+              isProfileActive ? 'ring-2 ring-[#D93829]' : ''
             }`}
           >
-            {userInitials || 'ET'}
+            <UserAvatar
+              src={avatarUrl}
+              initials={userInitials || 'ET'}
+              alt={profileFullName || 'Student Profile'}
+              className="w-8 h-8 text-[10.5px]"
+            />
           </Link>
         </div>
       </header>
@@ -111,9 +117,10 @@ export function MobileTopBar() {
                   setNotifOpen(false);
                   router.push('/agreement');
                 }}
-                className="mt-2 w-full py-2 bg-[#021F94] text-[#F5F2F3] font-mono text-[10.5px] font-bold uppercase tracking-[0.1em] rounded-[2px] text-center active:opacity-80 transition-opacity"
+                className="group mt-2 w-full py-2 bg-[#021F94] text-[#F5F2F3] font-mono text-[10.5px] font-bold uppercase tracking-[0.1em] rounded-[2px] inline-flex items-center justify-center gap-2 active:opacity-80 transition-opacity"
               >
-                OPEN AGREEMENT ROOM →
+                <span>OPEN AGREEMENT ROOM</span>
+                <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
               </button>
             )}
           </div>

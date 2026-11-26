@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { toErrorResponse } from '@/lib/validation';
 
 export async function POST(
   _req: NextRequest,
@@ -13,6 +14,14 @@ export async function POST(
     }
 
     const { id: listingId } = await params;
+
+    const listingExists = await prisma.skillListing.findUnique({
+      where: { id: listingId },
+      select: { id: true },
+    });
+    if (!listingExists) {
+      return NextResponse.json({ error: 'Listing not found.' }, { status: 404 });
+    }
 
     const existing = await prisma.savedListing.findUnique({
       where: {
@@ -38,7 +47,6 @@ export async function POST(
       return NextResponse.json({ success: true, saved: true });
     }
   } catch (error) {
-    console.error('Toggle save listing error:', error);
-    return NextResponse.json({ error: 'Failed to bookmark listing.' }, { status: 500 });
+    return toErrorResponse(error, 'Failed to bookmark listing.');
   }
 }

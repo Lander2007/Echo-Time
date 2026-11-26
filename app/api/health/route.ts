@@ -1,54 +1,63 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+function getMaskedHostInfo(rawDbUrl: string): { maskedHost: string; isLocalhost: boolean; isConfigured: boolean } {
+  const isConfigured = Boolean(rawDbUrl);
+  const isLocalhost = rawDbUrl.includes('localhost') || rawDbUrl.includes('127.0.0.1');
+  let maskedHost = 'unconfigured';
+
+  if (rawDbUrl) {
+    try {
+      const parsed = new URL(rawDbUrl);
+      const firstLabel = parsed.hostname.split('.')[0] || parsed.hostname;
+      maskedHost =
+        firstLabel.length > 14 ? `${firstLabel.slice(0, 14)}...` : `${firstLabel}...`;
+    } catch {
+      maskedHost = 'configured';
+    }
+  }
+
+  return { maskedHost, isLocalhost, isConfigured };
+}
+
 export async function GET() {
   const dbUrl = process.env.DATABASE_URL;
   const directUrl = process.env.DIRECT_URL;
-  const rawDbUrl = (dbUrl && dbUrl.includes('ep-red-sound') && directUrl) ? directUrl : (dbUrl || directUrl || '');
-  const isLocalhost = rawDbUrl.includes('localhost') || rawDbUrl.includes('127.0.0.1');
-  const isConfigured = Boolean(rawDbUrl);
+  const rawDbUrl =
+    dbUrl && dbUrl.includes('ep-red-sound') && directUrl
+      ? directUrl
+      : dbUrl || directUrl || '';
 
-  let dbHost = 'unknown';
-  let dbName = 'unknown';
-  try {
-    const parsed = new URL(rawDbUrl);
-    dbHost = parsed.host;
-    dbName = parsed.pathname.replace('/', '');
-  } catch {}
+  const { maskedHost, isLocalhost, isConfigured } = getMaskedHostInfo(rawDbUrl);
 
   try {
-    const userCount = await prisma.user.count();
-    const listingCount = await prisma.skillListing.count();
+    const [users, listings] = await Promise.all([
+      prisma.user.count(),
+      prisma.skillListing.count(),
+    ]);
 
     return NextResponse.json({
       status: 'healthy',
       database: 'connected',
-      dbHost,
-      dbName,
+      host: maskedHost,
       environment: process.env.NODE_ENV,
       isLocalhost,
       stats: {
-        users: userCount,
-        listings: listingCount,
+        users,
+        listings,
       },
-      message: 'PostgreSQL database is connected and tables exist.',
+      message: 'PostgreSQL database is connected and operational.',
     });
-  } catch (error: any) {
-    const msg = String(error?.message || '');
+  } catch (error) {
+    console.error('Health check failed:', error);
     return NextResponse.json(
       {
         status: 'error',
         database: 'unreachable',
-        dbHost,
-        dbName,
+        host: maskedHost,
         isLocalhost,
         isConfigured,
-        errorCode: error?.code || 'UNKNOWN',
-        diagnostic: isLocalhost
-          ? 'DATABASE_URL in Vercel is pointing to localhost! Vercel runs in the cloud and cannot connect to your laptop. Set a cloud PostgreSQL URL (e.g. Neon.tech or Supabase) in Vercel Project Settings.'
-          : msg.includes('does not exist') || msg.includes('P2021')
-          ? 'Cloud database is connected, but tables do not exist yet. Please run "npx prisma db push" against your cloud database.'
-          : `Database error: ${error?.message}`,
+        message: 'Database connectivity check failed.',
       },
       { status: 500 }
     );

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { readJsonBody, sanitizeText, toErrorResponse, ValidationError } from '@/lib/validation';
+
+const PLAN_KEY_REGEX = /^[a-z0-9_-]{2,64}$/i;
 
 export async function GET() {
   try {
@@ -16,8 +19,7 @@ export async function GET() {
 
     return NextResponse.json({ plans: interests.map((i) => i.planKey) });
   } catch (error) {
-    console.error('Failed to fetch beta interests:', error);
-    return NextResponse.json({ error: 'Failed to fetch beta interests' }, { status: 500 });
+    return toErrorResponse(error, 'Failed to fetch beta interests');
   }
 }
 
@@ -28,12 +30,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { planKey } = await req.json();
-    if (!planKey) {
-      return NextResponse.json({ error: 'Missing planKey' }, { status: 400 });
+    const body = await readJsonBody(req);
+    const planKey = sanitizeText(body.planKey, {
+      fieldName: 'planKey',
+      minLen: 2,
+      maxLen: 64,
+      collapseNewlines: true,
+    });
+
+    if (!PLAN_KEY_REGEX.test(planKey)) {
+      throw new ValidationError('Invalid beta plan key format.');
     }
 
-    // Toggle interest
+    // Toggle interest cleanly for the authenticated session user only
     const existing = await prisma.betaInterest.findUnique({
       where: {
         userId_planKey: {
@@ -58,7 +67,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ subscribed: true, planKey });
     }
   } catch (error) {
-    console.error('Failed to toggle beta subscription:', error);
-    return NextResponse.json({ error: 'Failed to toggle beta subscription' }, { status: 500 });
+    return toErrorResponse(error, 'Failed to toggle beta subscription');
   }
 }

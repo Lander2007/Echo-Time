@@ -2,6 +2,7 @@ import React from 'react';
 import { CIRCUITS } from '@/data/echoData';
 import { TactileAudioEngine } from '@/lib/audio';
 import { CANONICAL_CONTENT } from '@/data/content';
+import { IconArrowRight } from '@/components/workspace/Icons';
 
 interface Act3PatchboardProps {
   patchGridRef: React.RefObject<HTMLDivElement | null>;
@@ -123,9 +124,10 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                         <div className="mt-3">
                           <a
                             href="#act-marketplace"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-[10px] font-semibold uppercase tracking-[0.1em] hover:bg-[#032BCB] transition-colors"
+                            className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-[10px] font-semibold uppercase tracking-[0.1em] hover:bg-[#032BCB] transition-colors"
                           >
-                            {CANONICAL_CONTENT.solution.cta} &rarr;
+                            <span>{CANONICAL_CONTENT.solution.cta}</span>
+                            <IconArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
                           </a>
                         </div>
                       </div>
@@ -134,11 +136,11 @@ export const Act3Patchboard: React.FC<Act3PatchboardProps> = ({
                         <span className="px-2 py-1 rounded-sm bg-[#061354] text-[#F5F2F3]">
                           {CANONICAL_CONTENT.solution.exampleCard.formatValue}
                         </span>
-                        <span className="text-[#021F94] font-bold">&rarr;</span>
+                        <IconArrowRight className="w-3.5 h-3.5 text-[#021F94]" />
                         <span className="px-2 py-1 rounded-sm bg-[#021F94] text-[#F5F2F3] font-semibold">
                           {CANONICAL_CONTENT.solution.exampleCard.durationValue}
                         </span>
-                        <span className="text-[#021F94] font-bold">&rarr;</span>
+                        <IconArrowRight className="w-3.5 h-3.5 text-[#021F94]" />
                         <span className="px-2 py-1 rounded-sm bg-[#021F94] border border-[#061354] text-[#F5F2F3] font-semibold">
                           {CANONICAL_CONTENT.solution.exampleCard.totalValue}
                         </span>
