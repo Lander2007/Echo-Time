@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 
 function resolveDatabaseUrl() {
   const dbUrl = process.env.DATABASE_URL;
@@ -22,13 +23,15 @@ async function main() {
 
     console.log('🌱 Database is empty. Seeding initial canonical users and listings...');
 
-    const demoPasswordHash = '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'; // "demo1234password"
+    const demoPasswordHash = await bcrypt.hash('demo1234password', 10);
 
     const khaled = await prisma.user.create({
       data: {
         fullName: 'Khaled Amr Ahmeed',
         username: 'khaled',
         email: 'khaled@echotime.edu',
+        canonicalEmail: 'khaled@echotime.edu',
+        emailVerified: true,
         passwordHash: demoPasswordHash,
         university: 'Cairo University — Computer Engineering',
         bio: 'Full-stack software engineer & CS senior. Passionate about Next.js, distributed systems, and reciprocal student economies.',
@@ -55,6 +58,8 @@ async function main() {
         fullName: 'Sara Al-Mansoor',
         username: 'sara',
         email: 'sara@echotime.edu',
+        canonicalEmail: 'sara@echotime.edu',
+        emailVerified: true,
         passwordHash: demoPasswordHash,
         university: 'American University in Cairo — Graphic Design',
         bio: 'Design systems lead & UI/UX researcher. I help engineering students turn complex tools into clean editorial interfaces.',
@@ -76,6 +81,8 @@ async function main() {
         fullName: 'Ahmed Taha',
         username: 'ahmed',
         email: 'ahmed@echotime.edu',
+        canonicalEmail: 'ahmed@echotime.edu',
+        emailVerified: true,
         passwordHash: demoPasswordHash,
         university: 'Ain Shams University — Computer Science',
         bio: 'Competitive programmer and Python enthusiast. Specializes in algorithms, data structures, and FastAPI backends.',

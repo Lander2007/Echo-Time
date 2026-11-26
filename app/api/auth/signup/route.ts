@@ -1,48 +1,116 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import prisma from '@/lib/prisma';
-import { hashPassword, createSessionToken, SESSION_COOKIE_NAME } from '@/lib/auth';
+import {
+  hashPassword,
+  createSessionToken,
+  serializeSafeUser,
+  setSessionCookie,
+} from '@/lib/auth';
+import { canonicalizeEmail, isValidEmailFormat } from '@/lib/email';
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit';
+import {
+  ConflictError,
+  readJsonBody,
+  sanitizeText,
+  toErrorResponse,
+  ValidationError,
+} from '@/lib/validation';
 import { PlanTier } from '@prisma/client';
+
+const SIGNUP_WINDOW_MS = 15 * 60 * 1000;
+const MAX_SIGNUPS_PER_WINDOW = 6;
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { email, password, fullName, university } = body;
-
-    if (!email || !password || !fullName) {
-      return NextResponse.json(
-        { error: 'Email, password, and full name are required.' },
-        { status: 400 }
+    const ip = getClientIp(req);
+    const rate = checkRateLimit({
+      key: `signup:${ip}`,
+      limit: MAX_SIGNUPS_PER_WINDOW,
+      windowMs: SIGNUP_WINDOW_MS,
+    });
+    if (!rate.allowed) {
+      return rateLimitResponse(
+        rate.retryAfterSec,
+        'Too many account registration attempts. Please try again later.'
       );
     }
 
-    const cleanEmail = email.toLowerCase().trim();
-    const username =
-      cleanEmail.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '') || `student_${Date.now()}`;
+    const body = await readJsonBody(req);
+    const rawEmail = sanitizeText(body.email, {
+      fieldName: 'Email',
+      minLen: 5,
+      maxLen: 254,
+      collapseNewlines: true,
+    });
+    if (!isValidEmailFormat(rawEmail)) {
+      throw new ValidationError('Please provide a valid email address.');
+    }
 
-    const existing = await prisma.user.findFirst({
-      where: {
-        OR: [{ email: cleanEmail }, { username }],
-      },
+    const password = sanitizeText(body.password, {
+      fieldName: 'Password',
+      minLen: 6,
+      maxLen: 128,
+    });
+    const fullName = sanitizeText(body.fullName, {
+      fieldName: 'Full name',
+      minLen: 2,
+      maxLen: 80,
+      collapseNewlines: true,
+    });
+    const university = sanitizeText(body.university, {
+      fieldName: 'University',
+      minLen: 0,
+      maxLen: 120,
+      defaultValue: 'Accredited University',
+      collapseNewlines: true,
     });
 
-    if (existing) {
-      return NextResponse.json(
-        { error: 'An account with this email or username already exists. Please log in.' },
-        { status: 409 }
-      );
+    const cleanEmail = rawEmail.toLowerCase();
+    const canonicalEmail = canonicalizeEmail(cleanEmail);
+
+    // Block exact email duplicates as well as +tag / Gmail dot-trick Sybil farming
+    const existingByEmail = await prisma.user.findFirst({
+      where: {
+        OR: [{ email: cleanEmail }, { canonicalEmail }],
+      },
+      select: { id: true },
+    });
+
+    if (existingByEmail) {
+      throw new ConflictError('An account with this email already exists. Please log in.');
     }
 
     const passwordHash = await hashPassword(password);
 
-    // Atomic transaction: create user and issue 5.00 ECHO starter grant
+    // Atomic transaction: create user with hardcoded server defaults and 5.00 ECHO starter grant
     const newUser = await prisma.$transaction(async (tx) => {
+      const baseSlug =
+        cleanEmail
+          .split('@')[0]
+          .replace(/[^a-z0-9_-]/g, '')
+          .slice(0, 20) || 'student';
+
+      let username = baseSlug;
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const taken = await tx.user.findUnique({
+          where: { username },
+          select: { id: true },
+        });
+        if (!taken) break;
+        username = `${baseSlug}_${crypto.randomBytes(2).toString('hex')}`;
+      }
+
       const user = await tx.user.create({
         data: {
           email: cleanEmail,
+          canonicalEmail,
+          emailVerified: false,
           passwordHash,
-          fullName: fullName.trim(),
+          authProvider: 'EMAIL',
+          fullName,
           username,
-          university: university?.trim() || 'Accredited University',
+          university,
           planTier: PlanTier.STUDENT_FREE,
           availableCredits: 5.0,
           reservedCredits: 0.0,
@@ -50,7 +118,7 @@ export async function POST(req: NextRequest) {
           spentLifetime: 0.0,
           completedExchanges: 0,
           streakDays: 1,
-          avatarActive: true,
+          avatarActive: false,
           offeredSkills: [],
         },
       });
@@ -80,34 +148,20 @@ export async function POST(req: NextRequest) {
       {
         success: true,
         message: `Account created for ${newUser.fullName} (+5.00 ECHO starter grant minted).`,
-        user: {
-          id: newUser.id,
-          email: newUser.email,
-          fullName: newUser.fullName,
-          username: newUser.username,
-          availableCredits: newUser.availableCredits,
-          reservedCredits: newUser.reservedCredits,
-        },
+        user: serializeSafeUser(newUser),
       },
       { status: 201 }
     );
 
-    res.cookies.set(SESSION_COOKIE_NAME, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
-
+    setSessionCookie(res, token);
     return res;
-  } catch (error: any) {
-    console.error('Signup error:', error);
-    const msg = String(error?.message || error?.toString() || 'Unknown error');
-    const code = error?.code ? ` [${error.code}]` : '';
-    return NextResponse.json(
-      { error: `Signup database error${code}: ${msg.replace(/npg_[a-zA-Z0-9]+/g, 'npg_***')}` },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    if ((error as { code?: string })?.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'An account with this email already exists. Please log in.' },
+        { status: 409 }
+      );
+    }
+    return toErrorResponse(error, 'Unable to create account right now. Please try again.');
   }
 }

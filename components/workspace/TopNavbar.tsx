@@ -4,8 +4,9 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceProvider';
-import { IconBell, IconSunMoon } from './Icons';
+import { IconBell, IconSunMoon, IconArrowRight } from './Icons';
 import { BrandLogo } from '@/components/BrandLogo';
+import { UserAvatar } from '@/components/UserAvatar';
 
 export function TopNavbar() {
   const pathname = usePathname();
@@ -18,8 +19,9 @@ export function TopNavbar() {
     notifOpen,
     setNotifOpen,
     handleLogout,
-    authEmail,
     profileFullName,
+    userInitials,
+    avatarUrl,
   } = useWorkspace();
 
   const isHomeActive =
@@ -111,22 +113,27 @@ export function TopNavbar() {
                     setNotifOpen(false);
                     router.push('/agreement');
                   }}
-                  className="mt-2 font-et-mono text-[10px] uppercase font-semibold text-[var(--lime)] hover:underline"
+                  className="group mt-2 inline-flex items-center gap-1.5 font-et-mono text-[10px] uppercase font-semibold text-[var(--lime)] hover:underline"
                 >
-                  Open room →
+                  <span>Open room</span>
+                  <IconArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </button>
               </div>
             </div>
           )}
 
-          {(authEmail.includes('khaled') || profileFullName.includes('Khaled')) && (
-            <span
-              className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-[#D93829]/15 border border-[#D93829]/40 text-[#D93829] font-et-mono text-[10px] font-bold tracking-[0.08em] uppercase"
-              title="Signed in via 1-Click Competition Judge Demo Mode"
-            >
-              ⚖️ Judge Demo
-            </span>
-          )}
+          <Link
+            href="/profile"
+            title={profileFullName ? `${profileFullName} — Profile` : 'Open Profile'}
+            className="hidden lg:inline-flex items-center justify-center rounded-[2px] hover:opacity-85 transition-opacity"
+          >
+            <UserAvatar
+              src={avatarUrl}
+              initials={userInitials || 'ET'}
+              alt={profileFullName || 'Student Profile'}
+              className="w-9 h-9 text-[11px]"
+            />
+          </Link>
 
           <button
             type="button"

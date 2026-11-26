@@ -1,10 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useWorkspace } from '@/context/WorkspaceProvider';
+import { UserAvatar } from '@/components/UserAvatar';
+import { IconArrowRight, IconCheck, IconClose, IconPlus } from '@/components/workspace/Icons';
 
 export default function ProfilePage() {
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
   const {
     profileFullName,
     profileUsername,
@@ -15,8 +19,11 @@ export default function ProfilePage() {
     setProfileBio,
     profileAvailability,
     setProfileAvailability,
-    hasProfilePhoto,
-    setHasProfilePhoto,
+    avatarUrl,
+    authProvider,
+    avatarSaving,
+    handleUploadAvatar,
+    handleRemoveAvatar,
     offeredSkills,
     newSkillInput,
     setNewSkillInput,
@@ -33,6 +40,13 @@ export default function ProfilePage() {
 
   const [savingProfile, setSavingProfile] = useState(false);
 
+  const onAvatarFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    await handleUploadAvatar(file);
+  };
+
   const saveProfileChanges = async () => {
     setSavingProfile(true);
     try {
@@ -46,16 +60,16 @@ export default function ProfilePage() {
           bio: profileBio,
           availability: profileAvailability,
           offeredSkills,
-          avatarActive: hasProfilePhoto,
         }),
       });
+      const data = await res.json();
       if (res.ok) {
         pushToast('Profile changes saved to database.');
       } else {
-        pushToast('Profile changes saved locally.');
+        pushToast(data?.error || 'Could not save profile changes.');
       }
     } catch {
-      pushToast('Profile changes saved locally.');
+      pushToast('Could not save profile changes.');
     } finally {
       setSavingProfile(false);
     }
@@ -63,6 +77,16 @@ export default function ProfilePage() {
 
   return (
     <div className="et-animate-in">
+      {/* Shared Hidden File Input for Desktop & Mobile Photo Upload */}
+      <input
+        ref={avatarInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={onAvatarFileSelected}
+        className="hidden"
+        aria-label="Upload profile photo"
+      />
+
       {/* ====================================================================
           1. MOBILE LAYOUT (< 1024px SWISS EDITORIAL PROFILE)
           ==================================================================== */}
@@ -75,19 +99,24 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => {
-                setHasProfilePhoto(!hasProfilePhoto);
-                pushToast(!hasProfilePhoto ? 'Profile avatar active.' : 'Avatar reset.');
-              }}
-              title="Toggle avatar state"
-              className="w-12 h-12 rounded-[2px] bg-[#021F94] text-[#F5F2F3] font-mono font-black text-base flex items-center justify-center shrink-0 border border-[#021F94] active:opacity-80"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={avatarSaving}
+              title="Upload or change profile photo"
+              className="shrink-0 active:opacity-80 disabled:opacity-50"
             >
-              {userInitials}
+              <UserAvatar
+                src={avatarUrl}
+                initials={userInitials}
+                alt={profileFullName || 'Student Profile'}
+                className="w-12 h-12 text-base"
+              />
             </button>
 
             <div className="min-w-0 flex-1">
-              <div className="font-mono text-[9px] text-[#565C73] uppercase font-bold">
-                STUDENT PROFILE
+              <div className="flex items-center gap-1.5 font-mono text-[9px] text-[#565C73] uppercase font-bold">
+                <span>STUDENT PROFILE</span>
+                <span>·</span>
+                <span className="text-[#021F94]">{authProvider}</span>
               </div>
               <h1 className="font-sans font-black text-lg text-[#0B1026] truncate leading-tight">
                 {profileFullName}
@@ -99,10 +128,33 @@ export default function ProfilePage() {
 
             <Link
               href="/subscription"
-              className="px-2 py-1 bg-[#F5F2F3] border border-[#021F94]/30 text-[#021F94] font-mono text-[9.5px] font-bold uppercase rounded-[2px] shrink-0 active:opacity-80"
+              className="group inline-flex items-center gap-1 px-2 py-1 bg-[#F5F2F3] border border-[#021F94]/30 text-[#021F94] font-mono text-[9.5px] font-bold uppercase rounded-[2px] shrink-0 active:opacity-80"
             >
-              PLANS →
+              <span>PLANS</span>
+              <IconArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
+          </div>
+
+          <div className="pt-2.5 border-t border-[#021F94]/18 flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={avatarSaving}
+              className="border border-[#021F94] text-[#021F94] bg-white font-mono text-[10px] font-bold uppercase px-2.5 py-1.5 rounded-[2px] active:opacity-80 disabled:opacity-50"
+            >
+              {avatarSaving ? 'SAVING...' : 'CHANGE PHOTO'}
+            </button>
+
+            {avatarUrl && (
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                disabled={avatarSaving}
+                className="text-[#D93829] font-mono text-[10px] font-bold uppercase px-2 py-1.5 active:opacity-80 disabled:opacity-50"
+              >
+                REMOVE
+              </button>
+            )}
           </div>
         </div>
 
@@ -128,13 +180,14 @@ export default function ProfilePage() {
             {profileChecklist.map((item) => (
               <span
                 key={item.id}
-                className={`px-2 py-0.5 rounded-[2px] border ${
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] border ${
                   item.done
                     ? 'bg-[#021F94] text-[#F5F2F3] border-[#021F94]'
                     : 'bg-white text-[#565C73] border-[#021F94]/20'
                 }`}
               >
-                {item.done ? '✓ ' : ''}{item.label}
+                {item.done && <IconCheck className="w-2.5 h-2.5" />}
+                <span>{item.label}</span>
               </span>
             ))}
           </div>
@@ -216,10 +269,10 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => handleRemoveOfferedSkill(sk)}
-                    className="hover:text-[#D93829]"
+                    className="inline-flex items-center hover:text-[#D93829]"
                     aria-label={`Remove ${sk}`}
                   >
-                    ×
+                    <IconClose className="w-3 h-3" />
                   </button>
                 </span>
               ))}
@@ -235,9 +288,10 @@ export default function ProfilePage() {
               />
               <button
                 type="submit"
-                className="px-3.5 py-1.5 bg-[#F5F2F3] border border-[#021F94] text-[#021F94] font-mono text-[10.5px] font-bold uppercase rounded-[2px] shrink-0 active:opacity-85"
+                className="inline-flex items-center gap-1 px-3.5 py-1.5 bg-[#F5F2F3] border border-[#021F94] text-[#021F94] font-mono text-[10.5px] font-bold uppercase rounded-[2px] shrink-0 active:opacity-85"
               >
-                + ADD
+                <IconPlus className="w-3 h-3" />
+                <span>ADD</span>
               </button>
             </form>
           </div>
@@ -246,9 +300,12 @@ export default function ProfilePage() {
             type="button"
             onClick={saveProfileChanges}
             disabled={savingProfile}
-            className="w-full py-3 bg-[#021F94] text-[#F5F2F3] font-mono text-xs font-bold uppercase tracking-wider rounded-[2px] text-center active:opacity-85 disabled:opacity-50"
+            className="group w-full py-3 bg-[#021F94] text-[#F5F2F3] font-mono text-xs font-bold uppercase tracking-wider rounded-[2px] inline-flex items-center justify-center gap-2 active:opacity-85 disabled:opacity-50"
           >
-            {savingProfile ? 'SAVING...' : 'SAVE CHANGES →'}
+            <span>{savingProfile ? 'SAVING...' : 'SAVE CHANGES'}</span>
+            {!savingProfile && (
+              <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+            )}
           </button>
         </div>
 
@@ -294,34 +351,48 @@ export default function ProfilePage() {
           </div>
 
           <div className="lg:col-span-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-sm border border-[var(--border)] bg-[var(--bg)]">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-w-0">
               <button
                 type="button"
-                onClick={() => {
-                  setHasProfilePhoto((v) => !v);
-                  pushToast(!hasProfilePhoto ? 'Profile photo badge activated.' : 'Profile photo reset.');
-                }}
-                title="Toggle profile photo state"
-                className="relative w-14 h-14 rounded-sm font-et-mono font-black text-lg flex items-center justify-center shrink-0 border transition-transform hover:scale-105"
-                style={
-                  hasProfilePhoto
-                    ? { backgroundColor: 'var(--lime)', color: 'var(--lime-ink)', borderColor: 'var(--lime-ink)' }
-                    : {
-                        backgroundColor: 'var(--cobalt)',
-                        color: '#F1EFE8',
-                        borderColor: 'var(--cobalt)',
-                      }
-                }
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={avatarSaving}
+                title="Click to upload or change profile photo"
+                className="shrink-0 transition-transform hover:scale-105 disabled:opacity-50"
               >
-                {userInitials}
+                <UserAvatar
+                  src={avatarUrl}
+                  initials={userInitials}
+                  alt={profileFullName || 'Student Profile'}
+                  className="w-14 h-14 text-lg"
+                />
               </button>
-              <div>
+              <div className="min-w-0">
                 <div className="font-et-mono text-[9.5px] uppercase text-[var(--muted)]">
                   Full name
                 </div>
-                <div className="font-et-sans font-extrabold text-lg">{profileFullName}</div>
-                <div className="font-et-mono text-[11px] text-[var(--muted)]">
+                <div className="font-et-sans font-extrabold text-lg truncate">{profileFullName}</div>
+                <div className="font-et-mono text-[11px] text-[var(--muted)] truncate">
                   @{profileUsername} &middot; {profileUniversity.trim() || 'University not added'}
+                </div>
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={avatarSaving}
+                    className="border border-[#021F94] text-[#021F94] bg-white font-mono text-[10px] font-bold uppercase px-2.5 py-1.5 rounded-[2px] hover:bg-[#F5F2F3] transition-colors disabled:opacity-50"
+                  >
+                    {avatarSaving ? 'SAVING...' : 'CHANGE PHOTO'}
+                  </button>
+                  {avatarUrl && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAvatar}
+                      disabled={avatarSaving}
+                      className="text-[#D93829] font-mono text-[10px] font-bold uppercase px-2 py-1.5 hover:underline disabled:opacity-50"
+                    >
+                      REMOVE
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -329,9 +400,10 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={saveProfileChanges}
-              className="px-4 py-2.5 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-[11px] font-bold uppercase tracking-[0.11em] hover:brightness-95 shrink-0"
+              disabled={savingProfile}
+              className="px-4 py-2.5 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-[11px] font-bold uppercase tracking-[0.11em] hover:brightness-95 shrink-0 disabled:opacity-50"
             >
-              Save changes
+              {savingProfile ? 'Saving...' : 'Save changes'}
             </button>
           </div>
         </div>
@@ -421,10 +493,11 @@ export default function ProfilePage() {
                     {sk}
                     <button
                       type="button"
+                      className="inline-flex items-center"
                       onClick={() => handleRemoveOfferedSkill(sk)}
                       aria-label={`Remove ${sk}`}
                     >
-                      &times;
+                      <IconClose className="w-3 h-3" />
                     </button>
                   </span>
                 ))}
@@ -439,9 +512,10 @@ export default function ProfilePage() {
                 />
                 <button
                   type="submit"
-                  className="px-3.5 py-2 rounded-sm border border-[var(--border-strong)] hover:border-[var(--lime)] font-et-mono text-[11px] uppercase font-semibold"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-sm border border-[var(--border-strong)] hover:border-[var(--lime)] font-et-mono text-[11px] uppercase font-semibold"
                 >
-                  + Add
+                  <IconPlus className="w-3 h-3" />
+                  <span>Add</span>
                 </button>
               </form>
             </div>
@@ -485,7 +559,7 @@ export default function ProfilePage() {
                             }
                       }
                     >
-                      {item.done ? '✓' : ''}
+                      {item.done && <IconCheck className="w-2.5 h-2.5" />}
                     </span>
                     <span
                       className={

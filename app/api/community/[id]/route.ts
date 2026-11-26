@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import {
+  readJsonBody,
+  sanitizeText,
+  toErrorResponse,
+  ValidationError,
+} from '@/lib/validation';
+import { CommunityKind } from '@prisma/client';
+
+const EYEBROW_BY_KIND: Record<CommunityKind, string> = {
+  PROJECT: 'Build with peers',
+  GROUP: 'Join study circle',
+  EVENT: 'Attend campus session',
+};
 
 export async function PATCH(
   req: NextRequest,
@@ -15,6 +28,7 @@ export async function PATCH(
     const { id } = await params;
     const space = await prisma.communitySpace.findUnique({
       where: { id },
+      select: { id: true, hostId: true },
     });
 
     if (!space) {
@@ -25,24 +39,62 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const body = await req.json();
-    const { tag, eyebrowCta, title, description, membersCount } = body;
+    const body = await readJsonBody(req);
+
+    // Strictly allow-list kind, tag, title, description; never allow tampering with hostId or membersCount
+    const updateData: {
+      kind?: CommunityKind;
+      eyebrowCta?: string;
+      tag?: string;
+      title?: string;
+      description?: string;
+    } = {};
+
+    if (body.kind !== undefined) {
+      if (typeof body.kind !== 'string' || !(body.kind.toUpperCase() in CommunityKind)) {
+        throw new ValidationError('Invalid community space kind.');
+      }
+      const nextKind = body.kind.toUpperCase() as CommunityKind;
+      updateData.kind = nextKind;
+      updateData.eyebrowCta = EYEBROW_BY_KIND[nextKind];
+    }
+
+    if (body.tag !== undefined) {
+      updateData.tag = sanitizeText(body.tag, {
+        fieldName: 'Tag',
+        minLen: 1,
+        maxLen: 40,
+        collapseNewlines: true,
+      });
+    }
+    if (body.title !== undefined) {
+      updateData.title = sanitizeText(body.title, {
+        fieldName: 'Title',
+        minLen: 1,
+        maxLen: 120,
+        collapseNewlines: true,
+      });
+    }
+    if (body.description !== undefined) {
+      updateData.description = sanitizeText(body.description, {
+        fieldName: 'Description',
+        minLen: 1,
+        maxLen: 800,
+      });
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      throw new ValidationError('No valid community fields provided to update.');
+    }
 
     const updated = await prisma.communitySpace.update({
       where: { id },
-      data: {
-        ...(tag !== undefined ? { tag } : {}),
-        ...(eyebrowCta !== undefined ? { eyebrowCta } : {}),
-        ...(title !== undefined ? { title } : {}),
-        ...(description !== undefined ? { description } : {}),
-        ...(membersCount !== undefined ? { membersCount: Number(membersCount) } : {}),
-      },
+      data: updateData,
     });
 
     return NextResponse.json({ space: updated });
   } catch (error) {
-    console.error('Failed to update community space:', error);
-    return NextResponse.json({ error: 'Failed to update community space' }, { status: 500 });
+    return toErrorResponse(error, 'Failed to update community space');
   }
 }
 
@@ -59,6 +111,7 @@ export async function DELETE(
     const { id } = await params;
     const space = await prisma.communitySpace.findUnique({
       where: { id },
+      select: { id: true, hostId: true },
     });
 
     if (!space) {
@@ -75,7 +128,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: 'Community space removed' });
   } catch (error) {
-    console.error('Failed to delete community space:', error);
-    return NextResponse.json({ error: 'Failed to delete community space' }, { status: 500 });
+    return toErrorResponse(error, 'Failed to delete community space');
   }
 }

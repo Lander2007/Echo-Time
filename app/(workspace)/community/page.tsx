@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useWorkspace } from '@/context/WorkspaceProvider';
-import { IconSearch } from '@/components/workspace/Icons';
+import { IconSearch, IconArrowRight, IconPlus } from '@/components/workspace/Icons';
 
 export default function CommunityPage() {
   const {
@@ -119,8 +119,9 @@ export default function CommunityPage() {
 
                 {/* Card Body */}
                 <div className="p-3.5 space-y-2">
-                  <div className="font-mono text-[9.5px] font-bold text-[#021F94] uppercase tracking-wider">
-                    → {sp.eyebrowCta}
+                  <div className="inline-flex items-center gap-1.5 font-mono text-[9.5px] font-bold text-[#021F94] uppercase tracking-wider">
+                    <IconArrowRight className="w-3 h-3" />
+                    <span>{sp.eyebrowCta}</span>
                   </div>
 
                   {/* Title & Description with dir="auto" for Cairo / Arabic string support */}
@@ -182,9 +183,10 @@ export default function CommunityPage() {
                     <button
                       type="button"
                       onClick={() => pushToast(`Joined space: ${sp.title}`)}
-                      className="px-3.5 py-1.5 bg-[#021F94] text-[#F5F2F3] font-mono text-[10px] font-bold uppercase tracking-wider rounded-[2px] active:opacity-85"
+                      className="group inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#021F94] text-[#F5F2F3] font-mono text-[10px] font-bold uppercase tracking-wider rounded-[2px] active:opacity-85"
                     >
-                      JOIN →
+                      <span>JOIN</span>
+                      <IconArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
                     </button>
                   )}
                 </div>
@@ -201,9 +203,10 @@ export default function CommunityPage() {
               <button
                 type="button"
                 onClick={openCreateSpace}
-                className="mt-1 px-4 py-2 bg-[#021F94] text-[#F5F2F3] font-mono text-[10.5px] font-bold uppercase tracking-wider rounded-[2px]"
+                className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 bg-[#021F94] text-[#F5F2F3] font-mono text-[10.5px] font-bold uppercase tracking-wider rounded-[2px]"
               >
-                + CREATE A SPACE
+                <IconPlus className="w-3.5 h-3.5" />
+                <span>CREATE A SPACE</span>
               </button>
             </div>
           )}
@@ -229,9 +232,10 @@ export default function CommunityPage() {
           <button
             type="button"
             onClick={openCreateSpace}
-            className="shrink-0 px-5 py-3 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all"
+            className="shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-xs font-bold uppercase tracking-[0.12em] hover:brightness-95 transition-all"
           >
-            + Create space
+            <IconPlus className="w-3.5 h-3.5" />
+            <span>Create space</span>
           </button>
         </div>
 
@@ -282,8 +286,9 @@ export default function CommunityPage() {
                     {sp.tag}
                   </span>
                 </div>
-                <div className="mt-3 font-et-mono text-[11px] font-semibold text-[var(--lime)]">
-                  → {sp.eyebrowCta}
+                <div className="mt-3 inline-flex items-center gap-1.5 font-et-mono text-[11px] font-semibold text-[var(--lime)]">
+                  <IconArrowRight className="w-3.5 h-3.5" />
+                  <span>{sp.eyebrowCta}</span>
                 </div>
                 <h2 className="mt-2 font-et-sans font-extrabold text-2xl tracking-tight text-[var(--ink)]">
                   {sp.title}

@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceProvider';
+import { IconArrowRight } from './Icons';
 
 export function HomeSidebar() {
   const pathname = usePathname();
@@ -31,9 +32,10 @@ export function HomeSidebar() {
           <span>Reserved · {reservedCredits}</span>
           <Link
             href="/wallet"
-            className="text-[var(--cobalt)] hover:underline uppercase text-[9.5px]"
+            className="group inline-flex items-center gap-1 text-[var(--cobalt)] hover:underline uppercase text-[9.5px]"
           >
-            Ledger →
+            <span>Ledger</span>
+            <IconArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
           </Link>
         </div>
       </div>

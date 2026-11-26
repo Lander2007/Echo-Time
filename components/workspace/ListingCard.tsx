@@ -3,7 +3,7 @@
 import React from 'react';
 import { SkillListing } from '@/types/workspace';
 import { useWorkspace } from '@/context/WorkspaceProvider';
-import { IconHeart, IconGlobe, IconClock } from './Icons';
+import { IconHeart, IconGlobe, IconClock, IconStar, IconArrowRight } from './Icons';
 
 interface ListingCardProps {
   item: SkillListing;
@@ -64,8 +64,9 @@ export function ListingCard({ item }: ListingCardProps) {
             <div className="flex items-center gap-2 flex-wrap font-et-mono text-[10px] text-[var(--muted)]">
               <span>{item.listedAt}</span>
               {item.rating !== null && (
-                <span className="tabular font-semibold" style={{ color: 'var(--lime)' }}>
-                  &#9733; {item.rating.toFixed(1)} ({item.reviewsCount} reviews)
+                <span className="inline-flex items-center gap-1 tabular font-semibold" style={{ color: 'var(--lime)' }}>
+                  <IconStar className="w-3 h-3" />
+                  <span>{item.rating.toFixed(1)} ({item.reviewsCount} reviews)</span>
                 </span>
               )}
             </div>
@@ -106,9 +107,10 @@ export function ListingCard({ item }: ListingCardProps) {
         <button
           type="button"
           onClick={() => handleOpenRoomForListing(item)}
-          className="shrink-0 px-3.5 py-2 rounded-sm font-et-mono text-[10.5px] font-semibold uppercase tracking-[0.09em] border border-[var(--border-strong)] text-[var(--ink)] hover:bg-[var(--lime)] hover:text-[var(--lime-ink)] hover:border-[var(--lime)] transition-colors"
+          className="group shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-sm font-et-mono text-[10.5px] font-semibold uppercase tracking-[0.09em] border border-[var(--border-strong)] text-[var(--ink)] hover:bg-[var(--lime)] hover:text-[var(--lime-ink)] hover:border-[var(--lime)] transition-colors"
         >
-          {isOffer ? 'Request skill →' : 'Respond →'}
+          <span>{isOffer ? 'Request skill' : 'Respond'}</span>
+          <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
         </button>
       </div>
     </article>

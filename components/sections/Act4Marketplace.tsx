@@ -3,6 +3,7 @@ import { CATEGORIES, SLAT_INDICES } from '@/data/echoData';
 import { CategoryFilter, MarketplaceListing } from '@/types/echo';
 import { TactileAudioEngine } from '@/lib/audio';
 import { CANONICAL_CONTENT } from '@/data/content';
+import { IconArrowRight, IconCheck, IconStar } from '@/components/workspace/Icons';
 
 interface Act4MarketplaceProps {
   walletAvailable: number;
@@ -316,10 +317,11 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                                 {item.hours.toFixed(1)} HR
                               </span>
                               <span
-                                className="font-swiss-mono text-[11px] tabular"
+                                className="inline-flex items-center gap-1 font-swiss-mono text-[11px] tabular"
                                 style={{ color: '#B9C8FF' }}
                               >
-                                &#9733; {item.rating.toFixed(2)}
+                                <IconStar filled className="w-3 h-3" />
+                                <span>{item.rating.toFixed(2)}</span>
                               </span>
                             </div>
 
@@ -363,14 +365,15 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                                     {item.deliverables.map((d) => (
                                       <span
                                         key={d}
-                                        className="px-2.5 py-1 rounded-sm border font-swiss-mono text-[10px]"
+                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm border font-swiss-mono text-[10px]"
                                         style={{
                                           borderColor: 'rgba(2, 31, 148, 0.16)',
                                           backgroundColor: '#F5F2F3',
                                           color: '#0B1026',
                                         }}
                                       >
-                                        &#10003; {d}
+                                        <IconCheck className="w-3 h-3 text-[#021F94]" />
+                                        <span>{d}</span>
                                       </span>
                                     ))}
                                   </div>
@@ -395,13 +398,14 @@ export const Act4Marketplace: React.FC<Act4MarketplaceProps> = ({
                                     type="button"
                                     data-cursor="OPEN"
                                     onClick={() => handleOpenAgreementRoom(item)}
-                                    className="px-5 py-3 rounded-sm font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] transition-transform active:scale-95"
+                                    className="group inline-flex items-center gap-2 px-5 py-3 rounded-sm font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] transition-transform active:scale-95"
                                     style={{
                                       backgroundColor: '#021F94',
                                       color: '#F5F2F3',
                                     }}
                                   >
-                                    Open Agreement Room &rarr;
+                                    <span>Open Agreement Room</span>
+                                    <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
                                   </button>
                                 </div>
                               </div>

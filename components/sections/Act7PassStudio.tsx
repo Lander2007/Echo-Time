@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { TactileAudioEngine } from '@/lib/audio';
 import { CANONICAL_CONTENT } from '@/data/content';
+import { IconArrowRight } from '@/components/workspace/Icons';
 
 interface Act7PassStudioProps {
   studentName?: string;
@@ -52,9 +53,10 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
             <div>
               <a
                 href="#act-marketplace"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded border border-strong bg-surface text-ink font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] hover:border-accent hover:text-accent transition-colors"
+                className="group inline-flex items-center gap-2 px-5 py-2.5 rounded border border-strong bg-surface text-ink font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] hover:border-accent hover:text-accent transition-colors"
               >
-                {CANONICAL_CONTENT.faq.cta} &rarr;
+                <span>{CANONICAL_CONTENT.faq.cta}</span>
+                <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
               </a>
             </div>
           </div>
@@ -154,9 +156,10 @@ export const Act7PassStudio: React.FC<Act7PassStudioProps> = ({
               <Link
                 href="/login?mode=signup"
                 data-cursor="SIGNUP"
-                className="px-8 py-4 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-xs font-semibold uppercase tracking-[0.16em] hover:bg-[#032BCB] transition-colors inline-flex items-center gap-2 shadow-lg shadow-[#021F94]/15"
+                className="group px-8 py-4 rounded bg-[#021F94] text-[#F5F2F3] font-swiss-mono text-xs font-semibold uppercase tracking-[0.16em] hover:bg-[#032BCB] transition-colors inline-flex items-center gap-2 shadow-lg shadow-[#021F94]/15"
               >
-                {CANONICAL_CONTENT.cta.primaryBtn} &rarr;
+                <span>{CANONICAL_CONTENT.cta.primaryBtn}</span>
+                <IconArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </Link>
               <a
                 href="#act-marketplace"

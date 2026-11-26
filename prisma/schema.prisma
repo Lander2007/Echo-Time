@@ -56,7 +56,12 @@ model User {
   fullName           String
   username           String   @unique
   email              String   @unique
-  passwordHash       String
+  canonicalEmail     String?  @unique
+  emailVerified      Boolean  @default(false)
+  passwordHash       String?
+  googleId           String?  @unique
+  avatarUrl          String?  @db.Text
+  authProvider       String   @default("EMAIL")
   university         String   @default("Accredited University")
   bio                String?
   availability       String?  @default("Available for sessions")

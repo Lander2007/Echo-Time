@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import {
+  ConflictError,
+  parsePositiveInt,
+  readJsonBody,
+  sanitizeText,
+  toErrorResponse,
+  ValidationError,
+} from '@/lib/validation';
 import { AgreementStage, MessageSenderType } from '@prisma/client';
 
 export async function PATCH(
@@ -16,6 +24,13 @@ export async function PATCH(
     const { id } = await params;
     const room = await prisma.agreementRoom.findUnique({
       where: { id },
+      select: {
+        id: true,
+        requesterId: true,
+        providerId: true,
+        stage: true,
+        termsVersion: true,
+      },
     });
 
     if (!room) {
@@ -33,39 +48,88 @@ export async function PATCH(
       );
     }
 
-    const body = await req.json();
-    const { goal, format, durationHrs, creditsPerHr } = body;
+    const body = await readJsonBody(req);
+    const updateData: {
+      goal?: string;
+      format?: string;
+      durationHrs?: number;
+      creditsPerHr?: number;
+    } = {};
 
-    const newVersion = room.termsVersion + 1;
+    if (body.goal !== undefined) {
+      updateData.goal = sanitizeText(body.goal, {
+        fieldName: 'goal',
+        minLen: 1,
+        maxLen: 500,
+      });
+    }
+    if (body.format !== undefined) {
+      updateData.format = sanitizeText(body.format, {
+        fieldName: 'format',
+        minLen: 1,
+        maxLen: 32,
+        collapseNewlines: true,
+      });
+    }
+    if (body.durationHrs !== undefined) {
+      updateData.durationHrs = parsePositiveInt(body.durationHrs, {
+        min: 1,
+        max: 8,
+        fieldName: 'durationHrs',
+      });
+    }
+    if (body.creditsPerHr !== undefined) {
+      updateData.creditsPerHr = parsePositiveInt(body.creditsPerHr, {
+        min: 1,
+        max: 5,
+        fieldName: 'creditsPerHr',
+      });
+    }
 
-    const [updatedRoom] = await prisma.$transaction([
-      prisma.agreementRoom.update({
-        where: { id },
+    if (Object.keys(updateData).length === 0) {
+      throw new ValidationError('No valid term fields supplied to update.');
+    }
+
+    const updatedRoom = await prisma.$transaction(async (tx) => {
+      // Conditional guard prevents modifying terms after stage leaves NEGOTIATING concurrently
+      const stageLock = await tx.agreementRoom.updateMany({
+        where: {
+          id,
+          stage: AgreementStage.NEGOTIATING,
+          termsVersion: room.termsVersion,
+        },
         data: {
-          ...(goal !== undefined ? { goal } : {}),
-          ...(format !== undefined ? { format } : {}),
-          ...(durationHrs !== undefined ? { durationHrs: Number(durationHrs) } : {}),
-          ...(creditsPerHr !== undefined ? { creditsPerHr: Number(creditsPerHr) } : {}),
-          termsVersion: newVersion,
+          ...updateData,
+          termsVersion: { increment: 1 },
         },
-        include: {
-          requester: { select: { id: true, fullName: true, username: true } },
-          provider: { select: { id: true, fullName: true, username: true } },
-        },
-      }),
-      prisma.agreementMessage.create({
+      });
+
+      if (stageLock.count !== 1) {
+        throw new ConflictError('Agreement terms or stage has already changed. Please refresh.');
+      }
+
+      const newVersion = room.termsVersion + 1;
+
+      await tx.agreementMessage.create({
         data: {
           roomId: id,
           senderType: MessageSenderType.SYSTEM,
           authorLabel: 'SYSTEM PROTOCOL',
           body: `Agreement terms updated to Version ${newVersion} by ${user.fullName}.`,
         },
-      }),
-    ]);
+      });
+
+      return tx.agreementRoom.findUnique({
+        where: { id },
+        include: {
+          requester: { select: { id: true, fullName: true, username: true } },
+          provider: { select: { id: true, fullName: true, username: true } },
+        },
+      });
+    });
 
     return NextResponse.json({ agreement: updatedRoom });
   } catch (error) {
-    console.error('Failed to update agreement terms:', error);
-    return NextResponse.json({ error: 'Failed to update agreement terms' }, { status: 500 });
+    return toErrorResponse(error, 'Failed to update agreement terms');
   }
 }

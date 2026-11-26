@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import {
+  parsePositiveInt,
+  readJsonBody,
+  sanitizeText,
+  toErrorResponse,
+} from '@/lib/validation';
 import { ListingType, ListingFormat, ListingStatus } from '@prisma/client';
 
 export async function GET(req: NextRequest) {
@@ -15,7 +21,7 @@ export async function GET(req: NextRequest) {
 
     const currentUser = await getSessionUser();
 
-    const where: any = {
+    const where: Record<string, unknown> = {
       status: ListingStatus.ACTIVE,
     };
 
@@ -26,7 +32,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (category && category !== 'All disciplines') {
-      where.category = { equals: category, mode: 'insensitive' };
+      where.category = { equals: category.slice(0, 60), mode: 'insensitive' };
     }
 
     if (format && format !== 'All') {
@@ -37,10 +43,11 @@ export async function GET(req: NextRequest) {
     }
 
     if (q) {
+      const boundedQ = q.slice(0, 120);
       where.OR = [
-        { title: { contains: q, mode: 'insensitive' } },
-        { description: { contains: q, mode: 'insensitive' } },
-        { author: { fullName: { contains: q, mode: 'insensitive' } } },
+        { title: { contains: boundedQ, mode: 'insensitive' } },
+        { description: { contains: boundedQ, mode: 'insensitive' } },
+        { author: { fullName: { contains: boundedQ, mode: 'insensitive' } } },
       ];
     }
 
@@ -52,7 +59,7 @@ export async function GET(req: NextRequest) {
       };
     }
 
-    let orderBy: any = { createdAt: 'desc' };
+    let orderBy: Record<string, 'asc' | 'desc'> = { createdAt: 'desc' };
     if (sort === 'rating') {
       orderBy = { rating: 'desc' };
     } else if (sort === 'hours-asc') {
@@ -91,7 +98,12 @@ export async function GET(req: NextRequest) {
       description: l.description,
       category: l.category,
       type: l.type === ListingType.OFFERING ? 'Offering' : 'Looking for',
-      format: l.format === ListingFormat.ONLINE ? 'Online' : l.format === ListingFormat.IN_PERSON ? 'In-person' : 'Hybrid',
+      format:
+        l.format === ListingFormat.ONLINE
+          ? 'Online'
+          : l.format === ListingFormat.IN_PERSON
+          ? 'In-person'
+          : 'Hybrid',
       creditsPerHr: l.creditsPerHr,
       rating: l.rating,
       reviewsCount: l.reviewsCount,
@@ -102,11 +114,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ success: true, listings: formatted });
   } catch (error) {
-    console.error('Fetch listings error:', error);
-    return NextResponse.json(
-      { error: 'Failed to retrieve skill listings from database.' },
-      { status: 500 }
-    );
+    return toErrorResponse(error, 'Failed to retrieve skill listings from database.');
   }
 }
 
@@ -114,35 +122,52 @@ export async function POST(req: NextRequest) {
   try {
     const user = await getSessionUser();
     if (!user) {
-      return NextResponse.json({ error: 'Authentication required to publish skills.' }, { status: 401 });
-    }
-
-    const body = await req.json();
-    const { title, description, category, type, format, creditsPerHr } = body;
-
-    if (!title || !String(title).trim()) {
       return NextResponse.json(
-        { error: 'Skill title is required.' },
-        { status: 400 }
+        { error: 'Authentication required to publish skills.' },
+        { status: 401 }
       );
     }
 
-    const cleanTitle = String(title).trim();
-    const cleanCategory = category && String(category).trim() ? String(category).trim() : 'Programming';
-    const cleanDescription =
-      description && String(description).trim()
-        ? String(description).trim()
-        : `1-on-1 collaborative exchange covering ${cleanTitle} on ECHO TIME.`;
+    const body = await readJsonBody(req);
+
+    // Strictly extract & validate allow-listed listing fields; authorId & status are server-controlled
+    const cleanTitle = sanitizeText(body.title, {
+      fieldName: 'Skill title',
+      minLen: 2,
+      maxLen: 120,
+      collapseNewlines: true,
+    });
+
+    const cleanCategory = sanitizeText(body.category, {
+      fieldName: 'Category',
+      minLen: 1,
+      maxLen: 60,
+      defaultValue: 'Programming',
+      collapseNewlines: true,
+    });
+
+    const cleanDescription = sanitizeText(body.description, {
+      fieldName: 'Description',
+      minLen: 0,
+      maxLen: 1200,
+      defaultValue: `1-on-1 collaborative exchange covering ${cleanTitle} on ECHO TIME.`,
+    });
+
+    const parsedCreditsPerHr = parsePositiveInt(body.creditsPerHr ?? 1, {
+      min: 1,
+      max: 5,
+      fieldName: 'creditsPerHr',
+    });
 
     const parsedType =
-      type === 'Requests' || type === 'Looking for' || type === 'LOOKING_FOR'
+      body.type === 'Requests' || body.type === 'Looking for' || body.type === 'LOOKING_FOR'
         ? ListingType.LOOKING_FOR
         : ListingType.OFFERING;
 
     const parsedFormat =
-      format === 'In-person' || format === 'IN_PERSON'
+      body.format === 'In-person' || body.format === 'IN_PERSON'
         ? ListingFormat.IN_PERSON
-        : format === 'Hybrid' || format === 'HYBRID'
+        : body.format === 'Hybrid' || body.format === 'HYBRID'
         ? ListingFormat.HYBRID
         : ListingFormat.ONLINE;
 
@@ -154,7 +179,7 @@ export async function POST(req: NextRequest) {
         category: cleanCategory,
         type: parsedType,
         format: parsedFormat,
-        creditsPerHr: Number(creditsPerHr) || 1,
+        creditsPerHr: parsedCreditsPerHr,
         status: ListingStatus.ACTIVE,
       },
       include: {
@@ -179,7 +204,12 @@ export async function POST(req: NextRequest) {
           description: listing.description,
           category: listing.category,
           type: listing.type === ListingType.OFFERING ? 'Offering' : 'Looking for',
-          format: listing.format === ListingFormat.ONLINE ? 'Online' : listing.format === ListingFormat.IN_PERSON ? 'In-person' : 'Hybrid',
+          format:
+            listing.format === ListingFormat.ONLINE
+              ? 'Online'
+              : listing.format === ListingFormat.IN_PERSON
+              ? 'In-person'
+              : 'Hybrid',
           creditsPerHr: listing.creditsPerHr,
           authorName: listing.author.fullName,
           authorUni: listing.author.university,
@@ -193,10 +223,6 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Create listing error:', error);
-    return NextResponse.json(
-      { error: 'Failed to publish skill listing to database.' },
-      { status: 500 }
-    );
+    return toErrorResponse(error, 'Failed to publish skill listing to database.');
   }
 }

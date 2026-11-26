@@ -58,7 +58,7 @@ The backend for **ECHO TIME** is built as a unified, high-performance **Monorepo
 | **Database Host** | 🟢 **Connected Cloud DB** | `ep-small-sun-bb8ntdnm.c-15.us-east-1.aws.neon.tech` |
 | **Neon Project & Branch** | 🟢 **Production** | Project ID: `old-shape-92339075` (Branch: `production`) |
 | **Live Health Check (`/api/health`)**| 🟢 **Healthy (HTTP 200)** | Returns live stats: 4 canonical users, 4 skill listings |
-| **Authentication Flow** | 🟢 **100% Working** | Signup with 5.00 ECHO starter grant, login, and instant Judge Demo |
+| **Authentication Flow** | 🟢 **100% Working** | Signup with 5.00 ECHO starter grant, email login, and native Google OAuth 2.0 |
 | **Agreement & Chat System** | 🟢 **100% Working** | Full exchange stages + in-chat attachments (images, audio, files) |
 | **ACID Escrow Wallet** | 🟢 **100% Working** | Escrow locking, exchange payouts, and 100% automatic refunds |
 | **Git Synchronization** | 🟢 **Up to Date** | Branches `main` and `master` are synchronized with latest commits |
@@ -71,8 +71,12 @@ The production schema is defined in `prisma/schema.prisma` and contains 8 models
 
 ### 1. `User`
 - `id`: Unique identifier (`cuid`).
-- `fullName`, `username`, `email`, `passwordHash`: Identity and encrypted credentials.
-- `university`: Verified educational institution (e.g., Cairo University, AUC).
+- `fullName`, `username`, `email`: Identity fields.
+- `passwordHash`: Nullable Bcrypt hash (`String?` — null for Google-only users; never serialized in API responses).
+- `googleId`: Unique Google `sub` claim (`String? @unique` — internal linkage only; never serialized in API responses).
+- `avatarUrl`: Stored profile picture (`String? @db.Text` — holds either verified Google `https://` URL or compressed `data:image/webp|jpeg;base64` 256×256 URI).
+- `authProvider`: Authentication origin (`"EMAIL" | "GOOGLE" | "HYBRID"`).
+- `university`: Verified educational institution (auto-inferred from `.edu` domain or `"Verified Student"`).
 - `planTier`: Tier level (`STUDENT_FREE`, `PRO`, `CAMPUS_ENTERPRISE`).
 - `availableCredits`: Available balance for immediate exchange (starts with 5.00 ECHO).
 - `reservedCredits`: Hours locked in active escrow negotiations.
@@ -156,9 +160,9 @@ The agreement negotiation chat supports multi-format file and media sharing:
   `neon init -y --org-id org-crimson-mode-05335506 --project-id old-shape-92339075 --branch production --services postgres`
 - **Connection Strings:**
   - **Pooled (Runtime Serverless Queries):**
-    `postgresql://neondb_owner:npg_XLVqo5f0rjpv@ep-small-sun-bb8ntdnm-pooler.c-15.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
+    `postgresql://neondb_owner:<NEON_PASSWORD>@ep-small-sun-bb8ntdnm-pooler.c-15.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
   - **Direct (CLI Push-Migrations):**
-    `postgresql://neondb_owner:npg_XLVqo5f0rjpv@ep-small-sun-bb8ntdnm.c-15.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
+    `postgresql://neondb_owner:<NEON_PASSWORD>@ep-small-sun-bb8ntdnm.c-15.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
 
 ### Smart Resolver Implementation (`lib/prisma.ts`):
 When Vercel marketplace integrations provision temporary blank databases (such as `ep-red-sound`), our smart resolver seamlessly detects this and routes queries to `DIRECT_URL`:
@@ -180,15 +184,18 @@ function resolveDatabaseUrl(): string | undefined {
 
 ## 6. Complete REST Route Handlers Directory
 
-### 🔐 1. Authentication & Identity (`/api/auth/**`)
+### 🔐 1. Authentication & Identity (`/api/auth/**`) & Profile (`/api/profile`)
 
-| Route | Method | Description | Request Body |
+| Route | Method | Description | Request Body / Query |
 | :--- | :---: | :--- | :--- |
-| `/api/auth/judge-demo` | `POST` | Instant 1-click access for competition judges as student Khaled Amr (`khaled@echotime.edu`) | Optional: `{ role: "provider" \| "requester" }` |
-| `/api/auth/login` | `POST` | Validates credentials and issues HTTP-Only signed session cookie | `{ email, password }` |
+| `/api/auth/google` | `GET` | Initiates native Google OAuth 2.0 + PKCE (`S256`) + `state` CSRF + HTTP-only `echotime_oauth_intent` (`login` \| `signup`, default `'login'`) | Query: `intent` |
+| `/api/auth/google/callback` | `GET` | Constant-time CSRF check, JWKS `id_token` verification, strict intent enforcement (`login` rejects unregistered users to `?mode=signup`; `signup` rejects existing accounts to `?mode=login` or mints 5.00 ECHO and lands on `/dashboard?welcome=new`) | Query: `code`, `state` (or `error`) |
+| `/api/auth/login` | `POST` | Guards Google-only accounts (`!passwordHash`), validates credentials via Bcrypt, and issues HTTP-Only signed session cookie | `{ email, password }` |
 | `/api/auth/signup` | `POST` | Registers new student, seeds initial 5.00 ECHO grant, and logs initial transaction | `{ fullName, email, password }` |
-| `/api/auth/session` | `GET` | Returns currently logged-in user profile with live balance directly from PostgreSQL | None (Reads cookie) |
-| `/api/auth/logout` | `POST` | Clears `echotime_session` cookie and resets client session state | None |
+| `/api/auth/session` | `GET` | Returns sanitized logged-in user profile (`avatarUrl`, `authProvider`, live balances) directly from PostgreSQL | None (Reads cookie) |
+| `/api/auth/logout` | `POST` | Clears session cookie (`et_session`) and resets client session state | None |
+| `/api/profile` | `GET` | Returns authenticated student's sanitized profile (omits `passwordHash` & `googleId`) | None |
+| `/api/profile` | `PATCH` | Updates profile fields & validates `avatarUrl` (256×256 compressed JPEG/PNG/WebP base64 `<= 220_000` chars, valid `https:` URL, or `null` to remove; blocks `image/svg+xml`, `javascript:`, `http:`) | `{ fullName?, username?, bio?, university?, availability?, offeredSkills?, avatarUrl? }` |
 
 ### 🛒 2. Marketplace & Skills (`/api/listings/**`)
 
@@ -225,22 +232,20 @@ function resolveDatabaseUrl(): string | undefined {
 
 ---
 
-## 7. Authentication, Session Security & Demo Access
+## 7. Authentication & 7-Layer Security Hardening
 
-- **Password Hashing:** Uses `bcryptjs` with 10 salt rounds.
-- **Digital Signatures:** Uses `jose` library with **HS256** symmetric encryption keys (`AUTH_SECRET` / `JWT_SECRET`).
-- **Cookie Security Attributes (`echotime_session`):**
-  - `httpOnly: true`: Total protection against client-side script injection (XSS).
-  - `sameSite: 'lax'`: Defense against cross-site request forgery (CSRF).
-  - `secure: true`: Enforced on all production HTTPS traffic.
-  - `path: '/'`: Uniform scope across all routes.
-- **Competition Demo Mode:** `/api/auth/judge-demo` allows judges and evaluators to test the full authenticated application with zero friction.
+- **Password Hashing & Enumeration Hygiene:** Uses `bcryptjs` (10 rounds) on `POST /api/auth/login` and `/api/auth/signup` with zero bypass backdoors and uniform constant-time dummy `bcrypt.compare` timing (`"Invalid email or password."` HTTP `401`) to prevent account enumeration.
+- **Native Google OAuth 2.0 + PKCE + JWKS + Intent Lock + Pre-Takeover Defense:** Uses `lib/google-oauth.ts` for `S256` PKCE, constant-time `state` validation (`crypto.timingSafeEqual`), Google JWKS signature/issuer/audience verification (`jose`), strict `httpOnly` intent separation (`echotime_oauth_intent`: `'login'` vs `'signup'`), `email_verified === true` guard, avatar preservation (`existing.avatarUrl || picture`), and automatic revocation of any unverified pre-registered `passwordHash` when verified Google OAuth confirms ownership.
+- **Anti-Sybil Email Canonicalization (`lib/email.ts`):** Normalizes `+subaddress` tags, Gmail periods (`.`), and `@googlemail.com` aliases into `User.canonicalEmail` so duplicate registrations cannot farm additional `5.00 ECHO` starter credits via email or Google Sign-Up.
+- **Strict Input, Attachment & Avatar Validation (`lib/validation.ts`):** Allow-listed request fields (zero `...body` mass assignment), finite positive integers (`creditsPerHr` `1–5`, `durationHrs` `1–8`), authoritative server-side price lookup from `SkillListing.creditsPerHr`, strict anti-self-dealing (`listing.authorId !== user.id`), compressed `256×256` WebP/JPEG avatars (`<= 220 KB`), and chat attachment MIME/URI filtering blocking `image/svg+xml`, `text/html`, JavaScript payloads, and URLs over 8 MB base64 (`11,000,000` chars).
+- **Sliding-Window Rate Limiting & Secret Hygiene (`lib/rate-limit.ts`):** Dependency-free IP/user sliding-window limits returning `429` + `Retry-After` on `/api/auth/login` (`10 / 15m`), `/api/auth/signup` (`6 / 15m`), and `/api/agreements/[id]/messages` (`40 / 1m`). `SAFE_USER_SELECT` strictly omits `passwordHash`, `googleId`, and `canonicalEmail`, and `/api/health` returns only masked database host prefixes.
+- **Cookie Security Attributes (`et_session`):** `httpOnly: true`, `sameSite: 'lax'`, `secure: process.env.NODE_ENV === 'production'`, `path: '/'`.
 
 ---
 
-## 8. ACID Escrow Engine & Double-Entry Ledger
+## 8. ACID Escrow Engine & Concurrency Guards
 
-All credit transfers execute inside atomic `prisma.$transaction` blocks:
+All credit and stage mutations execute inside `prisma.$transaction` with SQL-level atomic `updateMany` compare-and-swap stage locks (`NEGOTIATING → CONFIRMED_ESCROWED → DELIVERED → COMPLETED`, or `NEGOTIATING | CONFIRMED_ESCROWED | DELIVERED → CANCELLED` returning `409 Conflict` on concurrent races) and SQL-level credit floor guards (`availableCredits: { gte: total }` / `reservedCredits: { gte: total }`):
 
 ```
 1. Negotiation Initiated (NEGOTIATING):

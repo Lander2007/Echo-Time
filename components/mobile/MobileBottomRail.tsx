@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceProvider';
 import { MobileArchitecturalDrawer } from './MobileArchitecturalDrawer';
+import { IconArrowRight, IconPlus } from '@/components/workspace/Icons';
 
 export function MobileBottomRail() {
   const pathname = usePathname();
@@ -89,7 +90,7 @@ export function MobileBottomRail() {
             aria-label="Open creation actions"
             className="flex flex-col items-center justify-center bg-[#021F94] text-[#F5F2F3] active:bg-[#061354] transition-colors"
           >
-            <span className="font-mono text-[16px] font-black leading-none">+</span>
+            <IconPlus className="w-4 h-4" />
             <span className="font-mono text-[9.5px] font-black uppercase tracking-widest mt-0.5">
               NEW
             </span>
@@ -195,7 +196,7 @@ export function MobileBottomRail() {
                   Offer what you know or request help for 1.00 ECHO/hr
                 </div>
               </div>
-              <span className="font-mono text-sm text-[#021F94] font-bold">→</span>
+              <span className="font-mono text-sm text-[#021F94] font-bold"><IconArrowRight className="w-4 h-4" /></span>
             </button>
 
             {/* 02 · Create Space */}
@@ -220,7 +221,7 @@ export function MobileBottomRail() {
                   Start a campus project, study group, or hackathon team
                 </div>
               </div>
-              <span className="font-mono text-sm text-[#021F94] font-bold">→</span>
+              <span className="font-mono text-sm text-[#021F94] font-bold"><IconArrowRight className="w-4 h-4" /></span>
             </button>
 
             {/* 03 · Open Wallet */}
@@ -243,7 +244,7 @@ export function MobileBottomRail() {
                   View full double-entry transaction history and movements
                 </div>
               </div>
-              <span className="font-mono text-sm text-[#021F94] font-bold">→</span>
+              <span className="font-mono text-sm text-[#021F94] font-bold"><IconArrowRight className="w-4 h-4" /></span>
             </button>
 
             {/* 04 · Subscription */}
@@ -266,7 +267,7 @@ export function MobileBottomRail() {
                   Explore Student Pro, Club, and Campus tier waitlists
                 </div>
               </div>
-              <span className="font-mono text-sm text-[#021F94] font-bold">→</span>
+              <span className="font-mono text-sm text-[#021F94] font-bold"><IconArrowRight className="w-4 h-4" /></span>
             </button>
           </div>
         </div>

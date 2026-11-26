@@ -1,16 +1,35 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceProvider';
 import { ListingCard } from '@/components/workspace/ListingCard';
 import { MobileListingTicket } from '@/components/mobile/MobileListingTicket';
-import { IconSearch } from '@/components/workspace/Icons';
+import { UserAvatar } from '@/components/UserAvatar';
+import { IconSearch, IconArrowRight, IconStar } from '@/components/workspace/Icons';
+
+function WelcomeQuerySync({ onNewWelcome }: { onNewWelcome: () => void }) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('welcome') === 'new') {
+      onNewWelcome();
+    }
+  }, [searchParams, onNewWelcome]);
+
+  return null;
+}
 
 export default function DashboardPage() {
+  const [welcomeFromQuery, setWelcomeFromQuery] = useState(false);
+  const [mountTimeMs] = useState(() => Date.now());
+
   const {
     profileFullName,
     userInitials,
+    avatarUrl,
+    userCreatedAt,
     availableCredits,
     reservedCredits,
     completedExchanges,
@@ -21,6 +40,13 @@ export default function DashboardPage() {
   } = useWorkspace();
 
   const firstName = profileFullName ? profileFullName.split(' ')[0] : 'Student';
+  const isRecentAccount = Boolean(
+    userCreatedAt &&
+      completedExchanges === 0 &&
+      mountTimeMs - new Date(userCreatedAt).getTime() <= 3 * 60 * 1000
+  );
+  const isNewUser = welcomeFromQuery || isRecentAccount;
+
   const hasActiveRoom = Boolean(
     activeRoom && activeRoom.stage !== 'Completed' && activeRoom.stage !== 'Cancelled'
   );
@@ -54,6 +80,9 @@ export default function DashboardPage() {
 
   return (
     <div className="et-animate-in">
+      <Suspense fallback={null}>
+        <WelcomeQuerySync onNewWelcome={() => setWelcomeFromQuery(true)} />
+      </Suspense>
       {/* ====================================================================
           1. MOBILE LAYOUT (< 1024px STRICT EDITORIAL)
           ==================================================================== */}
@@ -77,7 +106,7 @@ export default function DashboardPage() {
           <div className="py-4 flex items-end justify-between gap-2">
             <div>
               <div className="font-mono text-[10px] text-[#B9C8FF] uppercase tracking-wider">
-                WELCOME BACK, {firstName.toUpperCase()}
+                {isNewUser ? 'WELCOME,' : 'WELCOME BACK,'} {firstName.toUpperCase()}
               </div>
               <div className="mt-1 font-mono font-black text-[42px] leading-none tracking-tight tabular text-[#F5F2F3]">
                 {Number(availableCredits || 0).toFixed(2)}
@@ -94,8 +123,9 @@ export default function DashboardPage() {
               title="Open Wallet Escrow Ledger"
             >
               <div className="font-mono text-[8.5px] text-[#B9C8FF] uppercase">ESCROW HOLD</div>
-              <div className="font-mono font-black text-xs text-[#D93829] tabular mt-0.5">
-                {Number(reservedCredits || 0).toFixed(2)} →
+              <div className="font-mono font-black text-xs text-[#D93829] tabular mt-0.5 inline-flex items-center justify-end gap-1">
+                <span>{Number(reservedCredits || 0).toFixed(2)}</span>
+                <IconArrowRight className="w-3.5 h-3.5" />
               </div>
             </Link>
           </div>
@@ -104,9 +134,10 @@ export default function DashboardPage() {
           <div className="pt-3 border-t border-[#F5F2F3]/20 grid grid-cols-2 gap-2 font-mono text-[11px] font-bold uppercase tracking-wider">
             <Link
               href="/explore"
-              className="py-2.5 bg-[#F5F2F3] text-[#021F94] rounded-[2px] text-center active:opacity-85 transition-opacity"
+              className="group py-2.5 bg-[#F5F2F3] text-[#021F94] rounded-[2px] inline-flex items-center justify-center gap-1.5 active:opacity-85 transition-opacity"
             >
-              FIND A SKILL →
+              <span>FIND A SKILL</span>
+              <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
             <Link
               href="/agreement"
@@ -135,8 +166,9 @@ export default function DashboardPage() {
             <div className="font-mono text-[9px] font-bold uppercase text-[#565C73] tracking-wider">
               02 · RATING
             </div>
-            <div className="font-mono font-black text-2xl text-[#021F94] tabular mt-1">
-              5.0 ★
+            <div className="font-mono font-black text-2xl text-[#021F94] tabular mt-1 inline-flex items-center gap-1.5">
+              <span>5.0</span>
+              <IconStar filled className="w-4 h-4" />
             </div>
             <div className="font-mono text-[9.5px] text-[#565C73] mt-0.5">PEER CONFIDENCE</div>
           </div>
@@ -159,7 +191,7 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between font-mono text-[9px] font-bold uppercase text-[#565C73] tracking-wider">
               <span>04 · PROFILE</span>
-              <span className="text-[#D93829] font-bold">→</span>
+              <IconArrowRight className="w-3.5 h-3.5 text-[#D93829]" />
             </div>
             <div className="font-mono font-black text-2xl text-[#D93829] tabular mt-1">
               {profileCompletionPct || 85}%
@@ -184,9 +216,10 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/agreement"
-              className="px-3 py-1.5 bg-[#021F94] text-[#F5F2F3] font-mono text-[10px] font-bold uppercase tracking-wider rounded-[2px] shrink-0 active:opacity-80"
+              className="group px-3 py-1.5 bg-[#021F94] text-[#F5F2F3] font-mono text-[10px] font-bold uppercase tracking-wider rounded-[2px] shrink-0 inline-flex items-center gap-1 active:opacity-80"
             >
-              RESUME →
+              <span>RESUME</span>
+              <IconArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
           </div>
         )}
@@ -199,9 +232,10 @@ export default function DashboardPage() {
             </span>
             <Link
               href="/explore"
-              className="text-[#021F94] font-bold uppercase hover:underline"
+              className="group inline-flex items-center gap-1 text-[#021F94] font-bold uppercase hover:underline"
             >
-              ALL →
+              <span>ALL</span>
+              <IconArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
           </div>
 
@@ -225,15 +259,18 @@ export default function DashboardPage() {
           <span className="et-tick-br" />
 
           <div className="flex items-start sm:items-center gap-4">
-            <div className="w-12 h-12 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] border border-[var(--border-strong)] flex items-center justify-center font-et-mono font-bold text-base shrink-0">
-              {userInitials}
-            </div>
+            <UserAvatar
+              src={avatarUrl}
+              initials={userInitials}
+              alt={profileFullName || 'Student'}
+              className="w-12 h-12 text-base"
+            />
             <div>
               <div className="font-et-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[var(--cobalt)]">
                 STUDENT DASHBOARD
               </div>
               <h1 className="mt-1 font-et-sans font-black tracking-[-0.04em] text-2xl sm:text-4xl leading-[1.05]">
-                Welcome back, {profileFullName}.
+                {isNewUser ? 'Welcome to Echo Time' : 'Welcome back'}, {profileFullName}.
               </h1>
               <p className="mt-1.5 text-sm text-[var(--muted)]">
                 Ready to exchange your skills today?
@@ -297,9 +334,10 @@ export default function DashboardPage() {
           </Link>
           <Link
             href="/agreement"
-            className="inline-flex items-center gap-2.5 px-5 py-3 rounded-sm border border-[var(--border-strong)] bg-[var(--bg-elevated)] text-[var(--ink)] hover:border-[var(--lime)] font-et-mono text-xs font-semibold uppercase tracking-[0.12em] transition-colors"
+            className="group inline-flex items-center gap-2.5 px-5 py-3 rounded-sm border border-[var(--border-strong)] bg-[var(--bg-elevated)] text-[var(--ink)] hover:border-[var(--lime)] font-et-mono text-xs font-semibold uppercase tracking-[0.12em] transition-colors"
           >
-            <span>→ Open agreement</span>
+            <IconArrowRight className="w-3.5 h-3.5 text-[var(--cobalt)] transition-transform duration-200 group-hover:translate-x-0.5" />
+            <span>Open agreement</span>
           </Link>
         </div>
 
@@ -316,9 +354,10 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/explore"
-              className="font-et-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--lime)] hover:underline"
+              className="group inline-flex items-center gap-1.5 font-et-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--lime)] hover:underline"
             >
-              Explore all →
+              <span>Explore all</span>
+              <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
           </div>
 

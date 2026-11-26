@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { IconArrowLeft, IconArrowRight } from '@/components/workspace/Icons';
 
 export default function NotFound() {
   return (
@@ -16,15 +17,17 @@ export default function NotFound() {
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 font-swiss-mono text-xs">
           <Link
             href="/"
-            className="w-full sm:w-auto px-5 py-2.5 rounded bg-[#021F94] text-[#F5F2F3] font-semibold uppercase tracking-[0.12em] hover:brightness-110 transition-all"
+            className="group w-full sm:w-auto px-5 py-2.5 rounded bg-[#021F94] text-[#F5F2F3] font-semibold uppercase tracking-[0.12em] inline-flex items-center justify-center gap-2 hover:brightness-110 transition-all"
           >
-            &larr; Return to Portal
+            <IconArrowLeft className="w-3.5 h-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" />
+            <span>Return to Portal</span>
           </Link>
           <Link
             href="/dashboard"
-            className="w-full sm:w-auto px-5 py-2.5 rounded border border-[rgba(2,31,148,0.34)] text-[#021F94] font-semibold uppercase tracking-[0.12em] hover:bg-[#021F94]/5 transition-all"
+            className="group w-full sm:w-auto px-5 py-2.5 rounded border border-[rgba(2,31,148,0.34)] text-[#021F94] font-semibold uppercase tracking-[0.12em] inline-flex items-center justify-center gap-2 hover:bg-[#021F94]/5 transition-all"
           >
-            Workspace &rarr;
+            <span>Workspace</span>
+            <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </Link>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useWorkspace } from '@/context/WorkspaceProvider';
-import { IconShield, IconWallet } from '@/components/workspace/Icons';
+import { IconShield, IconWallet, IconCheck, IconArrowRight } from '@/components/workspace/Icons';
 
 export default function SubscriptionPage() {
   const { betaPlans, handleToggleWaitlist } = useWorkspace();
@@ -56,15 +56,15 @@ export default function SubscriptionPage() {
 
           <div className="space-y-1.5 pt-2 border-t border-[#F5F2F3]/20 font-mono text-xs text-[#F5F2F3]">
             <div className="flex items-center gap-2">
-              <span className="text-[#B9C8FF] font-bold">✓</span>
+              <IconCheck className="w-3.5 h-3.5 text-[#B9C8FF]" />
               <span>5 starter ECHO credits upon registration</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[#B9C8FF] font-bold">✓</span>
+              <IconCheck className="w-3.5 h-3.5 text-[#B9C8FF]" />
               <span>Unlimited 1:1 peer skills exchange & escrow</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[#B9C8FF] font-bold">✓</span>
+              <IconCheck className="w-3.5 h-3.5 text-[#B9C8FF]" />
               <span>Join campus projects, study groups & events</span>
             </div>
           </div>
@@ -98,8 +98,9 @@ export default function SubscriptionPage() {
                 </div>
 
                 {plan.onWaitlist && (
-                  <span className="px-2 py-0.5 bg-[#021F94] text-[#F5F2F3] font-mono text-[9px] font-bold uppercase rounded-[2px] shrink-0">
-                    ✓ WAITLISTED
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#021F94] text-[#F5F2F3] font-mono text-[9px] font-bold uppercase rounded-[2px] shrink-0">
+                    <IconCheck className="w-2.5 h-2.5" />
+                    <span>WAITLISTED</span>
                   </span>
                 )}
               </div>
@@ -116,13 +117,23 @@ export default function SubscriptionPage() {
               <button
                 type="button"
                 onClick={() => handleToggleWaitlist(plan.id)}
-                className={`w-full py-2.5 rounded-[2px] font-mono text-[11px] font-bold uppercase tracking-wider transition-colors active:opacity-85 ${
+                className={`group w-full py-2.5 rounded-[2px] font-mono text-[11px] font-bold uppercase tracking-wider inline-flex items-center justify-center gap-1.5 transition-colors active:opacity-85 ${
                   plan.onWaitlist
                     ? 'bg-[#021F94] text-[#F5F2F3]'
                     : 'border border-[#021F94] text-[#021F94] bg-white hover:bg-[#F5F2F3]'
                 }`}
               >
-                {plan.onWaitlist ? '✓ SAVED ON WAITLIST' : 'SAVE BETA INTEREST →'}
+                {plan.onWaitlist ? (
+                  <>
+                    <IconCheck className="w-3.5 h-3.5" />
+                    <span>SAVED ON WAITLIST</span>
+                  </>
+                ) : (
+                  <>
+                    <span>SAVE BETA INTEREST</span>
+                    <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </>
+                )}
               </button>
             </div>
           ))}
@@ -189,7 +200,7 @@ export default function SubscriptionPage() {
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3 font-et-mono text-xs">
             {['5 starter credits', 'Request and offer services', 'Join community projects'].map((perk) => (
               <div key={perk} className="flex items-center gap-2 text-[var(--ink)]">
-                <span className="text-[var(--lime)] font-bold">✓</span>
+                <IconCheck className="w-3.5 h-3.5 text-[var(--lime)]" />
                 <span>{perk}</span>
               </div>
             ))}
@@ -223,7 +234,10 @@ export default function SubscriptionPage() {
                   <div className="flex items-center justify-between font-et-mono text-[10px] uppercase tracking-[0.14em]">
                     <span className="text-[var(--muted)]">BETA INTEREST</span>
                     {plan.onWaitlist && (
-                      <span className="text-[var(--lime)] font-bold">✓ On Waitlist</span>
+                      <span className="inline-flex items-center gap-1 text-[var(--lime)] font-bold">
+                        <IconCheck className="w-3 h-3" />
+                        <span>On Waitlist</span>
+                      </span>
                     )}
                   </div>
                   <h3 className="mt-2 font-et-sans font-black text-2xl tracking-[-0.03em]">
@@ -245,13 +259,20 @@ export default function SubscriptionPage() {
                 <button
                   type="button"
                   onClick={() => handleToggleWaitlist(plan.id)}
-                  className={`w-full py-2.5 rounded-sm font-et-mono text-[11px] font-bold uppercase tracking-[0.11em] border transition-colors ${
+                  className={`w-full py-2.5 rounded-sm font-et-mono text-[11px] font-bold uppercase tracking-[0.11em] border inline-flex items-center justify-center gap-1.5 transition-colors ${
                     plan.onWaitlist
                       ? 'bg-[var(--lime)] text-[var(--lime-ink)] border-[var(--lime)]'
                       : 'border-[var(--border-strong)] text-[var(--ink)] hover:border-[var(--lime)]'
                   }`}
                 >
-                  {plan.onWaitlist ? '✓ Saved on waitlist' : 'Save Beta interest'}
+                  {plan.onWaitlist ? (
+                    <>
+                      <IconCheck className="w-3.5 h-3.5" />
+                      <span>Saved on waitlist</span>
+                    </>
+                  ) : (
+                    <span>Save Beta interest</span>
+                  )}
                 </button>
               </div>
             ))}

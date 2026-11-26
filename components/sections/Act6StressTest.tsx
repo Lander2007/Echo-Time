@@ -1,6 +1,7 @@
 import React from 'react';
 import { TactileAudioEngine } from '@/lib/audio';
 import { CANONICAL_CONTENT } from '@/data/content';
+import { IconArrowRight } from '@/components/workspace/Icons';
 
 interface Act6StressTestProps {
   stressIdx: number;
@@ -89,9 +90,10 @@ export const Act6StressTest: React.FC<Act6StressTestProps> = ({
               <div className="mt-6">
                 <a
                   href="#act-pass"
-                  className="inline-flex items-center gap-2 font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#021F94] hover:underline"
+                  className="group inline-flex items-center gap-2 font-swiss-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#021F94] hover:underline"
                 >
-                  {feat.cta} &rarr;
+                  <span>{feat.cta}</span>
+                  <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </a>
               </div>
             </div>

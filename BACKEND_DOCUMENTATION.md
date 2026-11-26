@@ -58,7 +58,7 @@
 | **سيرفر قاعدة البيانات** | 🟢 **سحابي متصل** | `ep-small-sun-bb8ntdnm.c-15.us-east-1.aws.neon.tech` |
 | **مشروع Neon السحابي** | 🟢 **Production** | Project ID: `old-shape-92339075` (Branch: `production`) |
 | **فحص الصحة الحي (`/api/health`)** | 🟢 **Healthy** | يعيد كود 200 مع إحصائيات حية: 4 مستخدمين، 4 مهارات |
-| **المصادقة (Auth)** | 🟢 **جاهز 100%** | تسجيل مستخدم، تسجيل دخول، ودخول فوري للتحكيم (Judge Demo) |
+| **المصادقة (Auth)** | 🟢 **جاهز 100%** | تسجيل مستخدم جديد، تسجيل دخول، وتسجيل الدخول عبر Google OAuth 2.0 |
 | **غرف الاتفاق والدردشة** | 🟢 **شغال 100%** | دورة حياة التبادل كاملة + إرسال المرفقات (صور، صوت، ملفات) |
 | **محفظة الساعات والـ Escrow** | 🟢 **شغال 100%** | حجز الضمان، إيداع المنحة، تحويل الساعات عند اكتمال الجلسة |
 | **مزامنة Git** | 🟢 **متطابق** | الفروع `main` و `master` متطابقة تماماً مع أحدث إصدار |
@@ -71,8 +71,12 @@
 
 ### 1. `User` (المستخدم الجامعي)
 - `id`: المعرف الفريد (`cuid`).
-- `fullName`, `username`, `email`, `passwordHash`: بيانات الهوية وبيانات الاعتماد المشفرة.
-- `university`: الجامعة المعتمدة.
+- `fullName`, `username`, `email`: بيانات الهوية الأساسية.
+- `passwordHash`: تجزئة Bcrypt اختيارية (`String?` — فارغة لحسابات Google فقط ولا يتم إرجاعها مطلقاً في أي API).
+- `googleId`: معرف Google الفريد (`String? @unique` — للربط الداخلي فقط ولا يتم إرجاعه مطلقاً في أي استجابة API).
+- `avatarUrl`: رابط الصورة الشخصية (`String? @db.Text` — يحفظ إما رابط Google `https://` أو صورة مضغوطة `data:image/webp|jpeg;base64` بمقاس 256×256).
+- `authProvider`: مزود المصادقة (`"EMAIL" | "GOOGLE" | "HYBRID"`).
+- `university`: الجامعة المعتمدة (يتم استنتاجها ذكياً من نطاق `.edu` أو `"Verified Student"`).
 - `planTier`: باقة الاشتراك (`STUDENT_FREE`, `PRO`, `CAMPUS_ENTERPRISE`).
 - `availableCredits`: رصيد الساعات المتاح للصرف (يبدأ بمنحة ترحيبية 5.00 ECHO).
 - `reservedCredits`: رصيد الساعات المجمد في الضمان البنكي للاتفاقيات الجارية.
@@ -156,9 +160,9 @@
   `old-shape-92339075` (Branch: `production`) داخل منظمة `org-crimson-mode-05335506`.
 - **روابط الاتصال المستخدمة:**
   - **Pooled (للطلبات السريعة اللاسيرفرية):**
-    `postgresql://neondb_owner:npg_XLVqo5f0rjpv@ep-small-sun-bb8ntdnm-pooler.c-15.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
+    `postgresql://neondb_owner:<NEON_PASSWORD>@ep-small-sun-bb8ntdnm-pooler.c-15.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
   - **Direct (لتطبيق الـ Migrations):**
-    `postgresql://neondb_owner:npg_XLVqo5f0rjpv@ep-small-sun-bb8ntdnm.c-15.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
+    `postgresql://neondb_owner:<NEON_PASSWORD>@ep-small-sun-bb8ntdnm.c-15.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
 
 ### المعالج الذكي للاتصال (`lib/prisma.ts`):
 عند تفعيل الإضافات على منصة Vercel، تنشئ المنصة أحياناً متغيراً مقفلاً يشير لداتابيز فارغة (`ep-red-sound`). قمنا ببرمجة معالج ذكي يتجاوز هذا القفل برمجياً:
@@ -181,15 +185,18 @@ function resolveDatabaseUrl(): string | undefined {
 
 ## 6. دليل مسارات الـ REST API الكامل
 
-### 🔐 1. مسارات المصادقة والمستخدمين (`/api/auth/**`)
+### 🔐 1. مسارات المصادقة والمستخدمين (`/api/auth/**`) والملف الشخصي (`/api/profile`)
 
 | المسار | الطريقة | الوصف | المعاملات |
 | :--- | :---: | :--- | :--- |
-| `/api/auth/judge-demo` | `POST` | تسجيل دخول فوري بنقرة واحدة لحساب لجنة التحكيم (`khaled@echotime.edu`) | اختياري: `{ role: "provider" \| "requester" }` |
-| `/api/auth/login` | `POST` | التحقق من الحساب وإصدار كوكي الجلسة المشفرة | `{ email, password }` |
+| `/api/auth/google` | `GET` | بدء تسجيل الدخول عبر Google OAuth 2.0 + PKCE (`S256`) + `state` + قفل النية `echotime_oauth_intent` (`login` \| `signup` والافتراضي `login`) | Query: `intent` |
+| `/api/auth/google/callback` | `GET` | تحقق `timingSafeEqual` وتوثيق `id_token` عبر JWKS، مع فرض فصل النية (`login` يرفض الحساب غير المسجل ويعيد لـ `signup`؛ و `signup` يرفض المكرر أو يُنشئ الحساب بمنحة 5.00 ECHO مع `/dashboard?welcome=new`) | Query: `code`, `state` (أو `error`) |
+| `/api/auth/login` | `POST` | حماية حسابات Google فقط (`!passwordHash`)، التحقق من الحساب وإصدار كوكي الجلسة المشفرة | `{ email, password }` |
 | `/api/auth/signup` | `POST` | إنشاء حساب جديد، إيداع 5.00 ECHO منحة ترحيبية، وتوثيق القيد في دفتر الأستاذ | `{ fullName, email, password }` |
-| `/api/auth/session` | `GET` | إرجاع بيانات الطالب المسجل حالياً وأرصدته المحدثة من الداتابيز | لا يوجد (يقرأ الكوكي) |
+| `/api/auth/session` | `GET` | إرجاع بيانات الطالب الآمنة (`avatarUrl`, `authProvider`, والأرصدة الحية) مباشرة من الداتابيز | لا يوجد (يقرأ الكوكي) |
 | `/api/auth/logout` | `POST` | حذف كوكي الجلسة وتصفير حالة الحساب | لا يوجد |
+| `/api/profile` | `GET` | جلب بيانات الملف الشخصي الآمنة بدون `passwordHash` أو `googleId` | لا يوجد |
+| `/api/profile` | `PATCH` | تحديث بيانات الطالب والتحقق الصارم من `avatarUrl` (صورة WebP/JPEG/PNG مضغوطة `<= 220_000` حرف أو رابط `https:` موثق، أو `null` للحذف؛ رفض تام لـ `image/svg+xml` و `javascript:` و `http:`) | `{ fullName?, username?, bio?, university?, availability?, offeredSkills?, avatarUrl? }` |
 
 ### 🛒 2. مسارات سوق المهارات (`/api/listings/**`)
 
@@ -226,21 +233,20 @@ function resolveDatabaseUrl(): string | undefined {
 
 ---
 
-## 7. الأمان وإدارة الجلسات (Authentication & Security)
+## 7. الأمان والتحصين الدفاعي ذو الطبقات السبع (Authentication & 7-Layer Security Hardening)
 
-- **تشفير كلمات المرور:** يتم تشفير كلمات المرور باستخدام خوارزمية **Bcrypt** بـ 10 دورات تمليح.
-- **التوقيع الرقمي (JWT Tokens):** يتم استخدام مكتبة `jose` لتوليد توقيعات **HS256** محمية بمفتاح `AUTH_SECRET` أو `JWT_SECRET`.
-- **خصائص كوكي الجلسة (`echotime_session`):**
-  - `httpOnly: true`: حماية كاملة ضد هجمات سرقة الجلسات عبر XSS.
-  - `sameSite: 'lax'`: حماية ضد هجمات تزوير الطلبات عبر المواقع (CSRF).
-  - `secure: true`: تُفعل تلقائياً في بيئة الإنتاج المشفرة عبر HTTPS.
-  - `path: '/'`: صلاحية موحدة عبر جميع مسارات التطبيق.
+- **تشفير كلمات المرور ومنع الاستعلام (Password Hashing & Enumeration Hygiene):** تشفير عبر `bcryptjs` (10 جولات) بدون أي كلمات مرور خلفية، مع فحص توقيت ثابت (`DUMMY_BCRYPT_HASH`) ورسالة موحدة `"Invalid email or password."` (`401`) لمنع كشف الحسابات.
+- **Google OAuth 2.0 + PKCE S256 + JWKS + قفل النية والحماية من الاستيلاء المسبق:** التحقق عبر Google JWKS (`jose`) و `email_verified === true` و `timingSafeEqual`، وفصل صارم لنية الدخول عن التسجيل (`echotime_oauth_intent`)، وحفظ الصورة المخصصة (`existing.avatarUrl || picture`)، وإبطال أي `passwordHash` غير موثق (`!existing.emailVerified`) تلقائياً عند إثبات المالك عبر Google OAuth.
+- **تطبيع البريد لمنع حسابات Sybil (`lib/email.ts`):** توحيد صيغة البريد في `User.canonicalEmail` (إزالة `+tag` ونقاط Gmail وتحويل `@googlemail.com` إلى `@gmail.com`) لمنع تعدد الحسابات وحصد رصيد البداية المجاني (`5.00 ECHO`).
+- **التحقق الصارم من المدخلات والمرفقات (`lib/validation.ts`):** قوائم حقول مسموحة صراحةً (منع Mass Assignment)، حدود رقمية موجبة صارمة (`creditsPerHr` 1–5، `durationHrs` 1–8)، قراءة السعر حصراً من قاعدة البيانات (`SkillListing.creditsPerHr`)، منع التداول الذاتي (`listing.authorId !== user.id`)، وفحص الصور والمرفقات لحظر `image/svg+xml` و `text/html` و `javascript:` والأحجام فوق 8 MB.
+- **محدد المعدل الزمني ونظافة التشخيص (`lib/rate-limit.ts`):** حماية Sliding-Window بدون اعتماديات خارجية ترجع `429 Retry-After` على `/api/auth/login` (`10 / 15m`) و `/api/auth/signup` (`6 / 15m`) و `/api/agreements/[id]/messages` (`40 / 1m`)، مع إخفاء `passwordHash` و `googleId` و `canonicalEmail` تماماً وإرجاع نطاق host مقنّع فقط في `/api/health`.
+- **خصائص كوكي الجلسة (`et_session`):** `httpOnly: true` و `sameSite: 'lax'` و `secure: process.env.NODE_ENV === 'production'` و `path: '/'`.
 
 ---
 
-## 8. نظام الضمان البنكي المحكم (ACID Escrow Engine)
+## 8. نظام الضمان البنكي المحكم وموانع التنافس (ACID Escrow & Concurrency Guards)
 
-تتم جميع تحويلات الساعات داخل كتلة ذرية واحدة عبر `prisma.$transaction`:
+تُنفَّذ جميع انتقالات المراحل وتحويلات الأرصدة داخل `prisma.$transaction` مع أقفال ذرية شرطية على المستوى البنكي (`updateMany` على المرحلة المتوقعة يرجع `409 Conflict` عند التكرار المتزامن) وقيود SQL ذرية على الرصيد (`availableCredits: { gte: total }` و `reservedCredits: { gte: total }`):
 
 ```
 1. بدء الاتفاق (NEGOTIATING):

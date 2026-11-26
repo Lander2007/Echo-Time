@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useWorkspace } from '@/context/WorkspaceProvider';
-import { IconWallet, IconLock } from '@/components/workspace/Icons';
+import { IconWallet, IconLock, IconArrowLeft, IconArrowRight } from '@/components/workspace/Icons';
 
 export default function WalletPage() {
   const {
@@ -314,9 +314,10 @@ export default function WalletPage() {
             <button
               type="button"
               disabled
-              className="px-3.5 py-1.5 rounded-sm border border-[var(--border)] opacity-50"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-sm border border-[var(--border)] opacity-50"
             >
-              ← Previous
+              <IconArrowLeft className="w-3.5 h-3.5" />
+              <span>Previous</span>
             </button>
             <span className="tabular">
               Showing 1&ndash;{transactions.length} of {transactions.length} &middot; page 1 of 1 &middot; 40 per page
@@ -324,9 +325,10 @@ export default function WalletPage() {
             <button
               type="button"
               disabled
-              className="px-3.5 py-1.5 rounded-sm border border-[var(--border)] opacity-50"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-sm border border-[var(--border)] opacity-50"
             >
-              Next →
+              <span>Next</span>
+              <IconArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

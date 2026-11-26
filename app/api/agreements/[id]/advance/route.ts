@@ -1,7 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import {
+  ConflictError,
+  InsufficientCreditsError,
+  toErrorResponse,
+  ValidationError,
+} from '@/lib/validation';
 import { AgreementStage, MessageSenderType } from '@prisma/client';
+
+function getInitials(name: string): string {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'ET'
+  );
+}
+
+const SAFE_ROOM_INCLUDE = {
+  requester: { select: { id: true, fullName: true, username: true } },
+  provider: { select: { id: true, fullName: true, username: true } },
+  messages: { orderBy: { createdAt: 'asc' as const } },
+};
 
 export async function POST(
   _req: NextRequest,
@@ -16,9 +40,16 @@ export async function POST(
     const { id } = await params;
     const room = await prisma.agreementRoom.findUnique({
       where: { id },
-      include: {
-        requester: true,
-        provider: true,
+      select: {
+        id: true,
+        title: true,
+        requesterId: true,
+        providerId: true,
+        durationHrs: true,
+        creditsPerHr: true,
+        stage: true,
+        requester: { select: { id: true, fullName: true } },
+        provider: { select: { id: true, fullName: true } },
       },
     });
 
@@ -30,47 +61,51 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    if (
+      !Number.isInteger(room.durationHrs) ||
+      room.durationHrs < 1 ||
+      !Number.isInteger(room.creditsPerHr) ||
+      room.creditsPerHr < 1
+    ) {
+      throw new ValidationError('Invalid agreement credit terms.');
+    }
+
     const total = room.durationHrs * room.creditsPerHr;
 
     // Transition 1: NEGOTIATING -> CONFIRMED_ESCROWED
     if (room.stage === AgreementStage.NEGOTIATING) {
-      // Re-fetch fresh requester balance
-      const requester = await prisma.user.findUnique({
-        where: { id: room.requesterId },
-      });
-
-      if (!requester || requester.availableCredits < total) {
-        return NextResponse.json(
-          {
-            error: `Insufficient available credits. Required: ${total.toFixed(2)} ECHO, Available: ${
-              requester?.availableCredits.toFixed(2) || '0.00'
-            } ECHO.`,
-          },
-          { status: 400 }
-        );
-      }
-
       const result = await prisma.$transaction(async (tx) => {
-        // Deduct from available, add to reserved
-        await tx.user.update({
-          where: { id: room.requesterId },
+        // Atomic stage transition guard prevents double-locking on concurrent requests
+        const stageLock = await tx.agreementRoom.updateMany({
+          where: { id: room.id, stage: AgreementStage.NEGOTIATING },
+          data: { stage: AgreementStage.CONFIRMED_ESCROWED },
+        });
+        if (stageLock.count !== 1) {
+          throw new ConflictError('Agreement state has already changed. Please refresh.');
+        }
+
+        // Atomic SQL-level balance constraint prevents double-spending across parallel requests
+        const debit = await tx.user.updateMany({
+          where: {
+            id: room.requesterId,
+            availableCredits: { gte: total },
+          },
           data: {
             availableCredits: { decrement: total },
             reservedCredits: { increment: total },
           },
         });
+        if (debit.count !== 1) {
+          throw new InsufficientCreditsError(
+            `Insufficient available ECHO credits. Required: ${total.toFixed(2)} ECHO.`
+          );
+        }
 
-        // Record Escrow Lock transaction
         await tx.walletTransaction.create({
           data: {
             userId: room.requesterId,
             roomId: room.id,
-            counterpartyInitials: room.provider.fullName
-              .split(' ')
-              .map((n) => n[0])
-              .join('')
-              .toUpperCase()
-              .slice(0, 2),
+            counterpartyInitials: getInitials(room.provider.fullName),
             counterpartyName: room.provider.fullName,
             title: `Escrow Lock: ${room.title}`,
             availableDelta: -total,
@@ -79,18 +114,6 @@ export async function POST(
           },
         });
 
-        // Advance room stage
-        const updated = await tx.agreementRoom.update({
-          where: { id: room.id },
-          data: { stage: AgreementStage.CONFIRMED_ESCROWED },
-          include: {
-            requester: { select: { id: true, fullName: true, username: true } },
-            provider: { select: { id: true, fullName: true, username: true } },
-            messages: { orderBy: { createdAt: 'asc' } },
-          },
-        });
-
-        // Post protocol message
         await tx.agreementMessage.create({
           data: {
             roomId: room.id,
@@ -102,7 +125,10 @@ export async function POST(
           },
         });
 
-        return updated;
+        return tx.agreementRoom.findUnique({
+          where: { id: room.id },
+          include: SAFE_ROOM_INCLUDE,
+        });
       });
 
       return NextResponse.json({
@@ -114,15 +140,13 @@ export async function POST(
     // Transition 2: CONFIRMED_ESCROWED -> DELIVERED
     if (room.stage === AgreementStage.CONFIRMED_ESCROWED) {
       const result = await prisma.$transaction(async (tx) => {
-        const updated = await tx.agreementRoom.update({
-          where: { id: room.id },
+        const stageLock = await tx.agreementRoom.updateMany({
+          where: { id: room.id, stage: AgreementStage.CONFIRMED_ESCROWED },
           data: { stage: AgreementStage.DELIVERED },
-          include: {
-            requester: { select: { id: true, fullName: true, username: true } },
-            provider: { select: { id: true, fullName: true, username: true } },
-            messages: { orderBy: { createdAt: 'asc' } },
-          },
         });
+        if (stageLock.count !== 1) {
+          throw new ConflictError('Agreement state has already changed. Please refresh.');
+        }
 
         await tx.agreementMessage.create({
           data: {
@@ -133,7 +157,10 @@ export async function POST(
           },
         });
 
-        return updated;
+        return tx.agreementRoom.findUnique({
+          where: { id: room.id },
+          include: SAFE_ROOM_INCLUDE,
+        });
       });
 
       return NextResponse.json({
@@ -145,17 +172,31 @@ export async function POST(
     // Transition 3: DELIVERED -> COMPLETED
     if (room.stage === AgreementStage.DELIVERED) {
       const result = await prisma.$transaction(async (tx) => {
-        // Requester: release reserved credits, add to spentLifetime, increment completedExchanges
-        await tx.user.update({
-          where: { id: room.requesterId },
+        // Atomic stage guard prevents double-payout under concurrent click races
+        const stageLock = await tx.agreementRoom.updateMany({
+          where: { id: room.id, stage: AgreementStage.DELIVERED },
+          data: { stage: AgreementStage.COMPLETED },
+        });
+        if (stageLock.count !== 1) {
+          throw new ConflictError('Agreement state has already changed. Please refresh.');
+        }
+
+        // Atomic reserved-balance check prevents negative reserved balances under concurrency
+        const release = await tx.user.updateMany({
+          where: {
+            id: room.requesterId,
+            reservedCredits: { gte: total },
+          },
           data: {
             reservedCredits: { decrement: total },
             spentLifetime: { increment: total },
             completedExchanges: { increment: 1 },
           },
         });
+        if (release.count !== 1) {
+          throw new ConflictError('Reserved escrow balance mismatch during settlement.');
+        }
 
-        // Provider: credit available balance, add to earnedLifetime, increment completedExchanges
         await tx.user.update({
           where: { id: room.providerId },
           data: {
@@ -165,26 +206,11 @@ export async function POST(
           },
         });
 
-        const reqInitials = room.provider.fullName
-          .split(' ')
-          .map((n) => n[0])
-          .join('')
-          .toUpperCase()
-          .slice(0, 2);
-
-        const provInitials = room.requester.fullName
-          .split(' ')
-          .map((n) => n[0])
-          .join('')
-          .toUpperCase()
-          .slice(0, 2);
-
-        // Record ledger transactions for both parties
         await tx.walletTransaction.create({
           data: {
             userId: room.requesterId,
             roomId: room.id,
-            counterpartyInitials: reqInitials,
+            counterpartyInitials: getInitials(room.provider.fullName),
             counterpartyName: room.provider.fullName,
             title: `Settled: ${room.title}`,
             availableDelta: 0,
@@ -197,22 +223,12 @@ export async function POST(
           data: {
             userId: room.providerId,
             roomId: room.id,
-            counterpartyInitials: provInitials,
+            counterpartyInitials: getInitials(room.requester.fullName),
             counterpartyName: room.requester.fullName,
             title: `Earned: ${room.title}`,
             availableDelta: total,
             reservedDelta: 0,
             typeLabel: 'TRANSFER_IN',
-          },
-        });
-
-        const updated = await tx.agreementRoom.update({
-          where: { id: room.id },
-          data: { stage: AgreementStage.COMPLETED },
-          include: {
-            requester: { select: { id: true, fullName: true, username: true } },
-            provider: { select: { id: true, fullName: true, username: true } },
-            messages: { orderBy: { createdAt: 'asc' } },
           },
         });
 
@@ -227,7 +243,10 @@ export async function POST(
           },
         });
 
-        return updated;
+        return tx.agreementRoom.findUnique({
+          where: { id: room.id },
+          include: SAFE_ROOM_INCLUDE,
+        });
       });
 
       return NextResponse.json({
@@ -236,12 +255,8 @@ export async function POST(
       });
     }
 
-    return NextResponse.json(
-      { error: `Cannot advance agreement from current stage: ${room.stage}` },
-      { status: 400 }
-    );
+    throw new ConflictError(`Cannot advance agreement from current stage: ${room.stage}`);
   } catch (error) {
-    console.error('Failed to advance agreement stage:', error);
-    return NextResponse.json({ error: 'Failed to advance agreement stage' }, { status: 500 });
+    return toErrorResponse(error, 'Failed to advance agreement stage');
   }
 }

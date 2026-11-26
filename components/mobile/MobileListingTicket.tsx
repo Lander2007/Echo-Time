@@ -3,6 +3,7 @@
 import React from 'react';
 import { SkillListing } from '@/types/workspace';
 import { useWorkspace } from '@/context/WorkspaceProvider';
+import { IconArrowRight, IconStar } from '@/components/workspace/Icons';
 
 interface MobileListingTicketProps {
   item: SkillListing;
@@ -42,9 +43,15 @@ export function MobileListingTicket({ item }: MobileListingTicketProps) {
           className="font-mono text-[10.5px] font-bold tracking-wider px-2 py-0.5 rounded-[2px] transition-colors active:opacity-75"
         >
           {item.saved ? (
-            <span className="text-[#D93829]">★ SAVED</span>
+            <span className="inline-flex items-center gap-1 text-[#D93829]">
+              <IconStar filled className="w-3 h-3" />
+              <span>SAVED</span>
+            </span>
           ) : (
-            <span className="text-[#565C73] hover:text-[#0B1026]">☆ SAVE</span>
+            <span className="inline-flex items-center gap-1 text-[#565C73] hover:text-[#0B1026]">
+              <IconStar filled={false} className="w-3 h-3" />
+              <span>SAVE</span>
+            </span>
           )}
         </button>
       </div>
@@ -71,8 +78,9 @@ export function MobileListingTicket({ item }: MobileListingTicketProps) {
           {item.rating !== null && (
             <>
               <span>·</span>
-              <span className="text-[#021F94] font-bold tabular">
-                ★ {Number(item.rating || 5).toFixed(1)}
+              <span className="inline-flex items-center gap-1 text-[#021F94] font-bold tabular">
+                <IconStar filled className="w-3 h-3" />
+                <span>{Number(item.rating || 5).toFixed(1)}</span>
               </span>
             </>
           )}
@@ -88,9 +96,10 @@ export function MobileListingTicket({ item }: MobileListingTicketProps) {
         <button
           type="button"
           onClick={() => handleOpenRoomForListing(item)}
-          className="px-3 py-1.5 bg-[#021F94] text-[#F5F2F3] font-mono text-[10.5px] font-bold uppercase tracking-[0.08em] rounded-[2px] active:opacity-80 transition-opacity shrink-0"
+          className="group inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#021F94] text-[#F5F2F3] font-mono text-[10.5px] font-bold uppercase tracking-[0.08em] rounded-[2px] active:opacity-80 transition-opacity shrink-0"
         >
-          {isOffer ? 'REQUEST →' : 'RESPOND →'}
+          <span>{isOffer ? 'REQUEST' : 'RESPOND'}</span>
+          <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
         </button>
       </div>
     </article>

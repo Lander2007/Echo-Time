@@ -2,6 +2,7 @@ import React from 'react';
 import { MarketplaceListing, EscrowReceipt } from '@/types/echo';
 import { TactileAudioEngine } from '@/lib/audio';
 import { CANONICAL_CONTENT } from '@/data/content';
+import { IconArrowRight, IconClose } from '@/components/workspace/Icons';
 
 interface AgreementDrawerProps {
   drawerOpen: boolean;
@@ -93,10 +94,10 @@ export const AgreementDrawer: React.FC<AgreementDrawerProps> = ({
                 data-cursor="CLOSE"
                 aria-label="Close Agreement Room"
                 onClick={() => setDrawerOpen(false)}
-                className="w-8 h-8 rounded-sm border flex items-center justify-center font-swiss-mono text-sm hover:bg-[#021F94] hover:text-[#F5F2F3] transition-colors shrink-0"
+                className="w-8 h-8 rounded-sm border flex items-center justify-center hover:bg-[#021F94] hover:text-[#F5F2F3] transition-colors shrink-0"
                 style={{ borderColor: '#021F94' }}
               >
-                &times;
+                <IconClose className="w-4 h-4" />
               </button>
             </div>
 
@@ -270,13 +271,14 @@ export const AgreementDrawer: React.FC<AgreementDrawerProps> = ({
                 <button
                   type="submit"
                   data-cursor="LOCK"
-                  className="w-full py-3.5 rounded font-swiss-mono text-xs font-semibold uppercase tracking-[0.15em] transition-transform active:scale-95"
+                  className="group w-full py-3.5 rounded font-swiss-mono text-xs font-semibold uppercase tracking-[0.15em] inline-flex items-center justify-center gap-2 transition-transform active:scale-95"
                   style={{
                     backgroundColor: '#021F94',
                     color: '#F5F2F3',
                   }}
                 >
-                  Lock Atomic Escrow &rarr;
+                  <span>Lock Atomic Escrow</span>
+                  <IconArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </button>
               </form>
             ) : (
