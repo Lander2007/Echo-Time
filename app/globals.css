@@ -1732,3 +1732,29 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Google OAuth Redirect Loading Bar */
+@keyframes et-oauth-indeterminate {
+  0% {
+    transform: translateX(-100%) scaleX(0.45);
+  }
+  50% {
+    transform: translateX(35%) scaleX(0.65);
+  }
+  100% {
+    transform: translateX(220%) scaleX(0.45);
+  }
+}
+
+.et-oauth-progress-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2.5px;
+  width: 50%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #021F94 0%, #4285F4 60%, #34A853 100%);
+  transform-origin: left center;
+  animation: et-oauth-indeterminate 1.15s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+

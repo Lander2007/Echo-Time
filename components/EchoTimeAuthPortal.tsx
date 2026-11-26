@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BrandLogo } from '@/components/BrandLogo';
-import { IconArrowLeft, IconArrowRight } from '@/components/workspace/Icons';
+import { IconArrowLeft, IconArrowRight, IconSpinner } from '@/components/workspace/Icons';
 
 export type AuthMode = 'login' | 'signup';
 
@@ -60,7 +60,21 @@ function ContinueWithGoogleBlock({
   intent: 'login' | 'signup';
   tabIndex: number;
 }) {
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const label = intent === 'signup' ? 'Sign up with Google' : 'Continue with Google';
+
+  useEffect(() => {
+    const handlePageShow = () => setIsRedirecting(false);
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
+
+  const handleClick = () => {
+    if (isRedirecting) return;
+    setIsRedirecting(true);
+    window.location.assign(`/api/auth/google?intent=${intent}`);
+  };
+
   return (
     <div className="mt-3.5">
       <div className="flex items-center gap-3 mb-3.5">
@@ -73,15 +87,29 @@ function ContinueWithGoogleBlock({
       <button
         type="button"
         tabIndex={tabIndex}
-        onClick={() => {
-          window.location.href = `/api/auth/google?intent=${intent}`;
-        }}
-        className="group w-full h-11 px-4 rounded-[4px] bg-white text-[#1F1F1F] border border-[#747775]/55 shadow-[0_1px_2px_rgba(11,16,38,0.06)] hover:bg-[#F1F5FE] hover:border-[#021F94]/50 hover:text-[#0B1026] hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(2,31,148,0.12),0_1px_3px_rgba(60,64,67,0.1)] active:translate-y-0 active:scale-[0.99] active:bg-[#E4ECFD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#021F94]/35 focus-visible:ring-offset-1 font-sans text-[14px] font-medium tracking-[0.015em] flex items-center justify-center gap-3 transition-all duration-200 ease-out cursor-pointer"
+        disabled={isRedirecting}
+        aria-busy={isRedirecting}
+        onClick={handleClick}
+        className={`group relative overflow-hidden w-full h-11 px-4 rounded-[4px] border font-sans text-[14px] font-medium tracking-[0.015em] flex items-center justify-center gap-3 transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#021F94]/35 focus-visible:ring-offset-1 ${
+          isRedirecting
+            ? 'bg-[#F1F5FE] border-[#021F94]/45 text-[#0B1026] shadow-[0_2px_8px_rgba(2,31,148,0.1)] cursor-wait'
+            : 'bg-white text-[#1F1F1F] border-[#747775]/55 shadow-[0_1px_2px_rgba(11,16,38,0.06)] hover:bg-[#F1F5FE] hover:border-[#021F94]/50 hover:text-[#0B1026] hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(2,31,148,0.12),0_1px_3px_rgba(60,64,67,0.1)] active:translate-y-0 active:scale-[0.99] active:bg-[#E4ECFD] cursor-pointer'
+        }`}
       >
-        <span className="flex items-center justify-center transition-transform duration-200 ease-out group-hover:scale-[1.06]">
-          <GoogleGIcon />
-        </span>
-        <span>{label}</span>
+        {isRedirecting ? (
+          <>
+            <IconSpinner className="w-[18px] h-[18px] text-[#021F94]" />
+            <span>Connecting to Google...</span>
+            <span aria-hidden="true" className="et-oauth-progress-bar" />
+          </>
+        ) : (
+          <>
+            <span className="flex items-center justify-center transition-transform duration-200 ease-out group-hover:scale-[1.06]">
+              <GoogleGIcon />
+            </span>
+            <span>{label}</span>
+          </>
+        )}
       </button>
     </div>
   );
