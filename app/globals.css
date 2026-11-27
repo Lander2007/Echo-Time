@@ -1758,3 +1758,110 @@
   pointer-events: none;
 }
 
+/* ============================================================================
+   ECHO TIME — BRAUN 4-PIGMENT CALIBRATION GOOGLE BUTTON HOVER (60FPS LOCKED)
+   ============================================================================ */
+.et-google-btn {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  background-color: #FFFFFF;
+  color: #0B1026;
+  border: 1.5px solid rgba(2, 31, 148, 0.26);
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color 0.24s ease,
+    border-color 0.24s ease,
+    transform 0.15s ease !important;
+}
+
+.et-google-btn:hover:not(:disabled) {
+  background-color: #FAF8F9;
+  border-color: #021F94;
+}
+
+.et-google-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.et-google-btn:focus-visible {
+  outline: none;
+  border-color: #021F94;
+  box-shadow: 0 0 0 3px rgba(2, 31, 148, 0.18);
+}
+
+.et-google-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Google "G" Crisp 360° Spring Spin */
+.et-google-btn-icon {
+  display: block;
+  flex-shrink: 0;
+  transform-origin: center center;
+  transform: rotate(0deg) scale(1);
+  transition: transform 0.48s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  will-change: transform;
+}
+
+.et-google-btn:hover:not(:disabled) .et-google-btn-icon {
+  transform: rotate(360deg) scale(1.08) !important;
+}
+
+/* Crisp Imperial Blue Ink & Micro-Tracking Shift */
+.et-google-btn-label {
+  transition:
+    color 0.24s ease,
+    letter-spacing 0.3s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.et-google-btn:hover:not(:disabled) .et-google-btn-label {
+  color: #021F94;
+  letter-spacing: 0.018em;
+}
+
+/* Staggered 4-Pigment Braun Calibration Rail Along Bottom Edge */
+.et-google-pigment-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3.5px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  pointer-events: none;
+}
+
+.et-google-pigment-seg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition-property: transform !important;
+  transition-duration: 0.34s !important;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+  will-change: transform;
+}
+
+.et-google-pigment-1 { background-color: #4285F4; transition-delay: 0ms !important; }
+.et-google-pigment-2 { background-color: #EA4335; transition-delay: 65ms !important; }
+.et-google-pigment-3 { background-color: #FBBC05; transition-delay: 130ms !important; }
+.et-google-pigment-4 { background-color: #34A853; transition-delay: 195ms !important; }
+
+.et-google-btn:hover:not(:disabled) .et-google-pigment-seg,
+.et-google-btn:focus-visible .et-google-pigment-seg {
+  transform: scaleX(1);
+}
+
