@@ -103,6 +103,7 @@ interface WorkspaceContextType {
 
   // Auth
   currentUserId: string;
+  authStatus: 'loading' | 'authenticated' | 'unauthenticated';
   isAuthenticated: boolean;
   setIsAuthenticated: (val: boolean) => void;
   authMode: 'login' | 'signup';
@@ -258,6 +259,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   // Auth & Profile
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [authStatus, setAuthStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [authEmail, setAuthEmail] = useState<string>('');
@@ -343,42 +345,60 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     };
 
     try {
-      // 1. Session & Profile
-      const sessionData = await safeFetchJson('/api/auth/session');
+      // 1. Strict Session Verification Gate
+      let sessionRes: Response;
+      try {
+        sessionRes = await fetch('/api/auth/session', { cache: 'no-store', signal });
+      } catch {
+        return;
+      }
       if (signal?.aborted) return;
 
-      let loggedInUserId = '';
-      if (sessionData?.user) {
-        const u = sessionData.user;
-        loggedInUserId = u.id;
-        setCurrentUserId(u.id);
-        setIsAuthenticated(true);
-        setProfileFullName(u.fullName || '');
-        setAuthFullName(u.fullName || '');
-        setAuthEmail(u.email || '');
-        setProfileUsername(u.username || '');
-        setProfileUniversity(u.university || '');
-        setProfileBio(u.bio || '');
-        setProfileAvailability(u.availability || 'Weekends & Evenings');
-        setAvatarUrl(u.avatarUrl ?? null);
-        setAuthProvider(u.authProvider || 'EMAIL');
-        setUserCreatedAt(u.createdAt ? String(u.createdAt) : null);
-        setHasProfilePhoto(Boolean(u.avatarUrl));
-        setOfferedSkills(Array.isArray(u.offeredSkills) ? u.offeredSkills : []);
-        setAvailableCredits(typeof u.availableCredits === 'number' ? u.availableCredits : 5.0);
-        setReservedCredits(typeof u.reservedCredits === 'number' ? u.reservedCredits : 0.0);
-        setEarnedLifetime(typeof u.earnedLifetime === 'number' ? u.earnedLifetime : 0.0);
-        setSpentLifetime(typeof u.spentLifetime === 'number' ? u.spentLifetime : 0.0);
-        setCompletedExchanges(typeof u.completedExchanges === 'number' ? u.completedExchanges : 0);
-      } else {
+      if (sessionRes.status === 401 || sessionRes.status === 403) {
         setIsAuthenticated(false);
+        setAuthStatus('unauthenticated');
+        window.location.replace('/login');
+        return;
       }
+
+      const sessionData = sessionRes.ok ? await sessionRes.json().catch(() => null) : null;
+      if (signal?.aborted) return;
+
+      if (!sessionData?.authenticated || !sessionData?.user) {
+        setIsAuthenticated(false);
+        setAuthStatus('unauthenticated');
+        window.location.replace('/login');
+        return;
+      }
+
+      const u = sessionData.user;
+      const loggedInUserId = u.id;
+      setCurrentUserId(u.id);
+      setIsAuthenticated(true);
+      setAuthStatus('authenticated');
+      setProfileFullName(u.fullName || '');
+      setAuthFullName(u.fullName || '');
+      setAuthEmail(u.email || '');
+      setProfileUsername(u.username || '');
+      setProfileUniversity(u.university || '');
+      setProfileBio(u.bio || '');
+      setProfileAvailability(u.availability || 'Weekends & Evenings');
+      setAvatarUrl(u.avatarUrl ?? null);
+      setAuthProvider(u.authProvider || 'EMAIL');
+      setUserCreatedAt(u.createdAt ? String(u.createdAt) : null);
+      setHasProfilePhoto(Boolean(u.avatarUrl));
+      setOfferedSkills(Array.isArray(u.offeredSkills) ? u.offeredSkills : []);
+      setAvailableCredits(typeof u.availableCredits === 'number' ? u.availableCredits : 5.0);
+      setReservedCredits(typeof u.reservedCredits === 'number' ? u.reservedCredits : 0.0);
+      setEarnedLifetime(typeof u.earnedLifetime === 'number' ? u.earnedLifetime : 0.0);
+      setSpentLifetime(typeof u.spentLifetime === 'number' ? u.spentLifetime : 0.0);
+      setCompletedExchanges(typeof u.completedExchanges === 'number' ? u.completedExchanges : 0);
 
       // 2. Wallet & Transactions + 3. Agreement Rooms + 6. Beta Subscription (authenticated)
       const [walletData, agreementsData, betaData, listingsData, commData] = await Promise.all([
-        loggedInUserId ? safeFetchJson('/api/wallet') : Promise.resolve(null),
-        loggedInUserId ? safeFetchJson('/api/agreements') : Promise.resolve(null),
-        loggedInUserId ? safeFetchJson('/api/subscription/beta') : Promise.resolve(null),
+        safeFetchJson('/api/wallet'),
+        safeFetchJson('/api/agreements'),
+        safeFetchJson('/api/subscription/beta'),
         safeFetchJson('/api/listings'),
         safeFetchJson('/api/community'),
       ]);
@@ -455,7 +475,19 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const controller = new AbortController();
     refreshDatabaseState(controller.signal);
-    return () => controller.abort();
+
+    // Re-validate session immediately if restored via browser Back/Forward cache (bfcache)
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        refreshDatabaseState();
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+
+    return () => {
+      controller.abort();
+      window.removeEventListener('pageshow', handlePageShow);
+    };
   }, [refreshDatabaseState]);
 
   const userInitials = useMemo(() => {
@@ -1012,7 +1044,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
-    // Cleanly wipe all user state from client memory
+    // Cleanly wipe all user state from client memory & replace browser history entry
+    setAuthStatus('unauthenticated');
     setIsAuthenticated(false);
     setCurrentUserId('');
     setProfileFullName('');
@@ -1033,9 +1066,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     setTransactions([]);
     setRooms([]);
     setActiveRoomId('');
-    pushToast('Logged out of student workspace.');
-    router.push('/login');
-  }, [router, pushToast]);
+    window.location.replace('/login');
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -1043,6 +1075,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setThemeMode,
       toggleTheme,
       currentUserId,
+      authStatus,
       isAuthenticated,
       setIsAuthenticated,
       authMode,
@@ -1133,6 +1166,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       themeMode,
       toggleTheme,
       currentUserId,
+      authStatus,
       isAuthenticated,
       authMode,
       authEmail,

@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { BrandLogo } from '@/components/BrandLogo';
 import { GoogleAuthButton } from '@/components/GoogleAuthButton';
 import { IconArrowLeft, IconArrowRight } from '@/components/workspace/Icons';
+import { getSafeRedirectPath } from '@/lib/session-token';
 
 export type AuthMode = 'login' | 'signup';
 
@@ -46,10 +47,12 @@ function GoogleDivider() {
 function AuthSearchParamsSync({
   onModeFromQuery,
   onOAuthNotice,
+  onNextFromQuery,
   pushToast,
 }: {
   onModeFromQuery: (next: AuthMode) => void;
   onOAuthNotice: (code: string | null) => void;
+  onNextFromQuery: (nextPath: string) => void;
   pushToast: (msg: string) => void;
 }) {
   const searchParams = useSearchParams();
@@ -63,6 +66,8 @@ function AuthSearchParamsSync({
       onModeFromQuery('login');
     }
 
+    onNextFromQuery(getSafeRedirectPath(searchParams.get('next')));
+
     const oauthErr = searchParams.get('oauth_error');
     if (oauthErr && handledErrorRef.current !== oauthErr) {
       handledErrorRef.current = oauthErr;
@@ -74,15 +79,15 @@ function AuthSearchParamsSync({
         window.history.replaceState(null, '', nextUrl.pathname + nextUrl.search);
       }
     }
-  }, [searchParams, onModeFromQuery, onOAuthNotice, pushToast]);
+  }, [searchParams, onModeFromQuery, onOAuthNotice, onNextFromQuery, pushToast]);
 
   return null;
 }
 
 export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortalProps) {
-  const router = useRouter();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [oauthNotice, setOauthNotice] = useState<string | null>(null);
+  const [nextPath, setNextPath] = useState<string>('/dashboard');
   const [submitting, setSubmitting] = useState(false);
 
   const switchMode = useCallback((next: AuthMode) => {
@@ -133,9 +138,10 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
         return;
       }
       pushToast(`Signed in as ${data.user.fullName} — entering Student Workspace.`);
+      const targetPath = getSafeRedirectPath(nextPath);
       window.setTimeout(() => {
-        router.push('/dashboard');
-      }, 400);
+        window.location.assign(targetPath);
+      }, 300);
     } catch (err: any) {
       pushToast(err?.message || 'Login failed. Please verify credentials.');
     } finally {
@@ -167,9 +173,11 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
         return;
       }
       pushToast(`Ledger created for ${data.user.fullName} (+5.00 ECHO starter grant minted in database).`);
+      const targetUrl = new URL(getSafeRedirectPath(nextPath), window.location.origin);
+      targetUrl.searchParams.set('welcome', 'new');
       window.setTimeout(() => {
-        router.push('/dashboard?welcome=new');
-      }, 400);
+        window.location.assign(targetUrl.pathname + targetUrl.search);
+      }, 300);
     } catch (err: any) {
       pushToast(err?.message || 'Sign up failed.');
     } finally {
@@ -185,6 +193,7 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
         <AuthSearchParamsSync
           onModeFromQuery={setMode}
           onOAuthNotice={setOauthNotice}
+          onNextFromQuery={setNextPath}
           pushToast={pushToast}
         />
       </Suspense>
@@ -290,6 +299,7 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
                 <GoogleAuthButton
                   intent="login"
                   label="Continue with Google"
+                  nextPath={nextPath}
                   tabIndex={isSignup ? -1 : 0}
                 />
               </div>
@@ -384,6 +394,7 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
                 <GoogleDivider />
                 <GoogleAuthButton
                   intent="signup"
+                  nextPath={nextPath}
                   tabIndex={!isSignup ? -1 : 0}
                 />
               </div>

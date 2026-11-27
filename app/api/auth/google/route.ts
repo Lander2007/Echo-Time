@@ -5,9 +5,11 @@ import {
   getAppOrigin,
   getOAuthTempCookieOptions,
   OAUTH_INTENT_COOKIE,
+  OAUTH_NEXT_COOKIE,
   OAUTH_STATE_COOKIE,
   OAUTH_VERIFIER_COOKIE,
 } from '@/lib/google-oauth';
+import { getSafeRedirectPath } from '@/lib/session-token';
 
 export const runtime = 'nodejs';
 
@@ -22,6 +24,7 @@ export async function GET(request: NextRequest) {
   // Strictly default raw requests to 'login' so login flows never silently create ghost accounts
   const rawIntent = request.nextUrl.searchParams.get('intent');
   const intent: 'login' | 'signup' = rawIntent === 'signup' ? 'signup' : 'login';
+  const safeNext = getSafeRedirectPath(request.nextUrl.searchParams.get('next'));
 
   const state = base64UrlEncode(crypto.randomBytes(24));
   const codeVerifier = base64UrlEncode(crypto.randomBytes(32));
@@ -47,5 +50,6 @@ export async function GET(request: NextRequest) {
   response.cookies.set(OAUTH_STATE_COOKIE, state, cookieOpts);
   response.cookies.set(OAUTH_VERIFIER_COOKIE, codeVerifier, cookieOpts);
   response.cookies.set(OAUTH_INTENT_COOKIE, intent, cookieOpts);
+  response.cookies.set(OAUTH_NEXT_COOKIE, safeNext, cookieOpts);
   return response;
 }

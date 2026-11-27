@@ -6,6 +6,7 @@ import { IconSpinner } from '@/components/workspace/Icons';
 export interface GoogleAuthButtonProps {
   intent: 'login' | 'signup';
   label?: string;
+  nextPath?: string;
   tabIndex?: number;
   disabled?: boolean;
   className?: string;
@@ -14,6 +15,7 @@ export interface GoogleAuthButtonProps {
 export function GoogleAuthButton({
   intent,
   label,
+  nextPath,
   tabIndex = 0,
   disabled = false,
   className = '',
@@ -32,7 +34,11 @@ export function GoogleAuthButton({
   const handleClick = () => {
     if (disabled || redirecting) return;
     setRedirecting(true);
-    window.location.href = `/api/auth/google?intent=${intent}`;
+    const params = new URLSearchParams({ intent });
+    if (nextPath && nextPath.startsWith('/') && !nextPath.startsWith('//') && nextPath !== '/dashboard') {
+      params.set('next', nextPath);
+    }
+    window.location.href = `/api/auth/google?${params.toString()}`;
   };
 
   return (

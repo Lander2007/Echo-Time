@@ -1,61 +1,38 @@
-'use client';
-
 import React from 'react';
-import { usePathname } from 'next/navigation';
-import { WorkspaceProvider, useWorkspace } from '@/context/WorkspaceProvider';
-import { TopNavbar } from '@/components/workspace/TopNavbar';
-import { HomeSidebar } from '@/components/workspace/HomeSidebar';
-import { MobileTopBar } from '@/components/mobile/MobileTopBar';
-import { MobileBottomRail } from '@/components/mobile/MobileBottomRail';
-import { PostListingModal } from '@/components/workspace/PostListingModal';
-import { SpaceModal } from '@/components/workspace/SpaceModal';
-import { ToastStack } from '@/components/workspace/ToastStack';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import prisma from '@/lib/prisma';
+import { SESSION_COOKIE_NAME, verifySessionToken } from '@/lib/session-token';
+import { WorkspaceClientLayout } from '@/components/workspace/WorkspaceClientLayout';
 
-function WorkspaceShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const { themeMode } = useWorkspace();
+export const dynamic = 'force-dynamic';
 
-  const showHomeSidebar =
-    pathname === '/dashboard' ||
-    pathname === '/explore' ||
-    pathname === '/agreement' ||
-    pathname === '/wallet';
+/**
+ * Layer 2 Auth Guard — Server Component Layout.
+ * Verifies the et_session JWT AND confirms the account still exists in Neon PostgreSQL
+ * before any protected workspace HTML or client state is streamed to the browser.
+ */
+export default async function WorkspaceLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const session = await verifySessionToken(token);
 
-  return (
-    <div className={`et-shell ${themeMode === 'dark' ? 'et-app-dark' : 'et-app-light'} flex flex-col min-h-screen overflow-x-clip`}>
-      {/* Mobile Top Telemetry Bar (< 1024px) */}
-      <MobileTopBar />
+  if (!session?.userId) {
+    redirect('/login');
+  }
 
-      {/* Desktop Top Navigation Bar (>= 1024px STRICT LOCK) */}
-      <div className="hidden lg:block">
-        <TopNavbar />
-      </div>
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { id: true },
+  });
 
-      {/* Mobile Bottom 5-Column Navigation Rail (< 1024px) */}
-      <MobileBottomRail />
+  if (!dbUser) {
+    redirect('/login');
+  }
 
-      {/* Main Workspace Frame */}
-      <div className="flex-1 max-w-[1460px] w-full mx-auto px-3.5 sm:px-7 py-3 sm:py-8 pb-[88px] lg:pb-8 flex flex-col lg:flex-row gap-7 items-start">
-        {/* Desktop-Only Sidebar Navigation (>= 1024px STRICT LOCK) */}
-        {showHomeSidebar && (
-          <div className="hidden lg:block shrink-0">
-            <HomeSidebar />
-          </div>
-        )}
-        <main className="flex-1 min-w-0 w-full">{children}</main>
-      </div>
-
-      <PostListingModal />
-      <SpaceModal />
-      <ToastStack />
-    </div>
-  );
-}
-
-export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <WorkspaceProvider>
-      <WorkspaceShell>{children}</WorkspaceShell>
-    </WorkspaceProvider>
-  );
+  return <WorkspaceClientLayout>{children}</WorkspaceClientLayout>;
 }
