@@ -19,6 +19,7 @@ function WorkspaceShell({ children }: { children: React.ReactNode }) {
   const showHomeSidebar =
     pathname === '/dashboard' ||
     pathname === '/explore' ||
+    pathname === '/saved' ||
     pathname === '/agreement' ||
     pathname === '/wallet';
 

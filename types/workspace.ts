@@ -20,6 +20,7 @@ export interface SkillListing {
   format: ListingFormat;
   creditsPerHr: number;
   saved: boolean;
+  savedAt?: string | null;
   isMine?: boolean;
 }
 
@@ -92,6 +93,18 @@ export interface BetaPlan {
 export interface ToastMessage {
   id: number;
   text: string;
+}
+
+export interface WorkspaceNotification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  href: string;
+  roomId?: string | null;
+  actorName?: string | null;
+  read: boolean;
+  createdAt: string;
 }
 
 export interface UserProfile {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { createUserNotification } from '@/lib/notifications';
 import { ConflictError, toErrorResponse } from '@/lib/validation';
 import { AgreementStage, MessageSenderType } from '@prisma/client';
 
@@ -114,6 +115,19 @@ export async function POST(
           },
         });
       }
+
+      const counterpartyId = user.id === room.requesterId ? room.providerId : room.requesterId;
+      await createUserNotification(tx, {
+        userId: counterpartyId,
+        type: 'AGREEMENT_CANCELLED',
+        title: `Agreement cancelled: ${room.title}`,
+        body: shouldRefundEscrow
+          ? `${user.fullName} cancelled "${room.title}". ${total.toFixed(2)} ECHO was refunded from escrow.`
+          : `${user.fullName} cancelled the agreement room "${room.title}".`,
+        href: `/agreement?roomId=${room.id}`,
+        roomId: room.id,
+        actorName: user.fullName,
+      });
 
       const updated = await tx.agreementRoom.findUnique({
         where: { id: room.id },

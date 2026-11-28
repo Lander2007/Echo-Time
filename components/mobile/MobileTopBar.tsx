@@ -14,14 +14,18 @@ export function MobileTopBar() {
   const router = useRouter();
   const {
     availableCredits,
+    notifications,
     unreadNotifs,
-    setUnreadNotifs,
     notifOpen,
     setNotifOpen,
+    browserNotifPermission,
+    requestBrowserNotifications,
+    markNotificationRead,
+    markAllNotificationsRead,
+    refreshNotifications,
     userInitials,
     avatarUrl,
     profileFullName,
-    activeRoom,
   } = useWorkspace();
 
   const isProfileActive = pathname === '/profile';
@@ -62,15 +66,20 @@ export function MobileTopBar() {
           <button
             type="button"
             onClick={() => {
-              setNotifOpen((prev) => !prev);
-              setUnreadNotifs(0);
+              const nextOpen = !notifOpen;
+              setNotifOpen(nextOpen);
+              if (nextOpen) {
+                refreshNotifications(false);
+              }
             }}
             aria-label="Open notifications"
             className="relative w-8 h-8 rounded-[2px] border border-[#021F94]/35 bg-white text-[#0B1026] flex items-center justify-center active:opacity-80 transition-opacity"
           >
             <IconBell className="w-4 h-4" />
             {unreadNotifs > 0 && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-none bg-[#D93829]" />
+              <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-[2px] bg-[#D93829] text-white font-mono text-[9px] font-bold flex items-center justify-center tabular">
+                {unreadNotifs}
+              </span>
             )}
           </button>
 
@@ -96,44 +105,99 @@ export function MobileTopBar() {
       <MobileArchitecturalDrawer
         isOpen={notifOpen}
         onClose={() => setNotifOpen(false)}
-        title="00 · SYSTEM NOTIFICATIONS"
+        title="00 · WEB NOTIFICATIONS"
         badge={unreadNotifs > 0 ? `${unreadNotifs} NEW` : undefined}
       >
         <div className="space-y-3">
-          <div className="p-3.5 bg-white border border-[#021F94]/30 rounded-[2px] space-y-2">
-            <div className="flex items-center justify-between font-mono text-[9.5px] text-[#021F94] uppercase font-bold">
-              <span>AGREEMENT ROOM · PROTOCOL NOTICE</span>
-              <span className="text-[#565C73]">JUST NOW</span>
+          {/* Browser Push Permission & Mark All Bar */}
+          <div className="p-3 bg-white border border-[#021F94]/25 rounded-[2px] flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="font-mono text-[9.5px] font-bold uppercase text-[#021F94] tracking-wider">
+                BROWSER WEB ALERTS
+              </div>
+              <div className="text-[11px] text-[#565C73] mt-0.5">
+                {browserNotifPermission === 'granted'
+                  ? 'Active — popups fire automatically on skill requests.'
+                  : browserNotifPermission === 'denied'
+                  ? 'Blocked in browser site settings.'
+                  : 'Get instant alerts when peers request your skill.'}
+              </div>
             </div>
-            <p className="text-xs text-[#0B1026] leading-relaxed">
-              {activeRoom
-                ? `You have an active agreement room: "${activeRoom.title}" with ${activeRoom.peerName} in ${activeRoom.stage} stage.`
-                : 'Exchange agreements, hours escrow, and peer confirmations will notify you here.'}
-            </p>
-            {activeRoom && (
+            {browserNotifPermission === 'default' && (
               <button
                 type="button"
-                onClick={() => {
-                  setNotifOpen(false);
-                  router.push('/agreement');
-                }}
-                className="group mt-2 w-full py-2 bg-[#021F94] text-[#F5F2F3] font-mono text-[10.5px] font-bold uppercase tracking-[0.1em] rounded-[2px] inline-flex items-center justify-center gap-2 active:opacity-80 transition-opacity"
+                onClick={requestBrowserNotifications}
+                className="px-2.5 py-1.5 bg-[#021F94] text-[#F5F2F3] font-mono text-[9.5px] font-bold uppercase tracking-wider rounded-[2px] shrink-0"
               >
-                <span>OPEN AGREEMENT ROOM</span>
-                <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                ENABLE
               </button>
+            )}
+            {browserNotifPermission === 'granted' && (
+              <span className="px-2 py-1 bg-[#F5F2F3] border border-[#021F94]/30 text-[#021F94] font-mono text-[9px] font-bold uppercase rounded-[2px] shrink-0">
+                ON
+              </span>
             )}
           </div>
 
-          <div className="p-3.5 bg-white border border-[#021F94]/30 rounded-[2px] space-y-1.5">
-            <div className="flex items-center justify-between font-mono text-[9.5px] text-[#021F94] uppercase font-bold">
-              <span>PROTOCOL ESCROW RHYTHM</span>
-              <span className="text-[#565C73]">ONLINE</span>
+          {unreadNotifs > 0 && (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={markAllNotificationsRead}
+                className="font-mono text-[10px] font-bold uppercase text-[#021F94] hover:underline"
+              >
+                MARK ALL READ ({unreadNotifs})
+              </button>
             </div>
-            <p className="text-xs text-[#565C73] leading-relaxed">
-              1 ECHO hour = 1 real hour. When an agreement locks, your credit moves into escrow until delivery is verified.
-            </p>
-          </div>
+          )}
+
+          {notifications.length > 0 ? (
+            notifications.map((n) => (
+              <button
+                key={n.id}
+                type="button"
+                onClick={() => {
+                  markNotificationRead(n.id);
+                  setNotifOpen(false);
+                  router.push(n.href || '/agreement');
+                }}
+                className={`w-full text-left p-3.5 rounded-[2px] border transition-colors space-y-1.5 ${
+                  n.read
+                    ? 'bg-white border-[#021F94]/20 opacity-80'
+                    : 'bg-white border-[#021F94] ring-1 ring-[#021F94]/20'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2 font-mono text-[9px] uppercase font-bold">
+                  <span className="inline-flex items-center gap-1.5 text-[#021F94]">
+                    {!n.read && <span className="w-1.5 h-1.5 rounded-none bg-[#D93829]" />}
+                    <span>{n.type.replace(/_/g, ' ')}</span>
+                  </span>
+                  <span className="text-[#565C73] tabular">
+                    {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <div className="font-sans font-bold text-xs text-[#0B1026]">
+                  {n.title}
+                </div>
+                <p className="text-xs text-[#565C73] leading-relaxed">
+                  {n.body}
+                </p>
+                <div className="pt-1 inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase text-[#021F94]">
+                  <span>OPEN AGREEMENT ROOM</span>
+                  <IconArrowRight className="w-3 h-3" />
+                </div>
+              </button>
+            ))
+          ) : (
+            <div className="p-5 bg-white border border-[#021F94]/25 rounded-[2px] text-center space-y-1.5">
+              <div className="font-mono text-[10px] font-bold uppercase text-[#021F94]">
+                NO NOTIFICATIONS YET
+              </div>
+              <p className="text-xs text-[#565C73] leading-relaxed">
+                When a student requests one of your skills, it appears right here and pops up on screen.
+              </p>
+            </div>
+          )}
         </div>
       </MobileArchitecturalDrawer>
     </>

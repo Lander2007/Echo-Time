@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   SESSION_COOKIE_NAME,
-  getSafeRedirectPath,
   verifySessionToken,
 } from '@/lib/session-token';
 
 const PROTECTED_PREFIXES = [
   '/dashboard',
   '/explore',
+  '/saved',
   '/agreement',
   '/wallet',
   '/community',
@@ -62,6 +62,7 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/explore/:path*',
+    '/saved/:path*',
     '/agreement/:path*',
     '/wallet/:path*',
     '/community/:path*',

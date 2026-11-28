@@ -35,6 +35,7 @@ export default function DashboardPage() {
     completedExchanges,
     spaces,
     listings,
+    savedListings,
     profileCompletionPct,
     activeRoom,
   } = useWorkspace();
@@ -245,6 +246,42 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
+
+        {/* Saved Skill Listings Section */}
+        <div className="space-y-2.5 pt-2">
+          <div className="flex items-center justify-between pb-2 border-b border-[#021F94]/20 font-mono text-[10px]">
+            <span className="font-bold text-[#0B1026] uppercase tracking-wider">
+              SAVED SKILL LISTINGS · {savedListings.length}
+            </span>
+            <Link
+              href="/saved"
+              className="group inline-flex items-center gap-1 text-[#021F94] font-bold uppercase hover:underline"
+            >
+              <span>VIEW ALL</span>
+              <IconArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+
+          {savedListings.length > 0 ? (
+            <div className="space-y-3">
+              {savedListings.slice(0, 3).map((item) => (
+                <MobileListingTicket key={item.id} item={item} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white border border-[#021F94]/25 rounded-[2px] p-4 flex items-center justify-between gap-3">
+              <div className="text-xs text-[#565C73]">
+                No saved skill listings yet. Tap SAVE on any listing to keep it here.
+              </div>
+              <Link
+                href="/explore"
+                className="px-3 py-1.5 bg-[#021F94] text-[#F5F2F3] font-mono text-[10px] font-bold uppercase tracking-wider rounded-[2px] shrink-0"
+              >
+                EXPLORE
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ====================================================================
@@ -366,6 +403,47 @@ export default function DashboardPage() {
               <ListingCard key={item.id} item={item} />
             ))}
           </div>
+        </div>
+
+        {/* Saved Skill Listings */}
+        <div>
+          <div className="flex flex-wrap items-end justify-between gap-3 pb-4 mb-5 border-b border-[var(--border-strong)]">
+            <div>
+              <div className="font-et-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--cobalt)]">
+                YOUR BOOKMARKS · {savedListings.length}
+              </div>
+              <h2 className="mt-1 font-et-sans font-black tracking-[-0.035em] text-2xl sm:text-3xl">
+                Saved skill listings
+              </h2>
+            </div>
+            <Link
+              href="/saved"
+              className="group inline-flex items-center gap-1.5 font-et-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--lime)] hover:underline"
+            >
+              <span>View all saved ({savedListings.length})</span>
+              <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+
+          {savedListings.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {savedListings.slice(0, 3).map((item) => (
+                <ListingCard key={item.id} item={item} />
+              ))}
+            </div>
+          ) : (
+            <div className="et-card rounded-sm p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <p className="text-sm text-[var(--muted)]">
+                No saved skill listings yet. Bookmark listings from Explore or above to keep a shortlist ready.
+              </p>
+              <Link
+                href="/explore"
+                className="shrink-0 px-4 py-2 rounded-sm border border-[var(--border-strong)] hover:border-[var(--lime)] font-et-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--ink)]"
+              >
+                Browse Explore
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>
