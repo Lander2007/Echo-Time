@@ -250,6 +250,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       const saved = localStorage.getItem('et-theme');
       if (saved === 'light' || saved === 'dark') {
         setThemeMode(saved);
+        document.documentElement.dataset.etTheme = saved;
+      } else if (window.matchMedia && window.matchMedia('(min-width: 1024px)').matches) {
+        document.documentElement.dataset.etTheme = 'dark';
       }
     } catch {
       // Ignore
@@ -261,6 +264,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       const next = prev === 'dark' ? 'light' : 'dark';
       try {
         localStorage.setItem('et-theme', next);
+        document.documentElement.dataset.etTheme = next;
       } catch {
         // Ignore
       }
