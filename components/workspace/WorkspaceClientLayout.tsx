@@ -3,6 +3,8 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { WorkspaceProvider, useWorkspace } from '@/context/WorkspaceProvider';
+import { WorkspaceTransitionProvider } from '@/components/WorkspaceTransitionProvider';
+import { WorkspaceHourglassLoader } from '@/components/WorkspaceHourglassLoader';
 import { TopNavbar } from '@/components/workspace/TopNavbar';
 import { HomeSidebar } from '@/components/workspace/HomeSidebar';
 import { MobileTopBar } from '@/components/mobile/MobileTopBar';
@@ -10,7 +12,6 @@ import { MobileBottomRail } from '@/components/mobile/MobileBottomRail';
 import { PostListingModal } from '@/components/workspace/PostListingModal';
 import { SpaceModal } from '@/components/workspace/SpaceModal';
 import { ToastStack } from '@/components/workspace/ToastStack';
-import { IconSpinner } from '@/components/workspace/Icons';
 
 function WorkspaceShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -25,14 +26,7 @@ function WorkspaceShell({ children }: { children: React.ReactNode }) {
 
   // Layer 3 Client Gate: never flash protected workspace HTML until /api/auth/session confirms HTTP 200
   if (authStatus !== 'authenticated') {
-    return (
-      <div className="min-h-screen bg-[#F5F2F3] text-[#0B1026] flex items-center justify-center p-6 select-none">
-        <div className="border border-[#021F94]/25 bg-white px-6 py-4 rounded-sm flex items-center gap-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-[#021F94]">
-          <IconSpinner className="w-4 h-4 text-[#021F94]" />
-          <span>VERIFYING SESSION...</span>
-        </div>
-      </div>
-    );
+    return <WorkspaceHourglassLoader visible={true} label="VERIFYING SESSION..." />;
   }
 
   return (
@@ -70,8 +64,10 @@ function WorkspaceShell({ children }: { children: React.ReactNode }) {
 
 export function WorkspaceClientLayout({ children }: { children: React.ReactNode }) {
   return (
-    <WorkspaceProvider>
-      <WorkspaceShell>{children}</WorkspaceShell>
-    </WorkspaceProvider>
+    <WorkspaceTransitionProvider>
+      <WorkspaceProvider>
+        <WorkspaceShell>{children}</WorkspaceShell>
+      </WorkspaceProvider>
+    </WorkspaceTransitionProvider>
   );
 }

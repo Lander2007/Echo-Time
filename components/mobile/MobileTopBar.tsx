@@ -2,8 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceProvider';
+import { useWorkspaceTransition } from '@/components/WorkspaceTransitionProvider';
 import { HourglassMark } from '@/components/HourglassMark';
 import { UserAvatar } from '@/components/UserAvatar';
 import { IconBell, IconArrowRight } from '@/components/workspace/Icons';
@@ -11,7 +12,7 @@ import { MobileArchitecturalDrawer } from './MobileArchitecturalDrawer';
 
 export function MobileTopBar() {
   const pathname = usePathname();
-  const router = useRouter();
+  const { navigateWithLoader } = useWorkspaceTransition();
   const {
     availableCredits,
     notifications,
@@ -159,7 +160,7 @@ export function MobileTopBar() {
                 onClick={() => {
                   markNotificationRead(n.id);
                   setNotifOpen(false);
-                  router.push(n.href || '/agreement');
+                  navigateWithLoader(n.href || '/agreement');
                 }}
                 className={`w-full text-left p-3.5 rounded-[2px] border transition-colors space-y-1.5 ${
                   n.read

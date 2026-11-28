@@ -2,15 +2,16 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceProvider';
+import { useWorkspaceTransition } from '@/components/WorkspaceTransitionProvider';
 import { IconBell, IconSunMoon, IconArrowRight } from './Icons';
 import { BrandLogo } from '@/components/BrandLogo';
 import { UserAvatar } from '@/components/UserAvatar';
 
 export function TopNavbar() {
   const pathname = usePathname();
-  const router = useRouter();
+  const { navigateWithLoader } = useWorkspaceTransition();
   const {
     themeMode,
     toggleTheme,
@@ -168,7 +169,7 @@ export function TopNavbar() {
                       onClick={() => {
                         markNotificationRead(n.id);
                         setNotifOpen(false);
-                        router.push(n.href || '/agreement');
+                        navigateWithLoader(n.href || '/agreement');
                       }}
                       className={`w-full text-left p-3 rounded-sm border transition-colors ${
                         n.read

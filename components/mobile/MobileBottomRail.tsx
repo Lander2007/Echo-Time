@@ -2,14 +2,15 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceProvider';
+import { useWorkspaceTransition } from '@/components/WorkspaceTransitionProvider';
 import { MobileArchitecturalDrawer } from './MobileArchitecturalDrawer';
 import { IconArrowRight, IconPlus } from '@/components/workspace/Icons';
 
 export function MobileBottomRail() {
   const pathname = usePathname();
-  const router = useRouter();
+  const { navigateWithLoader } = useWorkspaceTransition();
   const {
     rooms,
     savedListings,
@@ -230,7 +231,7 @@ export function MobileBottomRail() {
               type="button"
               onClick={() => {
                 setCommandDrawerOpen(false);
-                router.push('/saved');
+                navigateWithLoader('/saved');
               }}
               className="w-full p-3.5 text-left flex items-center justify-between hover:bg-[#F5F2F3] active:opacity-80 transition-colors"
             >
@@ -253,7 +254,7 @@ export function MobileBottomRail() {
               type="button"
               onClick={() => {
                 setCommandDrawerOpen(false);
-                router.push('/wallet');
+                navigateWithLoader('/wallet');
               }}
               className="w-full p-3.5 text-left flex items-center justify-between hover:bg-[#F5F2F3] active:opacity-80 transition-colors"
             >
@@ -276,7 +277,7 @@ export function MobileBottomRail() {
               type="button"
               onClick={() => {
                 setCommandDrawerOpen(false);
-                router.push('/subscription');
+                navigateWithLoader('/subscription');
               }}
               className="w-full p-3.5 text-left flex items-center justify-between hover:bg-[#F5F2F3] active:opacity-80 transition-colors"
             >

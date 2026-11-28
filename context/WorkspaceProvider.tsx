@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useWorkspaceTransition } from '@/components/WorkspaceTransitionProvider';
 import {
   SkillListing,
   AgreementRoom,
@@ -240,7 +240,7 @@ interface WorkspaceContextType {
 const WorkspaceContext = createContext<WorkspaceContextType | null>(null);
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
+  const { navigateWithLoader } = useWorkspaceTransition();
 
   // Theme
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
@@ -403,7 +403,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           browserNotif.onclick = () => {
             window.focus();
             if (latest.href) {
-              router.push(latest.href);
+              navigateWithLoader(latest.href);
             }
             browserNotif.close();
           };
@@ -412,7 +412,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         }
       }
     },
-    [pushToast, router]
+    [pushToast, navigateWithLoader]
   );
 
   const requestBrowserNotifications = useCallback(async () => {
@@ -919,7 +919,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       );
       if (existing) {
         setActiveRoomId(existing.id);
-        router.push(`/agreement?roomId=${existing.id}`);
+        navigateWithLoader(`/agreement?roomId=${existing.id}`);
         pushToast(`Navigated to active agreement room for "${listing.title}".`);
         return;
       }
@@ -943,7 +943,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           const mapped = mapApiRoom(data.agreement, currentUserId);
           setRooms((prev) => [mapped, ...prev]);
           setActiveRoomId(mapped.id);
-          router.push(`/agreement?roomId=${mapped.id}`);
+          navigateWithLoader(`/agreement?roomId=${mapped.id}`);
           pushToast(`Opened Agreement room for "${listing.title}" with ${listing.authorName}.`);
         } else {
           pushToast(data?.error || 'Failed to open agreement room');
@@ -952,7 +952,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         pushToast(err?.message || 'Error creating agreement room in database.');
       }
     },
-    [rooms, currentUserId, router, pushToast]
+    [rooms, currentUserId, navigateWithLoader, pushToast]
   );
 
   const handleSendChatMessage = useCallback(
@@ -1393,9 +1393,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     (e: React.FormEvent) => {
       e.preventDefault();
       refreshDatabaseState();
-      router.push('/dashboard');
+      navigateWithLoader('/dashboard');
     },
-    [refreshDatabaseState, router]
+    [refreshDatabaseState, navigateWithLoader]
   );
 
   const handleLogout = useCallback(async () => {
