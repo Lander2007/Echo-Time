@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { createUserNotification } from '@/lib/notifications';
 import {
   ConflictError,
   InsufficientCreditsError,
@@ -125,6 +126,17 @@ export async function POST(
           },
         });
 
+        const counterpartyId = user.id === room.requesterId ? room.providerId : room.requesterId;
+        await createUserNotification(tx, {
+          userId: counterpartyId,
+          type: 'ESCROW_LOCKED',
+          title: `Escrow locked: ${room.title}`,
+          body: `${user.fullName} confirmed agreement terms and locked ${total.toFixed(2)} ECHO in escrow.`,
+          href: `/agreement?roomId=${room.id}`,
+          roomId: room.id,
+          actorName: user.fullName,
+        });
+
         return tx.agreementRoom.findUnique({
           where: { id: room.id },
           include: SAFE_ROOM_INCLUDE,
@@ -155,6 +167,17 @@ export async function POST(
             authorLabel: 'SYSTEM PROTOCOL',
             body: 'Service delivery marked as complete. Counterparty awaiting final verification & credit release.',
           },
+        });
+
+        const counterpartyId = user.id === room.requesterId ? room.providerId : room.requesterId;
+        await createUserNotification(tx, {
+          userId: counterpartyId,
+          type: 'DELIVERY_MARKED',
+          title: `Delivery submitted: ${room.title}`,
+          body: `${user.fullName} marked the session as delivered. Verify completion to settle ${total.toFixed(2)} ECHO.`,
+          href: `/agreement?roomId=${room.id}`,
+          roomId: room.id,
+          actorName: user.fullName,
         });
 
         return tx.agreementRoom.findUnique({
@@ -241,6 +264,17 @@ export async function POST(
               2
             )} ECHO successfully transferred to provider. Reciprocal parity exchange finalized.`,
           },
+        });
+
+        const counterpartyId = user.id === room.requesterId ? room.providerId : room.requesterId;
+        await createUserNotification(tx, {
+          userId: counterpartyId,
+          type: 'AGREEMENT_COMPLETED',
+          title: `Credits settled: ${room.title}`,
+          body: `${user.fullName} completed the agreement (${total.toFixed(2)} ECHO settled).`,
+          href: `/agreement?roomId=${room.id}`,
+          roomId: room.id,
+          actorName: user.fullName,
         });
 
         return tx.agreementRoom.findUnique({

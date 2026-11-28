@@ -1,25 +1,24 @@
-import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import prisma from './prisma';
+import {
+  SESSION_COOKIE_NAME,
+  SessionPayload,
+  createSessionToken,
+  verifySessionToken,
+} from './session-token';
 
-const SECRET_KEY = new TextEncoder().encode(
-  process.env.AUTH_SECRET || 'echotime-super-secret-jwt-key-2026-production-32chars'
-);
-
-export const SESSION_COOKIE_NAME = 'et_session';
+export {
+  SESSION_COOKIE_NAME,
+  createSessionToken,
+  verifySessionToken,
+  type SessionPayload,
+};
 
 /** Syntactically valid 10-round bcrypt hash used to equalize timing on unknown-email logins. */
 export const DUMMY_BCRYPT_HASH =
   '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW';
-
-export interface SessionPayload {
-  userId: string;
-  email: string;
-  username: string;
-  role?: string;
-}
 
 /** Safe User column projection — strictly omits passwordHash, googleId, and canonicalEmail. */
 export const SAFE_USER_SELECT = {
@@ -99,23 +98,6 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash);
-}
-
-export async function createSessionToken(payload: SessionPayload): Promise<string> {
-  return new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('7d')
-    .sign(SECRET_KEY);
-}
-
-export async function verifySessionToken(token: string): Promise<SessionPayload | null> {
-  try {
-    const { payload } = await jwtVerify(token, SECRET_KEY);
-    return payload as unknown as SessionPayload;
-  } catch {
-    return null;
-  }
 }
 
 export async function getSessionUser() {

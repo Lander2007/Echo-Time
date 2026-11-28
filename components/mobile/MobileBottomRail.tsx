@@ -2,16 +2,18 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceProvider';
+import { useWorkspaceTransition } from '@/components/WorkspaceTransitionProvider';
 import { MobileArchitecturalDrawer } from './MobileArchitecturalDrawer';
 import { IconArrowRight, IconPlus } from '@/components/workspace/Icons';
 
 export function MobileBottomRail() {
   const pathname = usePathname();
-  const router = useRouter();
+  const { navigateWithLoader } = useWorkspaceTransition();
   const {
     rooms,
+    savedListings,
     availableCredits,
     reservedCredits,
     setPostModalOpen,
@@ -224,18 +226,41 @@ export function MobileBottomRail() {
               <span className="font-mono text-sm text-[#021F94] font-bold"><IconArrowRight className="w-4 h-4" /></span>
             </button>
 
-            {/* 03 · Open Wallet */}
+            {/* 03 · Saved Skills */}
             <button
               type="button"
               onClick={() => {
                 setCommandDrawerOpen(false);
-                router.push('/wallet');
+                navigateWithLoader('/saved');
               }}
               className="w-full p-3.5 text-left flex items-center justify-between hover:bg-[#F5F2F3] active:opacity-80 transition-colors"
             >
               <div>
                 <div className="font-mono text-[10px] font-bold text-[#021F94] uppercase tracking-wider">
-                  03 · FINANCIAL AUDIT
+                  03 · BOOKMARKS ({savedListings.length})
+                </div>
+                <div className="font-sans font-bold text-sm text-[#0B1026] mt-0.5">
+                  SAVED SKILL LISTINGS
+                </div>
+                <div className="text-xs text-[#565C73] mt-0.5">
+                  View and manage skill offers you bookmarked to your account
+                </div>
+              </div>
+              <span className="font-mono text-sm text-[#021F94] font-bold"><IconArrowRight className="w-4 h-4" /></span>
+            </button>
+
+            {/* 04 · Open Wallet */}
+            <button
+              type="button"
+              onClick={() => {
+                setCommandDrawerOpen(false);
+                navigateWithLoader('/wallet');
+              }}
+              className="w-full p-3.5 text-left flex items-center justify-between hover:bg-[#F5F2F3] active:opacity-80 transition-colors"
+            >
+              <div>
+                <div className="font-mono text-[10px] font-bold text-[#021F94] uppercase tracking-wider">
+                  04 · FINANCIAL AUDIT
                 </div>
                 <div className="font-sans font-bold text-sm text-[#0B1026] mt-0.5">
                   OPEN WALLET LEDGER
@@ -247,18 +272,18 @@ export function MobileBottomRail() {
               <span className="font-mono text-sm text-[#021F94] font-bold"><IconArrowRight className="w-4 h-4" /></span>
             </button>
 
-            {/* 04 · Subscription */}
+            {/* 05 · Subscription */}
             <button
               type="button"
               onClick={() => {
                 setCommandDrawerOpen(false);
-                router.push('/subscription');
+                navigateWithLoader('/subscription');
               }}
               className="w-full p-3.5 text-left flex items-center justify-between hover:bg-[#F5F2F3] active:opacity-80 transition-colors"
             >
               <div>
                 <div className="font-mono text-[10px] font-bold text-[#021F94] uppercase tracking-wider">
-                  04 · PROTOCOL TIERS
+                  05 · PROTOCOL TIERS
                 </div>
                 <div className="font-sans font-bold text-sm text-[#0B1026] mt-0.5">
                   SUBSCRIPTION & BETA PLANS

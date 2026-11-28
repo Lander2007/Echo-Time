@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const OAUTH_STATE_COOKIE = 'echotime_oauth_state';
 export const OAUTH_VERIFIER_COOKIE = 'echotime_oauth_verifier';
 export const OAUTH_INTENT_COOKIE = 'echotime_oauth_intent';
+export const OAUTH_NEXT_COOKIE = 'echotime_oauth_next';
 
 export function base64UrlEncode(buffer: Buffer): string {
   return buffer
@@ -63,6 +64,7 @@ export function clearOAuthCookies(response: NextResponse): void {
   response.cookies.set(OAUTH_STATE_COOKIE, '', expired);
   response.cookies.set(OAUTH_VERIFIER_COOKIE, '', expired);
   response.cookies.set(OAUTH_INTENT_COOKIE, '', expired);
+  response.cookies.set(OAUTH_NEXT_COOKIE, '', expired);
 }
 
 const KNOWN_UNIVERSITY_DOMAINS: Record<string, string> = {

@@ -8,13 +8,14 @@ import { IconArrowRight } from './Icons';
 
 export function HomeSidebar() {
   const pathname = usePathname();
-  const { availableCredits, reservedCredits, rooms } = useWorkspace();
+  const { availableCredits, reservedCredits, rooms, savedListings } = useWorkspace();
 
   const tabs = [
     { href: '/dashboard', num: '01', label: 'Dashboard' },
     { href: '/explore', num: '02', label: 'Explore' },
     { href: '/agreement', num: '03', label: 'Agreement', badge: rooms.length },
     { href: '/wallet', num: '04', label: 'Wallet' },
+    { href: '/saved', num: '05', label: 'Saved', badge: savedListings.length },
   ];
 
   return (

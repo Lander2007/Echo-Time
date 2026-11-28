@@ -10,8 +10,9 @@ interface MobileListingTicketProps {
 }
 
 export function MobileListingTicket({ item }: MobileListingTicketProps) {
-  const { handleToggleSaveListing, handleOpenRoomForListing } = useWorkspace();
+  const { handleToggleSaveListing, handleOpenRoomForListing, savingListingIds } = useWorkspace();
   const isOffer = item.type === 'Offering';
+  const isSaving = Boolean(savingListingIds[item.id]);
 
   return (
     <article className="et-m-box relative overflow-hidden select-none active:border-[#021F94] transition-colors">
@@ -38,19 +39,22 @@ export function MobileListingTicket({ item }: MobileListingTicketProps) {
         {/* Save Toggle */}
         <button
           type="button"
+          disabled={isSaving}
           onClick={() => handleToggleSaveListing(item.id)}
           aria-label={item.saved ? 'Unsave listing' : 'Save listing'}
-          className="font-mono text-[10.5px] font-bold tracking-wider px-2 py-0.5 rounded-[2px] transition-colors active:opacity-75"
+          aria-pressed={item.saved}
+          aria-busy={isSaving}
+          className="font-mono text-[10.5px] font-bold tracking-wider px-2 py-0.5 rounded-[2px] transition-colors active:opacity-75 disabled:opacity-50"
         >
           {item.saved ? (
             <span className="inline-flex items-center gap-1 text-[#D93829]">
               <IconStar filled className="w-3 h-3" />
-              <span>SAVED</span>
+              <span>{isSaving ? 'SYNCING' : 'SAVED'}</span>
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-[#565C73] hover:text-[#0B1026]">
               <IconStar filled={false} className="w-3 h-3" />
-              <span>SAVE</span>
+              <span>{isSaving ? 'SAVING' : 'SAVE'}</span>
             </span>
           )}
         </button>

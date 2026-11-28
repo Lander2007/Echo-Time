@@ -10,9 +10,11 @@ import {
   getAppOrigin,
   inferUniversityFromEmail,
   OAUTH_INTENT_COOKIE,
+  OAUTH_NEXT_COOKIE,
   OAUTH_STATE_COOKIE,
   OAUTH_VERIFIER_COOKIE,
 } from '@/lib/google-oauth';
+import { getSafeRedirectPath } from '@/lib/session-token';
 
 export const runtime = 'nodejs';
 
@@ -41,11 +43,12 @@ export async function GET(request: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
-  // Read tamper-resistant OAuth intent from httpOnly cookie (strictly defaults to 'login')
+  // Read tamper-resistant OAuth intent & safe next destination from httpOnly cookies
   const intent: 'login' | 'signup' =
     request.cookies.get(OAUTH_INTENT_COOKIE)?.value === 'signup'
       ? 'signup'
       : 'login';
+  const safeNext = getSafeRedirectPath(request.cookies.get(OAUTH_NEXT_COOKIE)?.value);
 
   if (!clientId || !clientSecret) {
     return redirectWithOAuthError(origin, 'google_not_configured', intent);
@@ -179,7 +182,7 @@ export async function GET(request: NextRequest) {
         username: updatedUser.username,
       });
 
-      const response = NextResponse.redirect(new URL('/dashboard', origin));
+      const response = NextResponse.redirect(new URL(safeNext, origin));
       setSessionCookie(response, sessionToken);
       clearOAuthCookies(response);
       return response;
@@ -255,7 +258,9 @@ export async function GET(request: NextRequest) {
       username: newUser.username,
     });
 
-    const response = NextResponse.redirect(new URL('/dashboard?welcome=new', origin));
+    const welcomeUrl = new URL(safeNext, origin);
+    welcomeUrl.searchParams.set('welcome', 'new');
+    const response = NextResponse.redirect(welcomeUrl);
     setSessionCookie(response, sessionToken);
     clearOAuthCookies(response);
     return response;

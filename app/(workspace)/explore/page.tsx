@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { useWorkspace } from '@/context/WorkspaceProvider';
 import { ListingCard } from '@/components/workspace/ListingCard';
 import { MobileListingTicket } from '@/components/mobile/MobileListingTicket';
 import { MobileArchitecturalDrawer } from '@/components/mobile/MobileArchitecturalDrawer';
-import { IconSearch, IconClose } from '@/components/workspace/Icons';
+import { IconSearch, IconClose, IconHeart, IconArrowRight } from '@/components/workspace/Icons';
 import { ListingFormat } from '@/types/workspace';
 import { EXPLORE_CATEGORIES } from '@/lib/seed-workspace';
 
@@ -21,7 +22,7 @@ const MOBILE_CATEGORIES = [
 ];
 
 export default function ExplorePage() {
-  const { listings, setPostModalOpen } = useWorkspace();
+  const { listings, savedListings, setPostModalOpen } = useWorkspace();
 
   const [typeFilter, setTypeFilter] = useState<'All' | 'Offers' | 'Requests'>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -127,8 +128,23 @@ export default function ExplorePage() {
             </button>
           </div>
 
-          {/* Row 2: Horizontal Category Strip */}
+          {/* Row 2: Saved Shortcut + Horizontal Category Strip */}
           <div className="flex items-center gap-1 overflow-x-auto et-no-scrollbar py-0.5">
+            <button
+              type="button"
+              onClick={() =>
+                setScopeFilter((prev) => (prev === 'Saved only' ? 'All listings' : 'Saved only'))
+              }
+              className={`px-3 py-1 rounded-[2px] font-mono text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shrink-0 inline-flex items-center gap-1 transition-colors ${
+                scopeFilter === 'Saved only'
+                  ? 'bg-[#D93829] text-white'
+                  : 'border border-[#021F94]/40 bg-white text-[#021F94]'
+              }`}
+            >
+              <IconHeart filled={scopeFilter === 'Saved only'} className="w-2.5 h-2.5" />
+              <span>SAVED ({savedListings.length})</span>
+            </button>
+
             {MOBILE_CATEGORIES.map((cat) => {
               const active = categoryFilter.toLowerCase() === cat.toLowerCase();
               return (
@@ -154,15 +170,24 @@ export default function ExplorePage() {
           <span>
             {filteredListings.length} {filteredListings.length === 1 ? 'LISTING AVAILABLE' : 'LISTINGS AVAILABLE'}
           </span>
-          {activeFilterCount > 0 && (
-            <button
-              type="button"
-              onClick={resetAllFilters}
-              className="text-[#D93829] font-bold hover:underline"
+          <div className="flex items-center gap-3">
+            <Link
+              href="/saved"
+              className="inline-flex items-center gap-1 text-[#021F94] font-bold hover:underline"
             >
-              CLEAR FILTERS ×
-            </button>
-          )}
+              <span>SAVED ({savedListings.length})</span>
+              <IconArrowRight className="w-3 h-3" />
+            </Link>
+            {activeFilterCount > 0 && (
+              <button
+                type="button"
+                onClick={resetAllFilters}
+                className="text-[#D93829] font-bold hover:underline"
+              >
+                CLEAR FILTERS ×
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Listings Stream */}
@@ -261,7 +286,7 @@ export default function ExplorePage() {
                         : 'border border-[#021F94]/30 bg-white text-[#565C73]'
                     }`}
                   >
-                    {s}
+                    {s === 'Saved only' ? `Saved (${savedListings.length})` : s}
                   </button>
                 ))}
               </div>
@@ -417,9 +442,33 @@ export default function ExplorePage() {
                 className="px-3 py-1.5 rounded-sm border border-[var(--border)] bg-[var(--bg)] font-et-mono text-[11px] text-[var(--ink)] focus:outline-none"
               >
                 <option value="All listings">Scope: All listings</option>
-                <option value="Saved only">Scope: Saved only</option>
+                <option value="Saved only">Scope: Saved only ({savedListings.length})</option>
                 <option value="My listings">Scope: My listings</option>
               </select>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setScopeFilter((prev) => (prev === 'Saved only' ? 'All listings' : 'Saved only'))
+                }
+                aria-pressed={scopeFilter === 'Saved only'}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border font-et-mono text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors ${
+                  scopeFilter === 'Saved only'
+                    ? 'bg-[var(--lime)] text-[var(--lime-ink)] border-[var(--lime)]'
+                    : 'border-[var(--border)] bg-[var(--bg)] text-[var(--ink)] hover:border-[var(--lime)]'
+                }`}
+              >
+                <IconHeart filled={scopeFilter === 'Saved only'} className="w-3 h-3" />
+                <span>Saved ({savedListings.length})</span>
+              </button>
+
+              <Link
+                href="/saved"
+                className="inline-flex items-center gap-1 font-et-mono text-[10.5px] uppercase tracking-[0.08em] text-[var(--cobalt)] hover:underline px-1.5"
+              >
+                <span>Open Saved page</span>
+                <IconArrowRight className="w-3 h-3" />
+              </Link>
             </div>
 
             {/* Reset Filters Shortcut */}

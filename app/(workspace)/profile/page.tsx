@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useWorkspace } from '@/context/WorkspaceProvider';
 import { UserAvatar } from '@/components/UserAvatar';
-import { IconArrowRight, IconCheck, IconClose, IconPlus } from '@/components/workspace/Icons';
+import { IconArrowRight, IconCheck, IconClose, IconHeart, IconPlus } from '@/components/workspace/Icons';
 
 export default function ProfilePage() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -29,6 +29,10 @@ export default function ProfilePage() {
     setNewSkillInput,
     handleAddOfferedSkill,
     handleRemoveOfferedSkill,
+    savedListings,
+    savingListingIds,
+    handleToggleSaveListing,
+    handleOpenRoomForListing,
     userInitials,
     profileChecklist,
     profileCompletionPct,
@@ -307,6 +311,69 @@ export default function ProfilePage() {
               <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
             )}
           </button>
+        </div>
+
+        {/* Saved Skill Listings Module */}
+        <div className="bg-white border border-[#021F94]/30 rounded-[2px] p-4 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#021F94]/18 font-mono text-[10px]">
+            <span className="font-bold text-[#021F94] uppercase tracking-wider inline-flex items-center gap-1.5">
+              <IconHeart filled={savedListings.length > 0} className="w-3.5 h-3.5 text-[#D93829]" />
+              <span>SAVED SKILL LISTINGS ({savedListings.length})</span>
+            </span>
+            <Link
+              href="/saved"
+              className="text-[#021F94] font-bold uppercase inline-flex items-center gap-1 hover:underline"
+            >
+              <span>OPEN</span>
+              <IconArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+
+          {savedListings.length > 0 ? (
+            <div className="divide-y divide-[#021F94]/15">
+              {savedListings.slice(0, 4).map((item) => (
+                <div key={item.id} className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-sans font-bold text-sm text-[#0B1026] truncate">
+                      {item.title}
+                    </div>
+                    <div className="font-mono text-[10px] text-[#565C73] truncate">
+                      {item.category} · {item.authorName} · {item.creditsPerHr} ECHO
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenRoomForListing(item)}
+                      className="px-2.5 py-1 bg-[#021F94] text-[#F5F2F3] font-mono text-[9.5px] font-bold uppercase rounded-[2px]"
+                    >
+                      OPEN
+                    </button>
+                    <button
+                      type="button"
+                      disabled={Boolean(savingListingIds[item.id])}
+                      onClick={() => handleToggleSaveListing(item.id)}
+                      className="px-2 py-1 border border-[#D93829]/40 text-[#D93829] font-mono text-[9.5px] font-bold uppercase rounded-[2px] disabled:opacity-50"
+                    >
+                      REMOVE
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-[#565C73]">
+                No saved listings yet. Bookmark skills in Explore to shortlist them here.
+              </p>
+              <Link
+                href="/explore"
+                className="px-3 py-1.5 bg-[#021F94] text-[#F5F2F3] font-mono text-[9.5px] font-bold uppercase rounded-[2px] shrink-0"
+              >
+                EXPLORE
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Bottom Account & Log Out Section */}
@@ -592,6 +659,81 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Saved Skill Listings Section */}
+        <div className="et-card rounded-sm p-6 sm:p-7 space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[var(--border)]">
+            <div>
+              <div className="font-et-mono text-[10px] uppercase tracking-[0.16em] text-[var(--cobalt)] font-semibold inline-flex items-center gap-1.5">
+                <IconHeart filled={savedListings.length > 0} className="w-3.5 h-3.5 text-[var(--lime)]" />
+                <span>SAVED BOOKMARKS · {savedListings.length}</span>
+              </div>
+              <h2 className="mt-0.5 font-et-sans font-extrabold text-xl">
+                Saved skill listings
+              </h2>
+            </div>
+
+            <Link
+              href="/saved"
+              className="group inline-flex items-center gap-1.5 px-3.5 py-2 rounded-sm border border-[var(--border-strong)] hover:border-[var(--lime)] font-et-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--ink)] transition-colors"
+            >
+              <span>Manage saved ({savedListings.length})</span>
+              <IconArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+
+          {savedListings.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {savedListings.slice(0, 4).map((item) => (
+                <div
+                  key={item.id}
+                  className="p-4 rounded-sm border border-[var(--border)] bg-[var(--bg)] flex items-start justify-between gap-3"
+                >
+                  <div className="min-w-0">
+                    <div className="font-et-mono text-[9.5px] uppercase tracking-[0.12em] text-[var(--muted)]">
+                      {item.category} &middot; {item.type}
+                    </div>
+                    <div className="mt-1 font-et-sans font-bold text-base text-[var(--ink)] truncate">
+                      {item.title}
+                    </div>
+                    <div className="mt-1 font-et-mono text-[11px] text-[var(--muted)] truncate">
+                      {item.authorName} &middot; {item.creditsPerHr} ECHO/hr
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenRoomForListing(item)}
+                      className="px-3 py-1.5 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-[10px] font-bold uppercase tracking-[0.08em]"
+                    >
+                      Open
+                    </button>
+                    <button
+                      type="button"
+                      disabled={Boolean(savingListingIds[item.id])}
+                      onClick={() => handleToggleSaveListing(item.id)}
+                      className="px-2.5 py-1.5 rounded-sm border border-[var(--border-strong)] text-[var(--muted)] hover:text-[var(--ink)] font-et-mono text-[10px] uppercase disabled:opacity-50"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-5 rounded-sm border border-[var(--border)] bg-[var(--bg)] flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-[var(--muted)]">
+                You haven&apos;t saved any skill listings yet. Bookmark offers or requests in Explore to keep them here.
+              </p>
+              <Link
+                href="/explore"
+                className="px-4 py-2 rounded-sm bg-[var(--lime)] text-[var(--lime-ink)] font-et-mono text-[11px] font-bold uppercase tracking-[0.1em]"
+              >
+                Explore skills
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

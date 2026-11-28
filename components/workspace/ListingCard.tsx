@@ -10,8 +10,9 @@ interface ListingCardProps {
 }
 
 export function ListingCard({ item }: ListingCardProps) {
-  const { handleToggleSaveListing, handleOpenRoomForListing } = useWorkspace();
+  const { handleToggleSaveListing, handleOpenRoomForListing, savingListingIds } = useWorkspace();
   const isOffer = item.type === 'Offering';
+  const isSaving = Boolean(savingListingIds[item.id]);
 
   return (
     <article className="et-card et-card-hover relative rounded-sm p-5 flex flex-col justify-between gap-5">
@@ -40,9 +41,13 @@ export function ListingCard({ item }: ListingCardProps) {
 
           <button
             type="button"
+            disabled={isSaving}
             onClick={() => handleToggleSaveListing(item.id)}
             aria-label={item.saved ? 'Remove from saved' : 'Save listing'}
-            className={`w-7 h-7 rounded-sm border flex items-center justify-center transition-colors ${
+            aria-pressed={item.saved}
+            aria-busy={isSaving}
+            title={item.saved ? 'Saved — click to remove from Saved Skills' : 'Save to Saved Skills'}
+            className={`w-7 h-7 rounded-sm border flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-wait ${
               item.saved
                 ? 'border-[var(--lime)] text-[var(--lime)] bg-[var(--lime)]/10'
                 : 'border-[var(--border)] text-[var(--muted)] hover:border-[var(--border-strong)] hover:text-[var(--ink)]'

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useMemo, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { createContext, useContext, useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { useWorkspaceTransition } from '@/components/WorkspaceTransitionProvider';
 import {
   SkillListing,
   AgreementRoom,
@@ -16,6 +16,7 @@ import {
   CommunityCategory,
   ProfileChecklistItem,
   AgreementStage,
+  WorkspaceNotification,
 } from '@/types/workspace';
 import { INITIAL_BETA_PLANS } from '@/lib/seed-workspace';
 import { compressAvatarFile } from '@/lib/avatar';
@@ -46,6 +47,7 @@ function mapApiListing(l: any, currentUserId?: string): SkillListing {
     format: (l.format === 'IN_PERSON' || l.format === 'In-person') ? 'In-person' : (l.format === 'HYBRID' || l.format === 'Hybrid') ? 'Hybrid' : 'Online',
     creditsPerHr: l.creditsPerHr || 1,
     saved: Boolean(l.isSaved || l.saved),
+    savedAt: l.savedAt ?? null,
     isMine,
   };
 }
@@ -103,6 +105,7 @@ interface WorkspaceContextType {
 
   // Auth
   currentUserId: string;
+  authStatus: 'loading' | 'authenticated' | 'unauthenticated';
   isAuthenticated: boolean;
   setIsAuthenticated: (val: boolean) => void;
   authMode: 'login' | 'signup';
@@ -126,7 +129,10 @@ interface WorkspaceContextType {
 
   // Explore Listings
   listings: SkillListing[];
-  handleToggleSaveListing: (id: string) => void;
+  savedListings: SkillListing[];
+  savingListingIds: Record<string, boolean>;
+  refreshSavedListings: () => Promise<void>;
+  handleToggleSaveListing: (id: string) => Promise<void>;
   handleCreateListing: (form: {
     type: ListingType;
     category: string;
@@ -219,16 +225,22 @@ interface WorkspaceContextType {
   pushToast: (text: string) => void;
 
   // Notifications
+  notifications: WorkspaceNotification[];
   unreadNotifs: number;
   setUnreadNotifs: (val: number) => void;
   notifOpen: boolean;
   setNotifOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  browserNotifPermission: NotificationPermission | 'unsupported';
+  requestBrowserNotifications: () => Promise<void>;
+  markNotificationRead: (id: string) => Promise<void>;
+  markAllNotificationsRead: () => Promise<void>;
+  refreshNotifications: (announceNew?: boolean) => Promise<void>;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | null>(null);
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
+  const { navigateWithLoader } = useWorkspaceTransition();
 
   // Theme
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
@@ -238,6 +250,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       const saved = localStorage.getItem('et-theme');
       if (saved === 'light' || saved === 'dark') {
         setThemeMode(saved);
+        document.documentElement.dataset.etTheme = saved;
+      } else if (window.matchMedia && window.matchMedia('(min-width: 1024px)').matches) {
+        document.documentElement.dataset.etTheme = 'dark';
       }
     } catch {
       // Ignore
@@ -249,6 +264,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       const next = prev === 'dark' ? 'light' : 'dark';
       try {
         localStorage.setItem('et-theme', next);
+        document.documentElement.dataset.etTheme = next;
       } catch {
         // Ignore
       }
@@ -258,6 +274,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   // Auth & Profile
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [authStatus, setAuthStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [authEmail, setAuthEmail] = useState<string>('');
@@ -286,7 +303,19 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   // Explore Listings
   const [listings, setListings] = useState<SkillListing[]>([]);
+  const [savingListingIds, setSavingListingIds] = useState<Record<string, boolean>>({});
+  const savingIdsRef = useRef<Set<string>>(new Set());
   const [postModalOpen, setPostModalOpen] = useState<boolean>(false);
+
+  const savedListings = useMemo(() => {
+    return listings
+      .filter((l) => l.saved)
+      .sort((a, b) => {
+        const aTime = a.savedAt ? Date.parse(a.savedAt) : 0;
+        const bTime = b.savedAt ? Date.parse(b.savedAt) : 0;
+        return bTime - aTime;
+      });
+  }, [listings]);
 
   // Agreement Rooms
   const [rooms, setRooms] = useState<AgreementRoom[]>([]);
@@ -319,8 +348,20 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   // Notifications
+  const [notifications, setNotifications] = useState<WorkspaceNotification[]>([]);
   const [unreadNotifs, setUnreadNotifs] = useState<number>(0);
   const [notifOpen, setNotifOpen] = useState<boolean>(false);
+  const [browserNotifPermission, setBrowserNotifPermission] = useState<
+    NotificationPermission | 'unsupported'
+  >('unsupported');
+  const seenNotifIdsRef = useRef<Set<string>>(new Set());
+  const notifsSeededRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setBrowserNotifPermission(window.Notification.permission);
+    }
+  }, []);
 
   const pushToast = useCallback((text: string) => {
     const id = Date.now() + Math.floor(Math.random() * 1000);
@@ -328,6 +369,129 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     window.setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 3200);
+  }, []);
+
+  const applyIncomingNotifications = useCallback(
+    (incomingList: WorkspaceNotification[], incomingUnread: number, announceNew: boolean) => {
+      setNotifications(incomingList);
+      setUnreadNotifs(incomingUnread);
+
+      const newlyArrivedUnread = incomingList.filter(
+        (n) => !n.read && !seenNotifIdsRef.current.has(n.id)
+      );
+
+      for (const item of incomingList) {
+        seenNotifIdsRef.current.add(item.id);
+      }
+
+      if (!notifsSeededRef.current) {
+        notifsSeededRef.current = true;
+        return;
+      }
+
+      if (!announceNew || newlyArrivedUnread.length === 0) return;
+
+      const latest = newlyArrivedUnread[0];
+      pushToast(`${latest.title} — ${latest.body}`);
+
+      if (
+        typeof window !== 'undefined' &&
+        'Notification' in window &&
+        window.Notification.permission === 'granted'
+      ) {
+        try {
+          const browserNotif = new window.Notification(latest.title, {
+            body: latest.body,
+            tag: `echotime-${latest.id}`,
+          });
+          browserNotif.onclick = () => {
+            window.focus();
+            if (latest.href) {
+              navigateWithLoader(latest.href);
+            }
+            browserNotif.close();
+          };
+        } catch {
+          // Ignore browsers blocking Notification constructor inside unsupported tabs
+        }
+      }
+    },
+    [pushToast, navigateWithLoader]
+  );
+
+  const requestBrowserNotifications = useCallback(async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      setBrowserNotifPermission('unsupported');
+      pushToast('This browser does not support desktop web notifications.');
+      return;
+    }
+
+    try {
+      const perm = await window.Notification.requestPermission();
+      setBrowserNotifPermission(perm);
+      if (perm === 'granted') {
+        pushToast('Web browser alerts enabled — you will be alerted when peers request your skills.');
+      } else if (perm === 'denied') {
+        pushToast('Web alerts blocked. Enable notifications in your browser site settings.');
+      }
+    } catch {
+      pushToast('Could not update browser notification permission.');
+    }
+  }, [pushToast]);
+
+  const markNotificationRead = useCallback(async (id: string) => {
+    let decremented = false;
+    setNotifications((prev) =>
+      prev.map((n) => {
+        if (n.id === id && !n.read) {
+          decremented = true;
+          return { ...n, read: true };
+        }
+        return n;
+      })
+    );
+    if (decremented) {
+      setUnreadNotifs((u) => Math.max(0, u - 1));
+    }
+
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data?.unreadCount === 'number') {
+          setUnreadNotifs(data.unreadCount);
+        }
+      }
+    } catch {
+      // Keep optimistic read UI
+    }
+  }, []);
+
+  const markAllNotificationsRead = useCallback(async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setUnreadNotifs(0);
+
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        body: JSON.stringify({ markAll: true }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data?.unreadCount === 'number') {
+          setUnreadNotifs(data.unreadCount);
+        }
+      }
+    } catch {
+      // Keep optimistic read UI
+    }
   }, []);
 
   // Sync with live PostgreSQL Backend API cleanly without triggering dev overlays on transient disconnects
@@ -343,44 +507,63 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     };
 
     try {
-      // 1. Session & Profile
-      const sessionData = await safeFetchJson('/api/auth/session');
+      // 1. Strict Session Verification Gate
+      let sessionRes: Response;
+      try {
+        sessionRes = await fetch('/api/auth/session', { cache: 'no-store', signal });
+      } catch {
+        return;
+      }
       if (signal?.aborted) return;
 
-      let loggedInUserId = '';
-      if (sessionData?.user) {
-        const u = sessionData.user;
-        loggedInUserId = u.id;
-        setCurrentUserId(u.id);
-        setIsAuthenticated(true);
-        setProfileFullName(u.fullName || '');
-        setAuthFullName(u.fullName || '');
-        setAuthEmail(u.email || '');
-        setProfileUsername(u.username || '');
-        setProfileUniversity(u.university || '');
-        setProfileBio(u.bio || '');
-        setProfileAvailability(u.availability || 'Weekends & Evenings');
-        setAvatarUrl(u.avatarUrl ?? null);
-        setAuthProvider(u.authProvider || 'EMAIL');
-        setUserCreatedAt(u.createdAt ? String(u.createdAt) : null);
-        setHasProfilePhoto(Boolean(u.avatarUrl));
-        setOfferedSkills(Array.isArray(u.offeredSkills) ? u.offeredSkills : []);
-        setAvailableCredits(typeof u.availableCredits === 'number' ? u.availableCredits : 5.0);
-        setReservedCredits(typeof u.reservedCredits === 'number' ? u.reservedCredits : 0.0);
-        setEarnedLifetime(typeof u.earnedLifetime === 'number' ? u.earnedLifetime : 0.0);
-        setSpentLifetime(typeof u.spentLifetime === 'number' ? u.spentLifetime : 0.0);
-        setCompletedExchanges(typeof u.completedExchanges === 'number' ? u.completedExchanges : 0);
-      } else {
+      if (sessionRes.status === 401 || sessionRes.status === 403) {
         setIsAuthenticated(false);
+        setAuthStatus('unauthenticated');
+        window.location.replace('/login');
+        return;
       }
 
-      // 2. Wallet & Transactions + 3. Agreement Rooms + 6. Beta Subscription (authenticated)
-      const [walletData, agreementsData, betaData, listingsData, commData] = await Promise.all([
-        loggedInUserId ? safeFetchJson('/api/wallet') : Promise.resolve(null),
-        loggedInUserId ? safeFetchJson('/api/agreements') : Promise.resolve(null),
-        loggedInUserId ? safeFetchJson('/api/subscription/beta') : Promise.resolve(null),
+      const sessionData = sessionRes.ok ? await sessionRes.json().catch(() => null) : null;
+      if (signal?.aborted) return;
+
+      if (!sessionData?.authenticated || !sessionData?.user) {
+        setIsAuthenticated(false);
+        setAuthStatus('unauthenticated');
+        window.location.replace('/login');
+        return;
+      }
+
+      const u = sessionData.user;
+      const loggedInUserId = u.id;
+      setCurrentUserId(u.id);
+      setIsAuthenticated(true);
+      setAuthStatus('authenticated');
+      setProfileFullName(u.fullName || '');
+      setAuthFullName(u.fullName || '');
+      setAuthEmail(u.email || '');
+      setProfileUsername(u.username || '');
+      setProfileUniversity(u.university || '');
+      setProfileBio(u.bio || '');
+      setProfileAvailability(u.availability || 'Weekends & Evenings');
+      setAvatarUrl(u.avatarUrl ?? null);
+      setAuthProvider(u.authProvider || 'EMAIL');
+      setUserCreatedAt(u.createdAt ? String(u.createdAt) : null);
+      setHasProfilePhoto(Boolean(u.avatarUrl));
+      setOfferedSkills(Array.isArray(u.offeredSkills) ? u.offeredSkills : []);
+      setAvailableCredits(typeof u.availableCredits === 'number' ? u.availableCredits : 5.0);
+      setReservedCredits(typeof u.reservedCredits === 'number' ? u.reservedCredits : 0.0);
+      setEarnedLifetime(typeof u.earnedLifetime === 'number' ? u.earnedLifetime : 0.0);
+      setSpentLifetime(typeof u.spentLifetime === 'number' ? u.spentLifetime : 0.0);
+      setCompletedExchanges(typeof u.completedExchanges === 'number' ? u.completedExchanges : 0);
+
+      // 2. Wallet & Transactions + 3. Agreement Rooms + 6. Beta Subscription + Notifications
+      const [walletData, agreementsData, betaData, listingsData, commData, notifData] = await Promise.all([
+        safeFetchJson('/api/wallet'),
+        safeFetchJson('/api/agreements'),
+        safeFetchJson('/api/subscription/beta'),
         safeFetchJson('/api/listings'),
         safeFetchJson('/api/community'),
+        safeFetchJson('/api/notifications'),
       ]);
 
       if (signal?.aborted) return;
@@ -445,18 +628,102 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           }))
         );
       }
+
+      if (Array.isArray(notifData?.notifications)) {
+        applyIncomingNotifications(
+          notifData.notifications,
+          typeof notifData.unreadCount === 'number' ? notifData.unreadCount : 0,
+          false
+        );
+      }
     } catch (err) {
       if (!signal?.aborted) {
         console.warn('Database sync skipped:', err);
       }
     }
-  }, []);
+  }, [applyIncomingNotifications]);
+
+  const refreshNotifications = useCallback(
+    async (announceNew = true) => {
+      if (authStatus !== 'authenticated') return;
+      try {
+        const res = await fetch('/api/notifications', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!Array.isArray(data?.notifications)) return;
+
+        const hasUnseenUnread = (data.notifications as WorkspaceNotification[]).some(
+          (n) => !n.read && !seenNotifIdsRef.current.has(n.id)
+        );
+
+        applyIncomingNotifications(
+          data.notifications,
+          typeof data.unreadCount === 'number' ? data.unreadCount : 0,
+          announceNew
+        );
+
+        // Keep active rooms list in sync when a new skill request notification arrives
+        if (hasUnseenUnread && currentUserId) {
+          const agreementsRes = await fetch('/api/agreements', { cache: 'no-store' }).catch(() => null);
+          if (agreementsRes?.ok) {
+            const agreementsData = await agreementsRes.json().catch(() => null);
+            if (Array.isArray(agreementsData?.agreements)) {
+              setRooms(
+                agreementsData.agreements.map((r: any) => mapApiRoom(r, currentUserId))
+              );
+            }
+          }
+        }
+      } catch {
+        // Ignore transient offline errors during background polling
+      }
+    },
+    [authStatus, applyIncomingNotifications, currentUserId]
+  );
 
   useEffect(() => {
     const controller = new AbortController();
     refreshDatabaseState(controller.signal);
-    return () => controller.abort();
+
+    // Re-validate session immediately if restored via browser Back/Forward cache (bfcache)
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        refreshDatabaseState();
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+
+    return () => {
+      controller.abort();
+      window.removeEventListener('pageshow', handlePageShow);
+    };
   }, [refreshDatabaseState]);
+
+  // Real-time background polling & tab-focus sync for incoming Skill Request web notifications
+  useEffect(() => {
+    if (authStatus !== 'authenticated') return;
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        refreshNotifications(true);
+      }
+    };
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshNotifications(true);
+      }
+    }, 10_000);
+
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+    };
+  }, [authStatus, refreshNotifications]);
 
   const userInitials = useMemo(() => {
     return getInitials(profileFullName || 'Student');
@@ -483,15 +750,117 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     return Math.round((completed / profileChecklist.length) * 100);
   }, [profileChecklist]);
 
-  // Handlers
-  const handleToggleSaveListing = useCallback(async (id: string) => {
-    setListings((prev) => prev.map((l) => (l.id === id ? { ...l, saved: !l.saved } : l)));
+  const refreshSavedListings = useCallback(async () => {
     try {
-      await fetch(`/api/listings/${id}/save`, { method: 'POST' });
+      const res = await fetch('/api/listings/saved', { cache: 'no-store' });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!Array.isArray(data?.listings)) return;
+
+      const savedMap = new Map<string, string | null>();
+      const apiSavedMapped: SkillListing[] = data.listings.map((item: any) => {
+        const mapped = mapApiListing({ ...item, isSaved: true, saved: true }, currentUserId);
+        savedMap.set(mapped.id, mapped.savedAt ?? null);
+        return mapped;
+      });
+
+      setListings((prev) => {
+        const nextIds = new Set(prev.map((l) => l.id));
+        const updated = prev.map((l) =>
+          savedMap.has(l.id)
+            ? { ...l, saved: true, savedAt: savedMap.get(l.id) ?? l.savedAt ?? null }
+            : { ...l, saved: false, savedAt: null }
+        );
+        const missingFromAll = apiSavedMapped.filter((l) => !nextIds.has(l.id));
+        return [...missingFromAll, ...updated];
+      });
     } catch {
-      // Revert if request failed
+      // Keep current synced state cleanly on transient offline error
     }
-  }, []);
+  }, [currentUserId]);
+
+  // Handlers
+  const handleToggleSaveListing = useCallback(
+    async (id: string) => {
+      if (savingIdsRef.current.has(id)) return;
+
+      const existing = listings.find((l) => l.id === id);
+      const previousSaved = Boolean(existing?.saved);
+      const previousSavedAt = existing?.savedAt ?? null;
+      const targetTitle = existing?.title || 'Skill listing';
+      const optimisticSaved = !previousSaved;
+
+      savingIdsRef.current.add(id);
+      setSavingListingIds((prev) => ({ ...prev, [id]: true }));
+      setListings((prev) =>
+        prev.map((l) =>
+          l.id === id
+            ? {
+                ...l,
+                saved: optimisticSaved,
+                savedAt: optimisticSaved ? new Date().toISOString() : null,
+              }
+            : l
+        )
+      );
+
+      try {
+        const res = await fetch(`/api/listings/${encodeURIComponent(id)}/save`, {
+          method: 'POST',
+          cache: 'no-store',
+        });
+
+        if (res.status === 401) {
+          setIsAuthenticated(false);
+          setAuthStatus('unauthenticated');
+          window.location.replace('/login');
+          return;
+        }
+
+        const data = await res.json().catch(() => null);
+        if (!res.ok || typeof data?.saved !== 'boolean') {
+          setListings((prev) =>
+            prev.map((l) =>
+              l.id === id ? { ...l, saved: previousSaved, savedAt: previousSavedAt } : l
+            )
+          );
+          pushToast(data?.error || 'Could not update Saved Skills in database.');
+          return;
+        }
+
+        const confirmedSaved: boolean = data.saved;
+        const confirmedSavedAt: string | null = data.savedAt ?? (confirmedSaved ? new Date().toISOString() : null);
+
+        setListings((prev) =>
+          prev.map((l) =>
+            l.id === id
+              ? { ...l, saved: confirmedSaved, savedAt: confirmedSavedAt }
+              : l
+          )
+        );
+        pushToast(
+          confirmedSaved
+            ? `Saved "${targetTitle}" to Saved Skills.`
+            : `Removed "${targetTitle}" from Saved Skills.`
+        );
+      } catch {
+        setListings((prev) =>
+          prev.map((l) =>
+            l.id === id ? { ...l, saved: previousSaved, savedAt: previousSavedAt } : l
+          )
+        );
+        pushToast('Network error — could not save listing to database.');
+      } finally {
+        savingIdsRef.current.delete(id);
+        setSavingListingIds((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+      }
+    },
+    [listings, pushToast]
+  );
 
   const handleCreateListing = useCallback(
     async (form: {
@@ -554,7 +923,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       );
       if (existing) {
         setActiveRoomId(existing.id);
-        router.push(`/agreement?roomId=${existing.id}`);
+        navigateWithLoader(`/agreement?roomId=${existing.id}`);
         pushToast(`Navigated to active agreement room for "${listing.title}".`);
         return;
       }
@@ -578,7 +947,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           const mapped = mapApiRoom(data.agreement, currentUserId);
           setRooms((prev) => [mapped, ...prev]);
           setActiveRoomId(mapped.id);
-          router.push(`/agreement?roomId=${mapped.id}`);
+          navigateWithLoader(`/agreement?roomId=${mapped.id}`);
           pushToast(`Opened Agreement room for "${listing.title}" with ${listing.authorName}.`);
         } else {
           pushToast(data?.error || 'Failed to open agreement room');
@@ -587,7 +956,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         pushToast(err?.message || 'Error creating agreement room in database.');
       }
     },
-    [rooms, currentUserId, router, pushToast]
+    [rooms, currentUserId, navigateWithLoader, pushToast]
   );
 
   const handleSendChatMessage = useCallback(
@@ -911,39 +1280,66 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       e.preventDefault();
       const cleaned = newSkillInput.trim();
       if (!cleaned) return;
-      if (!offeredSkills.includes(cleaned)) {
-        const updated = [...offeredSkills, cleaned];
-        setOfferedSkills(updated);
-        try {
-          await fetch('/api/profile', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ offeredSkills: updated }),
-          });
-        } catch {
-          // Keep local state
-        }
+      if (offeredSkills.includes(cleaned)) {
+        setNewSkillInput('');
+        return;
       }
-      setNewSkillInput('');
-    },
-    [newSkillInput, offeredSkills]
-  );
 
-  const handleRemoveOfferedSkill = useCallback(
-    async (skill: string) => {
-      const updated = offeredSkills.filter((item) => item !== skill);
+      const prevSkills = offeredSkills;
+      const updated = [...offeredSkills, cleaned];
       setOfferedSkills(updated);
+      setNewSkillInput('');
+
       try {
-        await fetch('/api/profile', {
+        const res = await fetch('/api/profile', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ offeredSkills: updated }),
         });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          setOfferedSkills(prevSkills);
+          pushToast(data?.error || 'Could not save skill to database.');
+          return;
+        }
+        if (Array.isArray(data?.profile?.offeredSkills)) {
+          setOfferedSkills(data.profile.offeredSkills);
+        }
+        pushToast(`Added "${cleaned}" to skills you offer.`);
       } catch {
-        // Keep local state
+        setOfferedSkills(prevSkills);
+        pushToast('Network error — could not save skill.');
       }
     },
-    [offeredSkills]
+    [newSkillInput, offeredSkills, pushToast]
+  );
+
+  const handleRemoveOfferedSkill = useCallback(
+    async (skill: string) => {
+      const prevSkills = offeredSkills;
+      const updated = offeredSkills.filter((item) => item !== skill);
+      setOfferedSkills(updated);
+      try {
+        const res = await fetch('/api/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ offeredSkills: updated }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          setOfferedSkills(prevSkills);
+          pushToast(data?.error || 'Could not remove skill from database.');
+          return;
+        }
+        if (Array.isArray(data?.profile?.offeredSkills)) {
+          setOfferedSkills(data.profile.offeredSkills);
+        }
+      } catch {
+        setOfferedSkills(prevSkills);
+        pushToast('Network error — could not remove skill.');
+      }
+    },
+    [offeredSkills, pushToast]
   );
 
   const handleUploadAvatar = useCallback(
@@ -1001,9 +1397,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     (e: React.FormEvent) => {
       e.preventDefault();
       refreshDatabaseState();
-      router.push('/dashboard');
+      navigateWithLoader('/dashboard');
     },
-    [refreshDatabaseState, router]
+    [refreshDatabaseState, navigateWithLoader]
   );
 
   const handleLogout = useCallback(async () => {
@@ -1012,7 +1408,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
-    // Cleanly wipe all user state from client memory
+    // Cleanly wipe all user state from client memory & replace browser history entry
+    setAuthStatus('unauthenticated');
     setIsAuthenticated(false);
     setCurrentUserId('');
     setProfileFullName('');
@@ -1031,11 +1428,16 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     setSpentLifetime(0);
     setCompletedExchanges(0);
     setTransactions([]);
+    setListings([]);
+    setSavingListingIds({});
+    setNotifications([]);
+    setUnreadNotifs(0);
+    seenNotifIdsRef.current.clear();
+    notifsSeededRef.current = false;
     setRooms([]);
     setActiveRoomId('');
-    pushToast('Logged out of student workspace.');
-    router.push('/login');
-  }, [router, pushToast]);
+    window.location.replace('/login');
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -1043,6 +1445,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setThemeMode,
       toggleTheme,
       currentUserId,
+      authStatus,
       isAuthenticated,
       setIsAuthenticated,
       authMode,
@@ -1062,6 +1465,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       completedExchanges,
       transactions,
       listings,
+      savedListings,
+      savingListingIds,
+      refreshSavedListings,
       handleToggleSaveListing,
       handleCreateListing,
       postModalOpen,
@@ -1124,15 +1530,22 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       profileCompletionPct,
       toasts,
       pushToast,
+      notifications,
       unreadNotifs,
       setUnreadNotifs,
       notifOpen,
       setNotifOpen,
+      browserNotifPermission,
+      requestBrowserNotifications,
+      markNotificationRead,
+      markAllNotificationsRead,
+      refreshNotifications,
     }),
     [
       themeMode,
       toggleTheme,
       currentUserId,
+      authStatus,
       isAuthenticated,
       authMode,
       authEmail,
@@ -1147,6 +1560,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       completedExchanges,
       transactions,
       listings,
+      savedListings,
+      savingListingIds,
+      refreshSavedListings,
       handleToggleSaveListing,
       handleCreateListing,
       postModalOpen,
@@ -1191,8 +1607,14 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       profileCompletionPct,
       toasts,
       pushToast,
+      notifications,
       unreadNotifs,
       notifOpen,
+      browserNotifPermission,
+      requestBrowserNotifications,
+      markNotificationRead,
+      markAllNotificationsRead,
+      refreshNotifications,
     ]
   );
 

@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { BrandLogo } from '@/components/BrandLogo';
+import { GoogleAuthButton } from '@/components/GoogleAuthButton';
 import { IconArrowLeft, IconArrowRight } from '@/components/workspace/Icons';
+import { getSafeRedirectPath } from '@/lib/session-token';
 
 export type AuthMode = 'login' | 'signup';
 
@@ -30,59 +32,14 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   oauth_failed: 'Could not complete Google Sign-In. Please try again.',
 };
 
-function GoogleGIcon() {
+function GoogleDivider() {
   return (
-    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true" className="shrink-0">
-      <path
-        fill="#EA4335"
-        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
-      />
-      <path
-        fill="#4285F4"
-        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
-      />
-      <path
-        fill="#34A853"
-        d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
-      />
-    </svg>
-  );
-}
-
-function ContinueWithGoogleBlock({
-  intent,
-  tabIndex,
-}: {
-  intent: 'login' | 'signup';
-  tabIndex: number;
-}) {
-  const label = intent === 'signup' ? 'Sign up with Google' : 'Continue with Google';
-  return (
-    <div className="mt-3.5">
-      <div className="flex items-center gap-3 mb-3.5">
-        <span className="h-px flex-1 bg-[#DADCE0]" />
-        <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#5F6368]">
-          or
-        </span>
-        <span className="h-px flex-1 bg-[#DADCE0]" />
-      </div>
-      <button
-        type="button"
-        tabIndex={tabIndex}
-        onClick={() => {
-          window.location.href = `/api/auth/google?intent=${intent}`;
-        }}
-        className="group w-full h-11 px-4 rounded-[4px] bg-white text-[#1F1F1F] border border-[#747775]/55 shadow-[0_1px_2px_rgba(11,16,38,0.06)] hover:bg-[#F1F5FE] hover:border-[#021F94]/50 hover:text-[#0B1026] hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(2,31,148,0.12),0_1px_3px_rgba(60,64,67,0.1)] active:translate-y-0 active:scale-[0.99] active:bg-[#E4ECFD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#021F94]/35 focus-visible:ring-offset-1 font-sans text-[14px] font-medium tracking-[0.015em] flex items-center justify-center gap-3 transition-all duration-200 ease-out cursor-pointer"
-      >
-        <span className="flex items-center justify-center transition-transform duration-200 ease-out group-hover:scale-[1.06]">
-          <GoogleGIcon />
-        </span>
-        <span>{label}</span>
-      </button>
+    <div className="flex items-center gap-3 mb-3.5">
+      <span className="h-px flex-1 bg-[#DADCE0]" />
+      <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#5F6368]">
+        or
+      </span>
+      <span className="h-px flex-1 bg-[#DADCE0]" />
     </div>
   );
 }
@@ -90,10 +47,12 @@ function ContinueWithGoogleBlock({
 function AuthSearchParamsSync({
   onModeFromQuery,
   onOAuthNotice,
+  onNextFromQuery,
   pushToast,
 }: {
   onModeFromQuery: (next: AuthMode) => void;
   onOAuthNotice: (code: string | null) => void;
+  onNextFromQuery: (nextPath: string) => void;
   pushToast: (msg: string) => void;
 }) {
   const searchParams = useSearchParams();
@@ -107,6 +66,8 @@ function AuthSearchParamsSync({
       onModeFromQuery('login');
     }
 
+    onNextFromQuery(getSafeRedirectPath(searchParams.get('next')));
+
     const oauthErr = searchParams.get('oauth_error');
     if (oauthErr && handledErrorRef.current !== oauthErr) {
       handledErrorRef.current = oauthErr;
@@ -118,15 +79,15 @@ function AuthSearchParamsSync({
         window.history.replaceState(null, '', nextUrl.pathname + nextUrl.search);
       }
     }
-  }, [searchParams, onModeFromQuery, onOAuthNotice, pushToast]);
+  }, [searchParams, onModeFromQuery, onOAuthNotice, onNextFromQuery, pushToast]);
 
   return null;
 }
 
 export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortalProps) {
-  const router = useRouter();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [oauthNotice, setOauthNotice] = useState<string | null>(null);
+  const [nextPath, setNextPath] = useState<string>('/dashboard');
   const [submitting, setSubmitting] = useState(false);
 
   const switchMode = useCallback((next: AuthMode) => {
@@ -177,9 +138,10 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
         return;
       }
       pushToast(`Signed in as ${data.user.fullName} — entering Student Workspace.`);
+      const targetPath = getSafeRedirectPath(nextPath);
       window.setTimeout(() => {
-        router.push('/dashboard');
-      }, 400);
+        window.location.assign(targetPath);
+      }, 300);
     } catch (err: any) {
       pushToast(err?.message || 'Login failed. Please verify credentials.');
     } finally {
@@ -211,9 +173,11 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
         return;
       }
       pushToast(`Ledger created for ${data.user.fullName} (+5.00 ECHO starter grant minted in database).`);
+      const targetUrl = new URL(getSafeRedirectPath(nextPath), window.location.origin);
+      targetUrl.searchParams.set('welcome', 'new');
       window.setTimeout(() => {
-        router.push('/dashboard?welcome=new');
-      }, 400);
+        window.location.assign(targetUrl.pathname + targetUrl.search);
+      }, 300);
     } catch (err: any) {
       pushToast(err?.message || 'Sign up failed.');
     } finally {
@@ -229,6 +193,7 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
         <AuthSearchParamsSync
           onModeFromQuery={setMode}
           onOAuthNotice={setOauthNotice}
+          onNextFromQuery={setNextPath}
           pushToast={pushToast}
         />
       </Suspense>
@@ -329,7 +294,15 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
                 </button>
               </form>
 
-              <ContinueWithGoogleBlock intent="login" tabIndex={isSignup ? -1 : 0} />
+              <div className="mt-3.5">
+                <GoogleDivider />
+                <GoogleAuthButton
+                  intent="login"
+                  label="Continue with Google"
+                  nextPath={nextPath}
+                  tabIndex={isSignup ? -1 : 0}
+                />
+              </div>
             </div>
           </div>
 
@@ -417,7 +390,14 @@ export function EchoTimeAuthPortal({ initialMode = 'login' }: EchoTimeAuthPortal
                 </button>
               </form>
 
-              <ContinueWithGoogleBlock intent="signup" tabIndex={!isSignup ? -1 : 0} />
+              <div className="mt-3.5">
+                <GoogleDivider />
+                <GoogleAuthButton
+                  intent="signup"
+                  nextPath={nextPath}
+                  tabIndex={!isSignup ? -1 : 0}
+                />
+              </div>
             </div>
           </div>
 

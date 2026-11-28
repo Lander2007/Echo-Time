@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { formatApiSkillListing } from '@/lib/listings';
 import {
   parsePositiveInt,
   readJsonBody,
@@ -8,6 +9,12 @@ import {
   toErrorResponse,
 } from '@/lib/validation';
 import { ListingType, ListingFormat, ListingStatus } from '@prisma/client';
+
+export const dynamic = 'force-dynamic';
+
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+};
 
 export async function GET(req: NextRequest) {
   try {
@@ -51,9 +58,21 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    if (scope === 'my' && currentUser) {
+    if (scope === 'my') {
+      if (!currentUser) {
+        return NextResponse.json(
+          { error: 'Authentication required to view your listings.' },
+          { status: 401, headers: NO_STORE_HEADERS }
+        );
+      }
       where.authorId = currentUser.id;
-    } else if (scope === 'saved' && currentUser) {
+    } else if (scope === 'saved') {
+      if (!currentUser) {
+        return NextResponse.json(
+          { error: 'Authentication required to view saved listings.' },
+          { status: 401, headers: NO_STORE_HEADERS }
+        );
+      }
       where.savedBy = {
         some: { userId: currentUser.id },
       };
@@ -83,36 +102,24 @@ export async function GET(req: NextRequest) {
         savedBy: currentUser
           ? {
               where: { userId: currentUser.id },
-              select: { id: true },
+              select: { id: true, createdAt: true },
             }
           : false,
       },
     });
 
-    const formatted = listings.map((l) => ({
-      id: l.id,
-      authorId: l.authorId,
-      authorName: l.author.fullName,
-      authorUni: l.author.university,
-      title: l.title,
-      description: l.description,
-      category: l.category,
-      type: l.type === ListingType.OFFERING ? 'Offering' : 'Looking for',
-      format:
-        l.format === ListingFormat.ONLINE
-          ? 'Online'
-          : l.format === ListingFormat.IN_PERSON
-          ? 'In-person'
-          : 'Hybrid',
-      creditsPerHr: l.creditsPerHr,
-      rating: l.rating,
-      reviewsCount: l.reviewsCount,
-      isSaved: Boolean(currentUser && l.savedBy && l.savedBy.length > 0),
-      isMine: Boolean(currentUser && l.authorId === currentUser.id),
-      createdAt: l.createdAt.toISOString(),
-    }));
+    const formatted = listings.map((l) => formatApiSkillListing(l, currentUser?.id));
+    const savedIds = formatted.filter((l) => l.isSaved).map((l) => l.id);
 
-    return NextResponse.json({ success: true, listings: formatted });
+    return NextResponse.json(
+      {
+        success: true,
+        listings: formatted,
+        savedIds,
+        savedCount: savedIds.length,
+      },
+      { headers: NO_STORE_HEADERS }
+    );
   } catch (error) {
     return toErrorResponse(error, 'Failed to retrieve skill listings from database.');
   }
@@ -197,30 +204,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        listing: {
-          id: listing.id,
-          authorId: listing.authorId,
-          title: listing.title,
-          description: listing.description,
-          category: listing.category,
-          type: listing.type === ListingType.OFFERING ? 'Offering' : 'Looking for',
-          format:
-            listing.format === ListingFormat.ONLINE
-              ? 'Online'
-              : listing.format === ListingFormat.IN_PERSON
-              ? 'In-person'
-              : 'Hybrid',
-          creditsPerHr: listing.creditsPerHr,
-          authorName: listing.author.fullName,
-          authorUni: listing.author.university,
-          rating: listing.rating,
-          reviewsCount: listing.reviewsCount,
-          isSaved: false,
-          isMine: true,
-          createdAt: listing.createdAt.toISOString(),
-        },
+        listing: formatApiSkillListing(listing, user.id),
       },
-      { status: 201 }
+      { status: 201, headers: NO_STORE_HEADERS }
     );
   } catch (error) {
     return toErrorResponse(error, 'Failed to publish skill listing to database.');

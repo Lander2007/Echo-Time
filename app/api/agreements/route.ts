@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { createUserNotification } from '@/lib/notifications';
 import {
   NotFoundError,
   parsePositiveInt,
@@ -9,7 +10,7 @@ import {
   toErrorResponse,
   ValidationError,
 } from '@/lib/validation';
-import { AgreementStage, MessageSenderType } from '@prisma/client';
+import { AgreementStage, ListingType, MessageSenderType } from '@prisma/client';
 
 export async function GET() {
   try {
@@ -98,6 +99,7 @@ export async function POST(req: NextRequest) {
     let resolvedCreditsPerHr: number;
     let resolvedTitle: string;
     let resolvedCategory: string;
+    let listingType: ListingType = ListingType.OFFERING;
 
     if (rawListingId) {
       // Server-side authoritative lookup: never trust client-supplied price or providerId
@@ -106,6 +108,7 @@ export async function POST(req: NextRequest) {
         select: {
           id: true,
           authorId: true,
+          type: true,
           title: true,
           category: true,
           creditsPerHr: true,
@@ -121,6 +124,7 @@ export async function POST(req: NextRequest) {
       }
 
       resolvedProviderId = listing.authorId;
+      listingType = listing.type;
       resolvedCreditsPerHr = Math.min(5, Math.max(1, Math.trunc(listing.creditsPerHr || 1)));
       resolvedTitle = sanitizeText(body.title, {
         fieldName: 'Title',
@@ -171,36 +175,55 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const room = await prisma.agreementRoom.create({
-      data: {
-        requesterId: user.id,
-        providerId: resolvedProviderId,
-        listingId: rawListingId,
-        title: resolvedTitle,
-        category: resolvedCategory,
-        goal,
-        format,
-        durationHrs,
-        creditsPerHr: resolvedCreditsPerHr,
-        stage: AgreementStage.NEGOTIATING,
-        termsVersion: 1,
-        messages: {
-          create: {
-            senderType: MessageSenderType.SYSTEM,
-            authorLabel: 'SYSTEM PROTOCOL',
-            body: 'Agreement Room opened. Review the terms and negotiate before confirming escrow.',
+    const room = await prisma.$transaction(async (tx) => {
+      const createdRoom = await tx.agreementRoom.create({
+        data: {
+          requesterId: user.id,
+          providerId: resolvedProviderId,
+          listingId: rawListingId,
+          title: resolvedTitle,
+          category: resolvedCategory,
+          goal,
+          format,
+          durationHrs,
+          creditsPerHr: resolvedCreditsPerHr,
+          stage: AgreementStage.NEGOTIATING,
+          termsVersion: 1,
+          messages: {
+            create: {
+              senderType: MessageSenderType.SYSTEM,
+              authorLabel: 'SYSTEM PROTOCOL',
+              body: 'Agreement Room opened. Review the terms and negotiate before confirming escrow.',
+            },
           },
         },
-      },
-      include: {
-        requester: {
-          select: { id: true, fullName: true, username: true, university: true },
+        include: {
+          requester: {
+            select: { id: true, fullName: true, username: true, university: true },
+          },
+          provider: {
+            select: { id: true, fullName: true, username: true, university: true },
+          },
+          messages: true,
         },
-        provider: {
-          select: { id: true, fullName: true, username: true, university: true },
-        },
-        messages: true,
-      },
+      });
+
+      const isResponseToRequest = listingType === ListingType.LOOKING_FOR;
+      await createUserNotification(tx, {
+        userId: resolvedProviderId,
+        type: 'SKILL_REQUEST',
+        title: isResponseToRequest
+          ? `Peer responded: ${resolvedTitle}`
+          : `New skill request: ${resolvedTitle}`,
+        body: isResponseToRequest
+          ? `${user.fullName} responded to your listing "${resolvedTitle}" and opened an Agreement Room.`
+          : `${user.fullName} requested your skill "${resolvedTitle}" (${resolvedCreditsPerHr} ECHO/hr). Open room to review terms.`,
+        href: `/agreement?roomId=${createdRoom.id}`,
+        roomId: createdRoom.id,
+        actorName: user.fullName,
+      });
+
+      return createdRoom;
     });
 
     return NextResponse.json({ agreement: room }, { status: 201 });
